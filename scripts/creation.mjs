@@ -89,6 +89,7 @@ export function initializeDraftSheet() {
           ui.notifications.info("Skill added. Its compendium copy will be saved when a GM joins.");
         }
         await this.close();
+        if (this.targetActor) await created.sheet?.render({force: true});
         return {created};
       } catch (error) {
         ui.notifications.error(error.message);

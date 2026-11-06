@@ -1,5 +1,5 @@
 import {MODULE_ID, PACK_ID, normalizeName, skillData, withCoreSkills} from "./skills.mjs";
-import {getPack, librarySkills} from "./library.mjs";
+import {getPack, isPrimaryGM, librarySkills, storeSkill} from "./library.mjs";
 import {createSkill} from "./creation.mjs";
 import {SkillPicker} from "./picker.mjs";
 const actorSkillPickers = new Map();
@@ -21,7 +21,7 @@ export function openActorSkills(actor) {
       ui.notifications.info(`${skill.name} is already on this actor.`);
       return;
     }
-    await CONFIG.Item.documentClass.create(skillData(skill), {parent: actor});
+    await CONFIG.Item.documentClass.create(skillData(skill), {parent: actor, renderSheet: true});
   }});
   actorSkillPickers.set(actor.uuid, picker);
   return picker.render({force: true});
@@ -60,6 +60,15 @@ export function installCoreSkills() {
 }
 
 export function installSheetHooks() {
+  installSkillContextMenu();
+  // The character sheet already opens skills after a drop. Match it on NPC sheets.
+  wrapMethod(game.swade.sheets.SwadeNPCSheet.prototype, "_onDropItemCreate", async function (original, ...args) {
+    const items = await original(...args);
+    if (Array.isArray(items)) {
+      for (const item of items) if (item.type === "skill") await item.sheet?.render({force: true});
+    }
+    return items;
+  });
   Hooks.on("updateCompendium", pack => {
     if (pack.collection !== PACK_ID) return;
     for (const app of foundry.applications.instances.values()) if (app instanceof SkillPicker && app.rendered) void app.render();
@@ -127,6 +136,51 @@ export function installSheetHooks() {
     button.addEventListener("click", () => openLibrary().catch(report));
     html.querySelector(".header-actions")?.append(button);
   });
+}
+
+function getContextSkill(target) {
+  if (!target?.matches?.("li.item.skill[data-item-id]")) return;
+  const root = target.closest(".swade.sheet.actor");
+  const sheet = foundry.applications.instances.get(root?.id);
+  const skill = sheet?.actor?.items.get(target.dataset.itemId);
+  if (sheet?.isEditable && skill?.type === "skill" && skill.isOwner) return skill;
+}
+
+function installSkillContextMenu() {
+  const {implementation} = foundry.applications.ux.ContextMenu;
+  wrapMethod(implementation.prototype, "_preRenderEntries", async function (original, ...args) {
+    await original(...args);
+    if (!getContextSkill(this.target) || this.menuItems.some(entry => entry.classes === "sbs-add-to-compendium")) return;
+    this.menuItems.push({
+      label: "Add to Compendium",
+      icon: "fa-solid fa-book-medical",
+      classes: "sbs-add-to-compendium",
+      visible: target => {
+        const skill = getContextSkill(target);
+        const pack = getPack();
+        if (!skill || !pack?.visible || pack.locked) return false;
+        const name = normalizeName(skill.name);
+        return !pack.index.some(entry => entry.type === "skill" && normalizeName(entry.name) === name);
+      },
+      onClick: (_event, target) => addSkillToCompendium(getContextSkill(target)).catch(report)
+    });
+  });
+}
+
+async function addSkillToCompendium(skill) {
+  if (!skill) return;
+  const pack = getPack();
+  if (!pack?.visible || pack.locked) throw new Error("A GM must unlock the Better Setting skill compendium to add this skill.");
+  if (isPrimaryGM()) {
+    await storeSkill(skill);
+    if (skill.getFlag(MODULE_ID, "pendingLibrary")) await skill.unsetFlag(MODULE_ID, "pendingLibrary");
+    ui.notifications.info(`“${skill.name}” added to the Skills Compendium.`);
+  } else {
+    await skill.setFlag(MODULE_ID, "pendingLibrary", true);
+    ui.notifications.info(game.users.activeGM
+      ? `Compendium copy requested for “${skill.name}”.`
+      : `“${skill.name}” will be added to the Skills Compendium when a GM joins.`);
+  }
 }
 
 export function injectTraitButtons(root) {

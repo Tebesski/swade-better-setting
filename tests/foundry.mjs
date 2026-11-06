@@ -10,7 +10,8 @@ const context = await browser.newContext({viewport: {width: 1440, height: 1100}}
 let page = await context.newPage();
 page.setDefaultTimeout(10000);
 const errors = [];
-page.on("pageerror", error => errors.push(error.message));
+const trackPageError = error => errors.push(error.stack ?? error.message);
+page.on("pageerror", trackPageError);
 page.on("console", msg => { if (msg.type() === "error" && msg.text().includes("swade-better-setting")) errors.push(msg.text()); });
 const moduleId = "swade-better-setting";
 const packId = "world.better-setting-skills";
@@ -74,12 +75,49 @@ try {
   await search.fill("Shooting");
   assert.equal(await page.locator(".sbs-row:visible").count(), 1);
   await page.locator('.sbs-row:visible .sbs-star').click();
+  await page.locator(".sbs-group").first().getByRole("heading", {name: "Starred", exact: true}).waitFor();
   await search.fill("");
   assert.ok(await page.locator(".sbs-row:visible").count() >= 32, "Clearing a search after starring restores all entries");
   assert.equal(await page.locator(".sbs-group").first().locator("h3").innerText(), "Starred");
   await page.locator('.sbs-group').first().getByRole("button", {name: "Shooting", exact: true}).click();
-  await page.waitForFunction(() => qa.pc.items.some(item => item.name === "Shooting"));
-  pass("actor add opens picker without creating an item; search, star, and catalog add work");
+  await page.waitForFunction(() => qa.pc.items.getName("Shooting")?.sheet.rendered);
+  await page.evaluate(() => qa.pc.items.getName("Shooting").sheet.close());
+  pass("actor picker searches and stars skills, then opens the new embedded skill for editing");
+
+  const localSkillId = await page.evaluate(async () => {
+    const skill = await Item.create({name: `${qa.prefix} Fieldcraft`, type: "skill", system: {die: {sides: 8}}}, {parent: qa.pc});
+    return skill.id;
+  });
+  const localSkill = page.locator(`li.skill[data-item-id="${localSkillId}"]`);
+  const menu = page.locator("#context-menu");
+  await localSkill.click({button: "right"});
+  await menu.getByText("Add to Compendium", {exact: true}).click();
+  await page.waitForFunction(() => qa.pack.index.some(item => item.name === `${qa.prefix} Fieldcraft`));
+  await menu.waitFor({state: "hidden"});
+  await localSkill.click({button: "right"});
+  await menu.waitFor();
+  assert.equal(await menu.getByText("Add to Compendium", {exact: true}).count(), 0);
+  await page.evaluate(() => ui.context.close({animate: false}));
+  pass("the native skill context menu copies a missing skill and hides the action once it is in the compendium");
+
+  const npcDrop = await page.evaluate(async () => {
+    await qa.npc.sheet.render({force: true});
+    const source = qa.pack.index.find(item => item.name === "Shooting");
+    return {sheetId: qa.npc.sheet.id, uuid: source.uuid};
+  });
+  const transfer = await page.evaluateHandle(uuid => {
+    const data = new DataTransfer();
+    data.setData("text/plain", JSON.stringify({type: "Item", uuid}));
+    return data;
+  }, npcDrop.uuid);
+  await page.locator(`[id="${npcDrop.sheetId}"]`).dispatchEvent("drop", {dataTransfer: transfer});
+  await transfer.dispose();
+  await page.waitForFunction(() => qa.npc.items.getName("Shooting")?.sheet.rendered);
+  await page.evaluate(async () => {
+    await qa.npc.items.getName("Shooting").sheet.close();
+    await qa.npc.sheet.close();
+  });
+  pass("dropping a skill onto an NPC opens its editor");
 
   await page.locator('[data-action="createDocument"][data-type="skill"]').click();
   await page.locator('[data-action="createSkill"]').click();
@@ -89,7 +127,6 @@ try {
   assert.equal(await page.evaluate(() => qa.pc.items.some(item => item.name.endsWith("Cancelled"))), false);
   pass("closing a standard skill draft discards it");
 
-  await page.locator('[data-action="createDocument"][data-type="skill"]').click();
   await page.locator('[data-action="createSkill"]').click();
   const draft = page.locator(".sbs-skill-draft");
   await draft.locator('[name="name"]').fill(`${prefix} Navigation`);
@@ -103,7 +140,7 @@ try {
   assert.equal(await page.evaluate(() => qa.pc.items.some(item => item.name.endsWith("Navigation"))), false);
   await draft.screenshot({path: "test-results/skill-draft.png"});
   await draft.locator('.sbs-add-skill').click();
-  await page.waitForFunction(() => qa.pc.items.some(item => item.name.endsWith("Navigation")));
+  await page.waitForFunction(() => qa.pc.items.getName(`${qa.prefix} Navigation`)?.sheet.rendered);
   await page.waitForFunction(() => [...qa.pack.index].some(item => item.name.endsWith("Navigation")));
   const custom = await page.evaluate(async () => {
     qa.custom = (await qa.pack.getDocuments()).find(item => item.name.endsWith("Navigation"));
@@ -111,7 +148,7 @@ try {
     return {die: qa.custom.system.die.sides, description: qa.custom.system.description, onActor: qa.newNPC.items.some(item => item.name === qa.custom.name)};
   });
   assert.deepEqual(custom, {die: 8, description: "<p>A custom navigation skill description.</p>", onActor: true});
-  pass("explicit Add skill preserves fields, adds the compendium copy, and custom core skills reach new NPCs");
+  pass("explicit Add skill opens the saved editor, preserves fields, and adds a core skill to the compendium");
 
   await closeApps();
   await page.evaluate(async () => {
@@ -123,10 +160,17 @@ try {
   assert.equal(await page.evaluate(() => qa.pack.index.some(item => item.name.endsWith("Compendium Draft"))), false);
   await page.locator('.sbs-skill-draft .sbs-add-skill').click();
   await page.waitForFunction(() => qa.pack.index.some(item => item.name.endsWith("Compendium Draft")));
+  if (await page.evaluate(() => qa.pack.apps[0] instanceof game.swade.apps.CompendiumTOC)) {
+    // The SWADE compendium debounces its filter after a pack update.
+    await page.waitForFunction(() => {
+      const entry = qa.pack.index.find(item => item.name.endsWith("Compendium Draft"));
+      return qa.pack.apps[0].element?.querySelector(`.toc-entry[data-entry-id="${entry._id}"]`)?.style.display === "flex";
+    });
+  }
+  await closeApps();
   await page.evaluate(async () => (await qa.pack.getDocuments()).find(item => item.name.endsWith("Compendium Draft")).delete());
   pass("native compendium Create Item uses the standard deferred skill sheet");
 
-  await closeApps();
   await page.evaluate(async () => {
     qa.gear = await Item.create({name: `${qa.prefix} Gear`, type: "gear", system: {actions: {additional: {test: {name: "Test action", type: "trait", override: ""}}}}});
     await qa.gear.sheet.render({force: true});
@@ -189,6 +233,16 @@ try {
   await playerPage.locator('.sbs-skill-draft .sbs-add-skill').click();
   await page.waitForFunction(() => qa.pack.index.some(item => item.name.endsWith("Player Skill")));
   pass("a player-created skill is copied by the active GM");
+  const playerSkillId = await playerPage.evaluate(async prefix => {
+    const skill = await Item.create({name: `${prefix} Requested Skill`, type: "skill"}, {parent: playerQA.actor});
+    await playerQA.actor.sheet.render({force: true});
+    return skill.id;
+  }, prefix);
+  await playerPage.locator(`li.skill[data-item-id="${playerSkillId}"]`).click({button: "right"});
+  await playerPage.locator("#context-menu").getByText("Add to Compendium", {exact: true}).click();
+  await page.waitForFunction(() => qa.pack.index.some(item => item.name === `${qa.prefix} Requested Skill`));
+  await playerPage.waitForFunction(id => !playerQA.actor.items.get(id).getFlag("swade-better-setting", "pendingLibrary"), playerSkillId);
+  pass("a player can request a compendium copy from the context menu");
   await page.close();
   await playerPage.waitForFunction(() => !game.users.activeGM);
   await playerPage.evaluate(() => playerQA.api.createSkill({actor: playerQA.actor}).then(() => {}));
@@ -197,7 +251,7 @@ try {
   await playerPage.waitForFunction(() => playerQA.actor.items.some(item => item.name.endsWith("Queued Skill")));
   assert.equal(await playerPage.evaluate(id => playerQA.actor.items.find(item => item.name.endsWith("Queued Skill")).getFlag(id, "pendingLibrary"), moduleId), true);
   page = await context.newPage();
-  page.on("pageerror", error => errors.push(error.message));
+  page.on("pageerror", trackPageError);
   await page.goto(url);
   await page.locator('select[name="userId"]').selectOption({label: "Gamemaster"});
   await page.getByRole("button", {name: "Join Game Session", exact: true}).click();

@@ -34,3 +34,6 @@ Hooks.once("ready", async () => {
 });
 
 Hooks.on("createItem", item => { void processPendingSkill(item); });
+Hooks.on("updateItem", (item, changes) => {
+  if (changes.flags?.[MODULE_ID]?.pendingLibrary === true) void processPendingSkill(item);
+});
