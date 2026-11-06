@@ -2,7 +2,7 @@
    "id": "swade-better-setting",
    "title": "SWADE Better Setting",
    "description": "Make your own setting easier to create and manage.",
-   "version": "1.0.0",
+   "version": "#{VERSION}#",
    "compatibility": {
       "minimum": "14",
       "verified": "14",
@@ -20,5 +20,8 @@
       ]
    },
    "esmodules": ["scripts/main.mjs"],
-   "styles": ["styles/better-setting.css"]
+   "styles": ["styles/better-setting.css"],
+      "url": "#{URL}#",
+   "manifest": "#{MANIFEST}#",
+   "download": "#{DOWNLOAD}#"
 }
