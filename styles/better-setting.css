@@ -1,0 +1,38 @@
+.sbs-picker .window-content { padding: 12px; }
+.sbs-open-library { flex: 0 0 100%; width: 100%; }
+.sbs-picker-body { display: flex; flex-direction: column; gap: 12px; height: 100%; min-height: 0; }
+.sbs-picker .sbs-create { flex: 0 0 auto; min-height: 36px; }
+.sbs-picker input[type="search"] { flex: 0 0 auto; }
+.sbs-results { overflow-y: auto; min-height: 0; flex: 1; }
+.sbs-group { margin-bottom: 16px; }
+.sbs-group h3 { margin: 0 0 6px; padding-bottom: 6px; border-bottom: 1px solid var(--color-border-light-primary); }
+.sbs-group ol { margin: 0; padding: 0; list-style: none; }
+.sbs-row { display: flex; align-items: center; gap: 5px; margin: 3px 0; }
+.sbs-row button { margin: 0; min-height: 34px; }
+.sbs-row .sbs-star, .sbs-row .sbs-delete { flex: 0 0 24px; width: 24px; padding: 4px; text-align: center; cursor: pointer; }
+.sbs-row .sbs-star[aria-pressed="true"] { color: var(--color-warm-2, #d4a43c); }
+.sbs-row .sbs-choice { display: flex; align-items: center; gap: 8px; flex: 1; text-align: left; padding: 4px 8px; }
+.sbs-choice img { width: 26px; height: 26px; border: 0; }
+.sbs-choice span { flex: 1; }
+.sbs-choice small { opacity: .7; }
+.sbs-row:has(.sbs-linked-skills) { display: grid; grid-template-columns: 24px minmax(0, 1fr); }
+.sbs-linked-skills { grid-column: 2; display: flex; align-items: center; gap: 6px; padding: 0 8px 4px; font-size: .9em; }
+.sbs-trait-field { position: relative; }
+.sbs-trait-field.form-fields { display: flex; align-items: center; gap: 4px; flex-wrap: nowrap; }
+.sbs-trait-field > input { min-width: 0; flex: 1; }
+.sbs-trait-picker { flex: 0 0 auto; width: auto; min-width: 30px; padding: 0 6px; }
+.sbs-trait-field.sbs-skills-field { flex-wrap: wrap; }
+.sbs-skills-field > input { flex-basis: 100%; }
+.sbs-skills-field > .sbs-trait-picker { flex-basis: 100%; }
+label.float-label.sbs-trait-field { display: grid; grid-template-columns: minmax(0, 1fr) 30px; align-items: center; gap: 4px; }
+label.float-label.sbs-trait-field > span { grid-column: 1 / -1; }
+.sbs-skill-draft .main-grid > .sheet-content { display: flex; flex-direction: column; overflow-y: auto; }
+.sbs-skill-draft .sheet-content > div:first-child { flex: 0 0 auto; }
+.sbs-skill-draft .sheet-content > .editor-container { flex: 0 0 140px; min-height: 140px; height: 140px; }
+.sbs-skill-draft .editor-container > prose-mirror { min-height: 0; height: 100%; }
+.sbs-skill-draft .sbs-skill-footer { flex: 0 0 auto; margin-top: 10px; }
+.sbs-skill-draft .sbs-skill-footer button { width: 100%; }
+.sbs-save-to-library label { white-space: nowrap; }
+.sbs-picker [hidden], .sbs-skill-draft [hidden] { display: none !important; }
+:is(.sbs-picker, .sbs-skill-draft) :is(button, a, button i, a i),
+.sbs-trait-picker { transition: none !important; animation: none !important; }
