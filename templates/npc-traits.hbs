@@ -1,0 +1,39 @@
+<aside class="sbs-npc-traits" aria-labelledby="{{partId}}-heading">
+  <h2 id="{{partId}}-heading">Attributes and skills</h2>
+  <div class="sbs-npc-with-picker sbs-npc-primary">
+    <label for="{{partId}}-focus">Primary skill <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+      aria-label="The archetype’s main skill grows every rank and can reach d12+1. Edit its die below to set your own value."
+      data-tooltip="The archetype’s main skill grows every rank and can reach d12+1. Edit its die below to set your own value."></i></label>
+    <input id="{{partId}}-focus" type="text" data-path="focus" value="{{draft.focus}}" list="{{traitListId}}" autocomplete="off">
+    <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-path="focus" aria-label="Choose primary skill"></button>
+  </div>
+  <div class="sbs-npc-attributes" role="group" aria-label="Attributes">
+    {{#each attributes}}
+      <div class="sbs-npc-attribute">
+        <span>{{label}}{{#if effective}} <small class="sbs-npc-effective-die" aria-label="Effective die {{effective}}">{{effective}}</small>{{/if}}</span>
+        {{#if fixed}}<span>1 (Tiny)</span>{{else}}
+        <select data-path="attributes.{{key}}.sides" data-number aria-label="{{label}} die">{{selectOptions @root.dice selected=sides}}</select>
+        <input type="number" data-path="attributes.{{key}}.modifier" min="-20" max="20" value="{{this.modifier}}" aria-label="{{label}} modifier">
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+  <div class="sbs-npc-library-bar">
+    <label class="sbs-npc-check"><input type="checkbox" data-path="core" aria-label="Include setting core skills" {{checked draft.core}}> Core skills</label>
+    <label class="sbs-npc-check"><input type="checkbox" data-path="animal" {{checked draft.animal}}> Animal Smarts
+      <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0" aria-label="Marks Smarts as animal intelligence. The GM decides which tasks are possible for the creature."
+        data-tooltip="Marks Smarts as animal intelligence. The GM decides which tasks are possible for the creature."></i></label>
+    <button type="button" data-action="addSkill"><i class="fa-solid fa-plus" inert></i> Add skill</button>
+  </div>
+  <ul class="sbs-npc-skills unmarked-list">
+    {{#each skills}}
+      <li>
+        <span>{{name}}</span>
+        <select data-skill="{{key}}" data-field="attribute" aria-label="{{name}} linked attribute">{{selectOptions @root.labels selected=attribute blank="—"}}</select>
+        <select data-skill="{{key}}" data-field="sides" aria-label="{{name}} die">{{selectOptions @root.dice selected=sides}}</select>
+        <input type="number" data-skill="{{key}}" data-field="modifier" min="-20" max="20" value="{{this.modifier}}" aria-label="{{name}} modifier">
+        <button type="button" class="icon fa-solid fa-xmark" data-action="removeSkill" data-key="{{key}}" aria-label="Remove {{name}}"></button>
+      </li>
+    {{/each}}
+  </ul>
+</aside>

@@ -1,0 +1,48 @@
+{{#*inline "costOption"}}
+  <div class="sbs-library-option" data-option-id="{{id}}">
+    <div class="sbs-library-option-fields">
+      <input type="text" data-option-name value="{{label}}" aria-label="Option name" placeholder="Option name">
+      <span class="sbs-library-cost">( <span contenteditable="plaintext-only" role="textbox" inputmode="decimal" data-option-cost data-placeholder="N" aria-label="Power Point cost">{{costText}}</span> )</span>
+      {{#if removable}}
+        <button type="button" data-action="removeOption" aria-label="Delete option"><i class="fa-solid fa-xmark" inert></i></button>
+      {{/if}}
+    </div>
+    {{#if @root.powers}}<div data-library-behaviors="powers"></div>{{/if}}
+    {{#if @root.templates}}<div data-library-behaviors="templates"></div>{{/if}}
+  </div>
+{{/inline}}
+<section class="sbs-library-entries standard-form">
+  <input type="search" aria-label="Search modifiers" placeholder="Search modifiers…" value="{{search}}">
+  {{#each groups}}
+    <details class="sbs-library-group" data-group-name="{{label}}" {{#if open}}open{{/if}}>
+      <summary>{{label}}</summary>
+      {{#if @root.editable}}
+        <button type="button" class="sbs-create-modifier" data-action="create"><i class="fa-solid fa-plus" inert></i> Create Modifier</button>
+      {{/if}}
+      {{#each rows}}
+        <details class="sbs-library-modifier" data-modifier-id="{{id}}" data-name="{{name}}" {{#if expanded}}open{{/if}}>
+          <summary {{#unless global}}draggable="true" data-modifier-id="{{id}}"{{/unless}}>
+            {{#unless global}}<i class="fa-solid fa-grip-vertical" inert></i>{{/unless}} <span data-modifier-title>{{name}}</span>
+          </summary>
+          <div class="sbs-modifier-library-body">
+            {{#if @root.editable}}
+              <input type="text" aria-label="Modifier name" data-modifier-name value="{{name}}">
+              <prose-mirror toggled editable="true" aria-label="Modifier description" name="sbs-description-{{id}}" value="{{description}}">{{{description}}}</prose-mirror>
+              <fieldset aria-label="Modifier options">
+                {{#each options}}{{> costOption}}{{/each}}
+              </fieldset>
+              <div class="sbs-modifier-library-actions">
+                <button type="button" data-action="addOption"><i class="fa-solid fa-plus" inert></i> Add Modifier Option</button>
+                <button type="button" data-action="remove" aria-label="Remove modifier"><i class="fa-solid fa-trash" inert></i></button>
+              </div>
+            {{else}}
+              {{{description}}}
+              <ul>{{#each options}}<li>{{#if label}}{{label}} {{/if}}({{displayCost}} PP)</li>{{/each}}</ul>
+              {{#if @root.picker}}<button type="button" data-action="select"><i class="fa-solid fa-plus" inert></i> Add to Power</button>{{/if}}
+            {{/if}}
+          </div>
+        </details>
+      {{else}}<p class="hint">No {{label}} modifiers.</p>{{/each}}
+    </details>
+  {{/each}}
+</section>

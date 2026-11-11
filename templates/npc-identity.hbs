@@ -1,0 +1,73 @@
+<section class="sbs-npc-identity" aria-label="NPC identity and defenses">
+  <button class="sbs-npc-art" type="button" data-action="art" aria-label="Choose token art. Shift-click opens Foundry’s File Picker.">
+    <img src="{{art}}" alt="">
+  </button>
+
+  <div class="sbs-npc-overview">
+    <div class="sbs-npc-headline">
+      <label class="sbs-npc-name">NPC name<input type="text" data-path="name" value="{{draft.name}}" placeholder="Name your NPC" maxlength="120" autocomplete="off"></label>
+      <div class="sbs-npc-rank-group sbs-npc-divided">
+        <label>Rank<select data-path="rank" aria-label="Rank">{{selectOptions ranks selected=draft.rank}}</select></label>
+        <label class="sbs-npc-check"><input type="checkbox" data-path="wildcard" {{checked draft.wildcard}}> Wild Card</label>
+      </div>
+      <label class="sbs-npc-cr sbs-npc-divided"><span>CR <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+        aria-label="CR measures equivalent Wild Card PC advances. CR 4 matches a reference Seasoned PC. Clear a custom value to restore the estimate."
+        data-tooltip="CR measures equivalent Wild Card PC advances. CR 4 matches a reference Seasoned PC. Clear a custom value to restore the estimate."></i></span>
+        <input type="number" min="0" max="9999" step="1" data-cr value="{{cr}}" aria-label="Creature Rating"></label>
+    </div>
+
+    <div class="sbs-npc-defense-line">
+      <div class="sbs-npc-defenses">
+        <label>
+          <span><i class="fa-solid fa-swords" inert></i> Parry</span>
+          <input type="number" data-defense="parry" value="{{defenses.parry}}" step="1" aria-label="Parry">
+        </label>
+        <div class="sbs-npc-protection sbs-npc-divided">
+          <label>
+            <span><i class="fa-solid fa-heart" inert></i> Toughness</span>
+            <input type="number" data-defense="toughness" value="{{defenses.toughness}}" step="1" aria-label="Toughness">
+          </label>
+          <label>
+            <span><i class="fa-solid fa-shield" inert></i> Armour</span>
+            <input type="number" data-defense="armor" value="{{defenses.armor}}" min="0" step="1" aria-label="Armour">
+          </label>
+        </div>
+      </div>
+      <div class="sbs-npc-stamina sbs-npc-divided">
+        <div class="sbs-npc-wounds"><span>Wounds</span><output aria-label="Wounds">{{wounds}}</output></div>
+        <label><span>Resilience <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+          aria-label="Adds one or two Wounds to the NPC’s capacity, including Wild Cards." data-tooltip="Adds one or two Wounds to the NPC’s capacity, including Wild Cards."></i></span>
+          <select data-path="resilience" data-number aria-label="Resilience">
+          <option value="0" {{#if (eq draft.resilience 0)}}selected{{/if}}>Standard</option>
+          <option value="1" {{#if (eq draft.resilience 1)}}selected{{/if}}>Resilient +1</option>
+          <option value="2" {{#if (eq draft.resilience 2)}}selected{{/if}}>Very Resilient +2</option>
+        </select></label>
+      </div>
+      <div class="sbs-npc-with-picker sbs-npc-size sbs-npc-divided">
+        <label for="{{partId}}-size">Size</label>
+        <input id="{{partId}}-size" type="number" data-path="size" min="-4" max="20" value="{{draft.size}}">
+        <button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" aria-label="Open Size Table"></button>
+      </div>
+    </div>
+
+    <div class="sbs-npc-with-picker">
+      <label for="{{partId}}-flags">Better Effects flags</label>
+      <input id="{{partId}}-flags" type="text" data-path="tags" value="{{draft.tags}}" placeholder="undead, fire, guardian" autocomplete="off">
+      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" aria-label="Choose a flag"></button>
+    </div>
+    <div class="sbs-npc-fields">
+      <label>Disposition<select data-path="disposition" data-number aria-label="Disposition">{{selectOptions disposition selected=draft.disposition}}</select></label>
+      <div class="sbs-npc-with-picker sbs-npc-preset-choice">
+        <label for="{{partId}}-archetype">Archetype</label>
+        <select id="{{partId}}-archetype" data-path="role">{{selectOptions archetypes selected=draft.role}}</select>
+        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="archetypes" aria-label="Edit archetypes"></button>{{/if}}
+      </div>
+      <div class="sbs-npc-with-picker sbs-npc-preset-choice">
+        <label for="{{partId}}-ancestry">Ancestry</label>
+        <select id="{{partId}}-ancestry" data-path="ancestry" {{#if ancestryLoading}}disabled{{/if}}>{{selectOptions ancestryOptions selected=draft.ancestry blank="None"}}</select>
+        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="ancestries" aria-label="Build or edit ancestries"></button>{{/if}}
+      </div>
+      {{#if draft.wildcard}}<label>Personal Bennies<input type="number" data-path="bennies" min="0" max="10" value="{{draft.bennies}}"></label>{{/if}}
+    </div>
+  </div>
+</section>

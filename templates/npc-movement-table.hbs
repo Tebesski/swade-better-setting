@@ -1,0 +1,25 @@
+<section class="sbs-size-picker-content">
+  <p>Choose a row to apply its movement modes and running die to this NPC.</p>
+  <div class="sbs-size-table-scroll">
+    <table class="sbs-movement-table" aria-label="Movement presets">
+      <thead><tr><th>Preset</th><th>Default</th><th>Walk</th><th>Fly</th><th>Swim</th><th>Burrow</th><th>Running die</th><th>Modifier</th>{{#if canManage}}<th>Manage</th>{{/if}}</tr></thead>
+      <tbody>
+        {{#each rows}}
+          <tr>
+            <th scope="row"><button type="button" data-action="apply" data-key="{{id}}">{{label}}</button></th>
+            <td>{{mode}}</td><td>{{ground}}</td><td>{{fly}}</td><td>{{swim}}</td><td>{{burrow}}</td><td>d{{run}}</td><td>{{runMod}}</td>
+            {{#if @root.canManage}}<td class="sbs-movement-actions">
+              <button type="button" class="icon fa-solid fa-pen-to-square" data-action="edit" data-key="{{id}}" aria-label="Edit {{label}}"></button>
+              <button type="button" class="icon fa-solid fa-xmark" data-action="remove" data-key="{{id}}" aria-label="Delete {{label}}"></button>
+            </td>{{/if}}
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+    {{#unless rows.length}}<p class="hint">No movement presets.</p>{{/unless}}
+  </div>
+  <footer class="sbs-preset-footer">
+    {{#if canManage}}<button type="button" data-action="edit"><i class="fa-solid fa-plus" inert></i> Save current movement as preset</button>{{/if}}
+    <button type="button" data-action="close">Close</button>
+  </footer>
+</section>

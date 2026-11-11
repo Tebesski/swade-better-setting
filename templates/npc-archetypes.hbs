@@ -1,0 +1,126 @@
+<section class="sbs-preset-layout">
+  <aside class="sbs-preset-list" aria-label="Saved archetypes">
+    <button type="button" data-action="create"><i class="fa-solid fa-plus" inert></i> New archetype</button>
+    {{#each library}}
+      <button type="button" data-action="select" data-key="{{key}}" {{#if active}}aria-current="true"{{/if}}>{{name}}</button>
+    {{/each}}
+  </aside>
+  <div class="sbs-preset-form">
+    <datalist id="{{traitList}}">{{#each skillNames}}<option value="{{this}}"></option>{{/each}}</datalist>
+    <div class="sbs-preset-heading">
+      <label>Name<input type="text" name="label" value="{{draft.label}}" maxlength="100" required></label>
+      <button type="button" data-action="duplicate"><i class="fa-regular fa-copy" inert></i> Duplicate</button>
+      {{#if key}}<button type="button" data-action="remove">{{#if standard}}Restore defaults{{else}}Delete{{/if}}</button>{{/if}}
+    </div>
+    <label>Description<textarea name="description" rows="2" placeholder="What is this archetype good at?">{{draft.description}}</textarea></label>
+    <details class="sbs-editor-accordion" data-section="progression" open>
+      <summary>Traits and progression</summary>
+      <div class="sbs-preset-fields">
+        <label>Primary skill<span class="sbs-inline-picker">
+          <input type="text" name="focus" value="{{draft.focus}}" list="{{traitList}}" required>
+          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="focus" aria-label="Choose primary skill"></button>
+        </span></label>
+        <label>Starting die<select name="focusDie">{{selectOptions dice selected=draft.focusDie}}</select></label>
+        <label>Linked attribute<select name="focusAttribute">{{selectOptions attributes selected=draft.focusAttribute blank="Default link"}}</select></label>
+        <label>Preview rank<select name="previewRank">{{selectOptions ranks selected=previewRank}}</select></label>
+        <label class="sbs-preset-check"><input type="checkbox" name="previewWild" {{checked previewWild}}> Preview as Wild Card</label>
+        <label>Weighted die steps per rank<input type="number" name="weightedSteps" min="0" max="5" value="{{draft.weightedSteps}}"></label>
+      </div>
+      <p class="hint">Optional weighted steps supplement normal progression. A weight of 0 skips an attribute. Higher weights make it more likely to get a step.</p>
+      <table class="sbs-preset-table">
+        <thead><tr><th>Attribute</th><th>Novice die</th><th>Progression</th><th>Weight</th><th data-rank-preview>{{previewRank}}</th></tr></thead>
+        <tbody>{{#each attributeRows}}
+          <tr><th scope="row">{{name}}</th>
+            <td><select name="attribute-{{key}}" aria-label="{{name}} starting die">{{selectOptions @root.dice selected=sides}}</select></td>
+            <td><select name="growth-{{key}}" aria-label="{{name}} progression">{{selectOptions @root.growth selected=growth}}</select></td>
+            <td><input class="sbs-forge-number" type="number" name="weight-{{key}}" min="0" max="5" value="{{weight}}" aria-label="{{name}} weight"></td>
+            <td data-attribute-preview="{{key}}">{{preview}}</td>
+          </tr>
+        {{/each}}</tbody>
+      </table>
+      <h4>Supporting skills</h4>
+      {{#each draft.skills}}
+        <div class="sbs-preset-skill">
+          <span class="sbs-inline-picker">
+            <input type="text" name="skill-name-{{@index}}" list="{{@root.traitList}}" value="{{name}}" placeholder="Skill name" aria-label="Skill name">
+            <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="skill-name-{{@index}}" aria-label="Choose supporting skill"></button>
+          </span>
+          <select name="skill-die-{{@index}}" aria-label="Starting die">{{selectOptions @root.dice selected=sides}}</select>
+          <select name="skill-attribute-{{@index}}" aria-label="Linked attribute">{{selectOptions @root.attributes selected=attribute blank="Default link"}}</select>
+          <select name="skill-growth-{{@index}}" aria-label="Skill progression">{{selectOptions @root.growth selected=growth}}</select>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeSkill" data-index="{{@index}}" aria-label="Remove skill"></button>
+          <label class="sbs-skill-chance">Chance <input type="number" name="skill-chance-{{@index}}" min="0" max="100" value="{{chance}}" placeholder="100">%</label>
+          <label class="sbs-skill-arcane"><input type="checkbox" name="skill-arcane-{{@index}}" {{checked arcane}}> Requires an Arcane Background</label>
+        </div>
+      {{/each}}
+      <button type="button" data-action="addSkill"><i class="fa-solid fa-plus" inert></i> Add skill</button>
+      <p class="hint">Skill preview · <span data-skill-preview>{{previewSkills}}</span></p>
+    </details>
+    <details class="sbs-editor-accordion" data-section="combat">
+      <summary>Combat and movement</summary>
+      <div class="sbs-preset-fields">
+        <label>Attack type<select name="mode">{{selectOptions modes selected=draft.mode}}</select></label>
+        <label>Attack name<input type="text" name="attack-name" value="{{draft.attack.name}}" placeholder="Use type default"></label>
+        <label>Attack trait<span class="sbs-inline-picker">
+          <input type="text" name="attack-trait" value="{{draft.attack.trait}}" list="{{traitList}}" placeholder="Use type default">
+          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="attack-trait" aria-label="Choose attack trait"></button>
+        </span></label>
+        <label>Damage tier<select name="damageTier"><option value="0" {{#if (eq draft.damageTier 0)}}selected{{/if}}>Low</option><option value="1" {{#unless (or (eq draft.damageTier 0) (eq draft.damageTier 2))}}selected{{/unless}}>Standard</option><option value="2" {{#if (eq draft.damageTier 2)}}selected{{/if}}>High</option></select></label>
+        <label>Fixed damage<input type="text" name="attack-damage" value="{{draft.attack.damage}}" placeholder="Scale by rank"></label>
+        <label>AP<input type="number" name="attack-ap" min="0" max="40" value="{{draft.attack.ap}}"></label>
+        <label>Range<input type="text" name="attack-range" value="{{draft.attack.range}}" placeholder="Use type default"></label>
+        <label>RoF<input type="number" name="attack-rof" min="1" max="6" value="{{draft.attack.rof}}"></label>
+        <label>Power cost<input type="number" name="attack-pp" min="0" max="100" value="{{draft.attack.pp}}"></label>
+        <label>Movement preset<select name="movement">{{selectOptions movement selected=draft.movement blank="Archetype pace"}}</select></label>
+        <label>Size<input type="number" name="size" min="-4" max="20" value="{{draft.size}}" placeholder="0"></label>
+        <label>Armor<input type="number" name="armor" min="0" max="40" value="{{draft.armor}}" placeholder="0"></label>
+        <label>Parry bonus<input type="number" name="parry" min="-12" max="24" value="{{draft.parry}}" placeholder="0"></label>
+        <label>Resilience<input type="number" name="resilience" min="0" max="2" value="{{draft.resilience}}" placeholder="0"></label>
+        <label class="sbs-preset-check"><input type="checkbox" name="hardy" {{checked draft.hardy}}> Hardy</label>
+        <label class="sbs-preset-check"><input type="checkbox" name="animal" {{checked draft.animal}}> Animal Smarts</label>
+        <label class="sbs-preset-check"><input type="checkbox" name="core" {{checked draft.core}}> Core skills</label>
+      </div>
+      <label>Better Effects flags<input type="text" name="tags" value="{{draft.tags}}" placeholder="guard, frost"></label>
+    </details>
+    {{> "modules/swade-better-setting/templates/npc-forge-casting.hbs" draft.casting}}
+    <details class="sbs-editor-accordion" data-section="loadout" data-loadout-drop>
+      <summary>Loadout {{#if draft.loadout.length}}<small>({{draft.loadout.length}})</small>{{/if}}</summary>
+      <p class="hint">Choose or drag in items. Rank and chance apply to each row. Leave Slot blank for independent items. A named slot picks one weighted kit, and items with the same kit name arrive together. Different slots are picked independently.</p>
+      <div class="sbs-npc-library-bar">
+        <select name="loadoutType" aria-label="Loadout type">{{selectOptions types selected=loadoutType}}</select>
+        <button type="button" data-action="addItem"><i class="fa-solid fa-list" inert></i> Choose item</button>
+      </div>
+      {{#each draft.loadout}}
+        <details class="sbs-editor-accordion sbs-forge-item" data-section="item-{{id}}" open>
+          <summary>{{name}} · {{type}}</summary>
+          <div class="sbs-preset-fields">
+            <label>Minimum rank<select name="item-rank-{{@index}}">{{selectOptions @root.ranks selected=rank}}</select></label>
+            <label>Maximum rank<select name="item-max-rank-{{@index}}">{{selectOptions @root.ranks selected=maxRank blank="Any"}}</select></label>
+            <label>Chance %<input type="number" name="item-chance-{{@index}}" min="0" max="100" value="{{chance}}"></label>
+            <label>Slot<input type="text" name="item-slot-{{@index}}" value="{{slot}}" placeholder="e.g. main weapon"></label>
+            <label>Kit<input type="text" name="item-kit-{{@index}}" value="{{kit}}" placeholder="e.g. shield set"></label>
+            <label>Weight<input type="number" name="item-weight-{{@index}}" min="1" max="100" value="{{weight}}"></label>
+            <label>Quantity<input type="number" name="item-quantity-{{@index}}" min="1" max="999" value="{{quantity}}"></label>
+            {{#if (or (eq type "weapon") (eq type "armor") (eq type "shield") (eq type "gear"))}}
+              <label>Location<select name="item-equip-{{@index}}">{{selectOptions @root.locations selected=equip blank="Default"}}</select></label>
+            {{/if}}
+            {{#if (eq type "power")}}<label>Casting pool<input type="text" name="item-casting-{{@index}}" value="{{casting}}" placeholder="Use power’s Arcane field"></label>{{/if}}
+            <button type="button" class="icon fa-solid fa-xmark" data-action="removeItem" data-index="{{@index}}" aria-label="Remove {{name}}"></button>
+          </div>
+          {{#if (eq type "weapon")}}
+            <div class="sbs-npc-library-bar">
+              <select name="ammo-type-{{@index}}" aria-label="Ammo type"><option value="gear">Gear ammo</option><option value="consumable">Consumable ammo</option></select>
+              <button type="button" data-action="pickAmmo" data-index="{{@index}}"><i class="fa-solid fa-list" inert></i> Choose ammo</button>
+              {{#if ammo}}<span>{{ammo.name}}</span><label>Quantity <input class="sbs-forge-number" type="number" name="item-ammo-quantity-{{@index}}" min="1" max="999" value="{{ammoQuantity}}"></label>
+                <button type="button" class="icon fa-solid fa-xmark" data-action="clearAmmo" data-index="{{@index}}" aria-label="Remove ammo"></button>{{/if}}
+            </div>
+          {{/if}}
+        </details>
+      {{/each}}
+    </details>
+  </div>
+  <footer class="sbs-preset-footer">
+    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> Save archetype</button>
+    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> Save and use</button>{{/if}}
+  </footer>
+</section>

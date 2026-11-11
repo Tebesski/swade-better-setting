@@ -1,15 +1,19 @@
 <section class="sbs-picker-body">
   {{#if canCreate}}<button type="button" class="sbs-create" data-action="createSkill"><i class="fa-solid fa-plus" inert></i> Create new skill</button>{{/if}}
-  <input type="search" value="{{query}}" placeholder="Search…" aria-label="Search skills and traits" autocomplete="off">
+  <input type="search" value="{{query}}" placeholder="Search…" aria-label="{{searchLabel}}" autocomplete="off">
+  {{#if categories}}<label>Category <select data-choice-category aria-label="Edge category">{{selectOptions categories selected=category blank="All categories"}}</select></label>{{/if}}
+  {{#if loading}}<p role="status">{{#if loadingMessage}}{{loadingMessage}}{{else}}Loading choices…{{/if}}</p>{{/if}}
+  {{#if notice}}<p class="hint" role="status">{{notice}}</p>{{/if}}
   <div class="sbs-results">
     {{#each sections}}
       <section class="sbs-group">
-        <h3>{{label}}</h3>
+        {{#if label}}<h3>{{label}}</h3>{{/if}}
         <ol class="unmarked-list">
           {{#each rows}}
             <li class="sbs-row" data-name="{{name}}">
-              <a role="button" tabindex="0" class="sbs-star" data-action="star" data-key="{{key}}" aria-label="{{#if starred}}Unstar{{else}}Star{{/if}} {{name}}" aria-pressed="{{starred}}" title="{{#if starred}}Unstar{{else}}Star{{/if}}"><i class="{{#if starred}}fa-solid{{else}}fa-regular{{/if}} fa-star" inert></i></a>
+              {{#if canStar}}<a role="button" tabindex="0" class="sbs-star" data-action="star" data-key="{{key}}" aria-label="{{#if starred}}Unstar{{else}}Star{{/if}} {{name}}" aria-pressed="{{starred}}" title="{{#if starred}}Unstar{{else}}Star{{/if}}"><i class="{{#if starred}}fa-solid{{else}}fa-regular{{/if}} fa-star" inert></i></a>{{/if}}
               <button type="button" class="sbs-choice" data-action="choose" data-key="{{key}}">{{#if img}}<img src="{{img}}" alt="">{{/if}}<span>{{name}}</span>{{#if detail}}<small>{{detail}}</small>{{/if}}</button>
+              {{#if @root.canPreview}}<button type="button" class="icon fa-solid fa-eye sbs-preview-choice" data-action="preview" data-key="{{key}}" aria-label="Open {{name}}" data-tooltip="Open {{name}}"></button>{{/if}}
               {{#if includeLinkedSkills}}<label class="sbs-linked-skills"><input type="checkbox" data-linked-attribute="{{key}}" {{#if linkedSkills}}checked{{/if}}> All linked Skills</label>{{/if}}
               {{#if canManage}}<a role="button" tabindex="0" class="sbs-delete" data-action="deleteSkill" data-key="{{key}}" aria-label="Delete {{name}}" title="Delete skill"><i class="fa-solid fa-trash" inert></i></a>{{/if}}
             </li>
@@ -17,6 +21,13 @@
         </ol>
       </section>
     {{/each}}
-    <p class="sbs-empty" {{#unless empty}}hidden{{/unless}}>No matching skills or traits.</p>
+    <p class="sbs-empty" hidden>{{emptyMessage}}</p>
   </div>
+  {{#if choicePages}}
+    <nav class="sbs-bestiary-pages" aria-label="Choice pages">
+      <button type="button" data-action="previousChoices" {{disabled (not previousChoices)}}>Previous</button>
+      <span>Page {{choicePage}} of {{choiceTotalPages}}</span>
+      <button type="button" data-action="nextChoices" {{disabled (not nextChoices)}}>Next</button>
+    </nav>
+  {{/if}}
 </section>

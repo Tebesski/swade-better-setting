@@ -46,6 +46,8 @@ export function installCoreSkills() {
       // Await the system setup first, then replace its fixed PC core list with the library's list.
       const allowed = await original(...args);
       if (allowed === false) return false;
+      // Builder drafts already include the exact skill list chosen by the GM.
+      if (type === "npc" && typeof actor.getFlag(MODULE_ID, "npc")?.coreSkills === "boolean") return allowed;
       const cores = (await librarySkills()).filter(item => item.system.isCoreSkill);
       // Preserve SWADE's Unskilled roll when the system created it for a fresh PC.
       if (type === "character" && !items.some(item => item.type === "skill")) {
@@ -59,7 +61,7 @@ export function installCoreSkills() {
   }
 }
 
-export function installSheetHooks() {
+export function installSheetHooks(openCompendium) {
   installSkillContextMenu();
   // The character sheet already opens skills after a drop. Match it on NPC sheets.
   wrapMethod(game.swade.sheets.SwadeNPCSheet.prototype, "_onDropItemCreate", async function (original, ...args) {
@@ -132,8 +134,8 @@ export function installSheetHooks() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sbs-open-library";
-    button.innerHTML = '<i class="fa-solid fa-list" inert></i> Skills Compendium';
-    button.addEventListener("click", () => openLibrary().catch(report));
+    button.innerHTML = '<i class="fa-solid fa-book-open" inert></i> Better SWADE Compendium';
+    button.addEventListener("click", () => openCompendium().catch(report));
     html.querySelector(".header-actions")?.append(button);
   });
 }

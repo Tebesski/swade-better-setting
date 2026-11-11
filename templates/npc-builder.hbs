@@ -1,0 +1,177 @@
+<section class="sbs-npc-build" aria-label="NPC configuration">
+  <datalist id="{{traitListId}}">{{#each skillChoices}}<option value="{{this}}"></option>{{/each}}</datalist>
+  <details data-section="combat" open>
+    <summary>Combat profile</summary>
+    <div class="sbs-npc-fields">
+      <div class="sbs-npc-hardy">
+        <label class="sbs-npc-check"><input type="checkbox" data-path="hardy" {{checked draft.hardy}}> Hardy</label>
+        <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0" aria-label="A second Shaken result does not cause a Wound. Damage raises still cause Wounds." data-tooltip="A second Shaken result does not cause a Wound. Damage raises still cause Wounds."></i>
+      </div>
+      {{#each initiative}}
+        <div class="sbs-npc-hardy">
+          <label class="sbs-npc-check"><input type="checkbox" data-path="initiative.{{key}}" {{checked checked}}> {{label}}</label>
+          <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0" aria-label="{{hint}}" data-tooltip="{{hint}}"></i>
+        </div>
+      {{/each}}
+      <label><span>Follow <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+        aria-label="Enter the exact name of a leader already in the encounter. For example, enter Captain and add Captain to initiative first. When you add this NPC, it joins Captain’s group and shares Captain’s Action Card. When the leader is missing, the NPC draws independently."
+        data-tooltip="Enter the exact name of a leader already in the encounter. For example, enter Captain and add Captain to initiative first. When you add this NPC, it joins Captain’s group and shares Captain’s Action Card. When the leader is missing, the NPC draws independently."></i></span>
+        <input type="text" data-path="initiative.follow" value="{{draft.initiative.follow}}" placeholder="Leader name">
+      </label>
+    </div>
+
+    <details class="sbs-npc-nested" data-section="attacks" open>
+      <summary>Attacks</summary>
+      <div class="sbs-npc-fields">
+        <label>Attack
+          <select data-path="mode" aria-label="Attack">{{selectOptions modes selected=draft.mode}}</select>
+        </label>
+        {{#if hasAttack}}
+          <label>Attack name<input type="text" data-path="attackName" value="{{draft.attackName}}"></label>
+          {{#unless power}}
+            <div class="sbs-npc-with-picker">
+              <label for="{{partId}}-attack-trait">Attack trait</label>
+              <input id="{{partId}}-attack-trait" type="text" data-path="trait" value="{{draft.trait}}" list="{{traitListId}}">
+              <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-path="trait" aria-label="Choose attack trait"></button>
+            </div>
+          {{/unless}}
+        {{/if}}
+      </div>
+      {{#if hasAttack}}
+        <div class="sbs-npc-fields sbs-npc-damage-row">
+          <div class="sbs-npc-with-picker sbs-npc-damage-field">
+            <label for="{{partId}}-signature-damage">Damage formula</label>
+            {{#if tinyMelee}}<input id="{{partId}}-signature-damage" type="text" value="1" readonly>{{else}}
+              <input id="{{partId}}-signature-damage" type="text" data-path="damage" value="{{draft.damage}}" placeholder="@str+1d6">
+            {{/if}}
+            <button type="button" class="icon fa-solid fa-scale-balanced" data-action="damageGuide" data-key="signature" aria-label="Open damage guide"></button>
+          </div>
+          <label>AP
+            <input type="number" data-path="ap" min="0" max="40" value="{{draft.ap}}" aria-label="Armor Piercing"></label>
+          {{#unless (eq draft.mode "melee")}}<label>Range<input type="text" data-path="range" value="{{draft.range}}"></label>{{/unless}}
+          {{#if power}}
+            <label>Spellcasting entry<select data-path="signatureEntry">{{selectOptions entryChoices selected=draft.signatureEntry}}</select></label>
+            <label>Power cost<input type="number" data-path="powerCost" min="0" max="100" value="{{draft.powerCost}}"></label>
+          {{/if}}
+          {{#if ranged}}<label>RoF
+            <input type="number" data-path="signatureRof" min="1" max="6" value="{{draft.signatureRof}}" aria-label="Rate of Fire"></label>{{/if}}
+        </div>
+      {{/if}}
+      {{#if damageError}}<p class="hint" role="status">{{damageError}}</p>{{/if}}
+      {{#if hasAttack}}{{> "modules/swade-better-setting/templates/npc-attack-options.hbs" signatureDetails}}{{/if}}
+      <div class="sbs-npc-library-bar">
+        <button type="button" data-action="addAttack"><i class="fa-solid fa-plus" inert></i> Add attack</button>
+        <button type="button" data-action="addWeapon"><i class="fa-solid fa-list" inert></i> Add weapon from library</button>
+      </div>
+      {{#each attackRows}}
+        <details class="sbs-npc-nested" data-section="attack-{{_id}}" open>
+          <summary>{{name}}</summary>
+          <div class="sbs-npc-fields">
+            <label>Attack name<input type="text" data-attack="{{_id}}" data-attack-field="name" value="{{name}}"></label>
+            <label>Attack type<select data-attack="{{_id}}" data-attack-field="system.rangeType" data-number>{{selectOptions @root.weaponModes selected=system.rangeType}}</select></label>
+            <div class="sbs-npc-with-picker">
+              <label for="{{@root.partId}}-trait-{{_id}}">Attack trait</label>
+              <input id="{{@root.partId}}-trait-{{_id}}" type="text" data-attack="{{_id}}" data-attack-field="system.actions.trait" value="{{system.actions.trait}}" list="{{@root.traitListId}}">
+              <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-attack="{{_id}}" aria-label="Choose {{name}} attack trait"></button>
+            </div>
+            <div class="sbs-npc-with-picker sbs-npc-damage-field">
+              <label for="{{@root.partId}}-damage-{{_id}}">Damage formula</label>
+              <input id="{{@root.partId}}-damage-{{_id}}" type="text" data-attack="{{_id}}" data-attack-field="system.damage" value="{{system.damage}}">
+              <button type="button" class="icon fa-solid fa-scale-balanced" data-action="damageGuide" data-key="{{_id}}" aria-label="Open damage guide for {{name}}"></button>
+            </div>
+            <label>AP<input type="number" min="0" max="40" data-attack="{{_id}}" data-attack-field="system.ap" value="{{system.ap}}" aria-label="Armor Piercing"></label>
+            {{#unless (eq system.rangeType 0)}}
+              <label>Range<input type="text" data-attack="{{_id}}" data-attack-field="system.range" value="{{system.range}}"></label>
+              <label>RoF<input type="number" min="1" max="6" data-attack="{{_id}}" data-attack-field="system.rof" value="{{system.rof}}" aria-label="Rate of Fire"></label>
+            {{/unless}}
+          </div>
+          {{> "modules/swade-better-setting/templates/npc-attack-options.hbs" details}}
+          <div class="sbs-npc-library-bar">
+            <button type="button" data-action="removeFeature" data-key="{{_id}}"><i class="fa-solid fa-xmark" inert></i> Remove attack</button>
+          </div>
+        </details>
+      {{/each}}
+    </details>
+
+  </details>
+
+  <details data-section="movement">
+    <summary>Movement</summary>
+    <div class="sbs-npc-fields sbs-npc-move-fields">
+      <label>Default mode<select data-path="paceBase">{{selectOptions movementModes selected=draft.paceBase blank="Automatic"}}</select></label>
+      <label>Walk<input type="number" data-path="ground" min="0" max="100" value="{{draft.ground}}"></label>
+      <label>Fly<input type="number" data-path="fly" min="0" max="100" value="{{draft.fly}}"></label>
+      <label>Swim<input type="number" data-path="swim" min="0" max="100" value="{{draft.swim}}"></label>
+      <label>Burrow<input type="number" data-path="burrow" min="0" max="100" value="{{draft.burrow}}"></label>
+      <label>Running die<select data-path="run" data-number>{{selectOptions dice selected=draft.run}}</select></label>
+      <label>Running modifier<input type="number" data-path="runMod" min="-20" max="20" value="{{draft.runMod}}"></label>
+    </div>
+    <div class="sbs-npc-library-bar">
+      <button type="button" data-action="movementTable"><i class="fa-solid fa-table-list" inert></i> Movement presets</button>
+    </div>
+  </details>
+
+  <details data-section="casting">
+    <summary>Spellcasting entries</summary>
+    <div class="sbs-npc-library-bar">
+      <button type="button" data-action="addCasting"><i class="fa-solid fa-plus" inert></i> Add spellcasting entry</button>
+    </div>
+    {{#each castingEntries}}
+      <details class="sbs-npc-nested" data-section="casting-{{id}}" open>
+        <summary>{{name}}</summary>
+        <div class="sbs-npc-fields">
+          {{#unless general}}<label>Entry name<input type="text" data-entry="{{id}}" data-entry-field="name" value="{{name}}" aria-label="{{name}} entry name"></label>{{/unless}}
+          <div class="sbs-npc-with-picker">
+            <label for="{{@root.partId}}-cast-{{id}}">Casting trait</label>
+            <input id="{{@root.partId}}-cast-{{id}}" type="text" data-entry="{{id}}" data-entry-field="trait" value="{{trait}}" list="{{@root.traitListId}}" aria-label="{{name}} casting trait">
+            <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-entry="{{id}}" aria-label="Choose {{name}} casting trait"></button>
+          </div>
+          {{#if usesPP}}<label>Power Points<input type="number" data-entry="{{id}}" data-entry-field="points" min="0" max="999" value="{{points}}" aria-label="{{name}} Power Points"></label>{{/if}}
+          {{#if @root.hasBetterPowers}}<label>Casting rule<select data-entry="{{id}}" data-entry-field="rule" aria-label="{{name}} casting rule">{{selectOptions @root.castingRules selected=rule}}</select></label>{{/if}}
+        </div>
+        <div class="sbs-npc-library-bar">
+          <button type="button" data-action="addPower" data-key="{{id}}"><i class="fa-solid fa-plus" inert></i> Add Power</button>
+          <button type="button" data-action="generatePowers" data-key="{{id}}"><i class="fa-solid fa-wand-magic-sparkles" inert></i> Generate Powers</button>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeCasting" data-key="{{id}}" aria-label="Remove {{name}} entry"></button>
+        </div>
+        {{#if signature}}<p class="hint">{{signature}} (preset attack)</p>{{/if}}
+        <ul class="sbs-npc-features unmarked-list">
+          {{#each powers}}
+            <li>
+              {{#if inherited}}<span>{{name}} <small>(ancestry)</small></span>{{else}}
+                <button type="button" class="sbs-npc-feature-link" data-action="openFeature" data-key="{{_id}}"><img src="{{img}}" alt=""><span>{{name}}</span></button>
+              {{/if}}
+              <select data-power-entry="{{_id}}" aria-label="{{name}} spellcasting entry">{{selectOptions @root.entryChoices selected=../id}}</select>
+              {{#unless inherited}}<button type="button" class="icon fa-solid fa-xmark" data-action="removeFeature" data-key="{{_id}}" aria-label="Remove {{name}}"></button>{{/unless}}
+            </li>
+          {{/each}}
+        </ul>
+      </details>
+    {{/each}}
+  </details>
+
+  <details data-section="features">
+    <summary>Features</summary>
+    {{#if ancestryGrants}}<p class="hint">Granted by ancestry · {{ancestryGrants}}</p>{{/if}}
+    <div class="sbs-npc-library-bar">
+      <select name="featureType" aria-label="Feature type">{{selectOptions featureTypes selected=featureType}}</select>
+      <button type="button" data-action="addFeature"><i class="fa-solid fa-list" inert></i> Add from library</button>
+      <button type="button" data-action="addNewFeature"><i class="fa-solid fa-plus" inert></i> Add New</button>
+      {{#if hasVariants}}<button type="button" data-action="rerollVariants"><i class="fa-solid fa-dice" inert></i> Reroll preset options</button>{{/if}}
+    </div>
+    <ul class="sbs-npc-features unmarked-list">
+      {{#each features}}
+        <li>
+          <button type="button" class="sbs-npc-feature-link" data-action="openFeature" data-key="{{_id}}"><img src="{{img}}" alt=""><span>{{name}}</span></button><small>{{typeLabel}}</small>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeFeature" data-key="{{_id}}" aria-label="Remove {{name}}"></button>
+        </li>
+      {{/each}}
+      {{#each draft.effects}}
+        <li>
+          <button type="button" class="sbs-npc-feature-link" data-action="openFeature" data-key="{{_id}}"><img src="{{img}}" alt=""><span>{{name}}</span></button><small>Effect</small>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeEffect" data-key="{{_id}}" aria-label="Remove {{name}}"></button>
+        </li>
+      {{/each}}
+    </ul>
+  </details>
+</section>

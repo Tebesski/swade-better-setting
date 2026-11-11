@@ -1,0 +1,90 @@
+<aside class="sbs-bestiary-filters" aria-label="Bestiary filters">
+  <div class="sbs-bestiary-search">
+    <input type="search" data-query value="{{query}}" placeholder="Search NPCs (e.g. human-*)" aria-label="Search NPCs" autocomplete="off">
+    <div class="sbs-bestiary-wildcards" role="group" aria-label="Wild Card status">
+      {{#each wildcards}}
+        <label><input type="checkbox" data-wildcard="{{key}}" {{checked checked}} {{disabled disabled}}> <span>{{name}}</span></label>
+      {{/each}}
+    </div>
+    <div class="sbs-bestiary-order">
+      <label>Order by <select data-sort aria-label="Order by">{{selectOptions sortOptions selected=sort}}</select></label>
+      <button type="button" class="icon fa-solid {{#if ascending}}fa-arrow-up-wide-short{{else}}fa-arrow-down-wide-short{{/if}}" data-action="sortDirection"
+        aria-label="{{#if ascending}}Sort descending{{else}}Sort ascending{{/if}}" data-tooltip="{{#if ascending}}Ascending{{else}}Descending{{/if}}"></button>
+    </div>
+    <button type="button" data-action="clearFilters">Clear All Filters</button>
+  </div>
+
+  <details class="sbs-bestiary-filter" data-filter="source">
+    <summary><i class="fa-solid fa-chevron-right" inert></i> Sources</summary>
+    <input type="search" data-source-query value="{{sourceQuery}}" placeholder="Filter sources…" aria-label="Filter sources" autocomplete="off">
+    <p class="hint">Leave all sources unchecked to include every available NPC.</p>
+    <div class="sbs-bestiary-checks">
+      {{#each sources}}
+        <label data-source-name="{{name}}">
+          <input type="checkbox" data-inline-group="source" data-key="{{key}}" data-label="{{name}}" {{checked checked}} {{disabled @root.loading}}>
+          <span>{{name}}</span>
+        </label>
+      {{/each}}
+    </div>
+  </details>
+
+  <details class="sbs-bestiary-filter" data-filter="rank">
+    <summary><i class="fa-solid fa-chevron-right" inert></i> Rank</summary>
+    <div class="sbs-bestiary-checks">
+      {{#each ranks}}
+        <label><input type="checkbox" data-inline-group="rank" data-key="{{key}}" data-label="{{name}}" {{checked checked}} {{disabled @root.loading}}>
+          <span>{{name}}</span></label>
+      {{/each}}
+    </div>
+  </details>
+
+  <details class="sbs-bestiary-filter" data-filter="details">
+    <summary><i class="fa-solid fa-chevron-right" inert></i> NPC Details</summary>
+    <section class="sbs-bestiary-facet" aria-label="Max Wounds">
+      <strong>Max Wounds</strong>
+      <div class="sbs-bestiary-range-slider" style="--wound-lower: {{woundLower}}%; --wound-upper: {{woundUpper}}%" data-overlap="{{eq woundRange.min woundRange.max}}">
+        <input type="range" data-wound-bound="min" min="0" max="3" step="1" value="{{woundRange.min}}"
+          aria-label="Minimum Max Wounds slider" aria-valuetext="{{lookup woundOptions woundRange.min}}" {{disabled loading}}>
+        <input type="range" data-wound-bound="max" min="0" max="3" step="1" value="{{woundRange.max}}"
+          aria-label="Maximum Max Wounds slider" aria-valuetext="{{lookup woundOptions woundRange.max}}" {{disabled loading}}>
+        <span data-wound-overlap aria-hidden="true"></span>
+      </div>
+      <div class="sbs-bestiary-range-fields">
+        <label>From <select data-wound-bound="min" aria-label="Minimum Max Wounds" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.min}}</select></label>
+        <label>To <select data-wound-bound="max" aria-label="Maximum Max Wounds" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.max}}</select></label>
+      </div>
+    </section>
+
+    {{#each groups as |group|}}
+      <section class="sbs-bestiary-facet" aria-label="{{group.label}}">
+        <strong>{{group.label}}</strong>
+        {{#if group.suggest}}
+          <div class="sbs-bestiary-suggest">
+            <input type="text" data-facet-input="{{group.key}}" list="{{@root.partId}}-suggest-{{group.key}}"
+              placeholder="Type to search…" aria-label="{{group.label}} input" autocomplete="off" {{disabled @root.loading}}>
+            <datalist id="{{@root.partId}}-suggest-{{group.key}}"></datalist>
+            <button type="button" class="icon fa-solid fa-list" data-action="filter" data-group="{{group.key}}"
+              aria-label="Select {{group.label}}" data-tooltip="Select {{group.label}}" {{disabled @root.loading}}></button>
+          </div>
+        {{else}}
+          <button type="button" class="sbs-bestiary-select" data-action="filter" data-group="{{group.key}}" aria-label="Select {{group.label}}" {{disabled @root.loading}}>
+            <i class="fa-solid {{group.icon}}" inert></i> Select…
+          </button>
+        {{/if}}
+        {{#if group.count}}
+          <div class="sbs-bestiary-chips" aria-label="Selected {{group.label}}">
+            {{#each group.selected}}
+              <button type="button" data-action="removeFilter" data-group="{{group.key}}" data-key="{{key}}" aria-label="Remove {{group.label}} filter {{name}}">
+                <span>{{name}}</span><i class="fa-solid fa-xmark" inert></i>
+              </button>
+            {{/each}}
+          </div>
+          <div class="sbs-bestiary-conjunction" role="group" aria-label="Match {{group.label}}">
+            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="all" {{checked (not group.matchAny)}}> All selected</label>
+            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="any" {{checked group.matchAny}}> Any selected</label>
+          </div>
+        {{/if}}
+      </section>
+    {{/each}}
+  </details>
+</aside>

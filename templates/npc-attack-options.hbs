@@ -1,0 +1,40 @@
+<details class="sbs-npc-nested" data-section="options-{{key}}">
+  <summary>Attack options and flags</summary>
+  <div class="sbs-npc-fields">
+    {{#each fields}}
+      {{#if magazine}}
+        <div class="sbs-npc-magazine" role="group" aria-label="Shots">
+          <span>Shots</span>
+          <div>
+            <input type="number" data-attack="{{../key}}" data-attack-option="currentShots" min="0" max="{{capacity}}" step="1" value="{{loaded}}" aria-label="Shots loaded">
+            <span aria-hidden="true">/</span>
+            <input type="number" data-attack="{{../key}}" data-attack-option="shots" min="0" max="9999" step="1" value="{{capacity}}" aria-label="Shot capacity">
+          </div>
+        </div>
+      {{else}}
+        <label class="{{#if (eq type "checkbox")}}sbs-npc-check{{/if}}">
+          <span>{{label}}</span>
+          {{#if choices}}
+            <select data-attack="{{../key}}" data-attack-option="{{path}}" {{#if numeric}}data-number{{/if}}>{{selectOptions choices selected=value}}</select>
+          {{else}}
+            <input type="{{type}}" data-attack="{{../key}}" data-attack-option="{{path}}"
+              {{#if (eq type "checkbox")}}{{checked value}}{{else}}value="{{value}}"{{/if}}
+              {{#if (eq type "number")}}min="{{min}}" max="{{max}}" step="1"{{/if}}>
+          {{/if}}
+        </label>
+      {{/if}}
+    {{/each}}
+    <div class="sbs-npc-with-picker sbs-npc-attack-tags">
+      <label for="{{@root.partId}}-flags-{{key}}">Better Effects flags
+      </label>
+      <input id="{{@root.partId}}-flags-{{key}}" type="text" data-attack-flags="{{key}}" value="{{tags}}" placeholder="fire, silver" autocomplete="off">
+      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" data-key="{{key}}" aria-label="Choose attack flag"></button>
+    </div>
+  </div>
+  <fieldset class="sbs-npc-attack-templates">
+    <legend>Area templates</legend>
+    {{#each templates}}
+      <label class="sbs-npc-check"><input type="checkbox" data-attack="{{../key}}" data-attack-option="templates.{{name}}" {{checked enabled}}> {{label}}</label>
+    {{/each}}
+  </fieldset>
+</details>

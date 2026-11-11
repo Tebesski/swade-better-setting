@@ -1,0 +1,10 @@
+<label>Name<input type="text" name="label" value="{{data.label}}" required placeholder="Movement preset name"></label>
+<div class="sbs-preset-fields">
+  <label>Default mode<select name="paceBase">{{selectOptions modes selected=data.paceBase}}</select></label>
+  <label>Walk<input type="number" name="ground" min="0" max="100" value="{{data.ground}}"></label>
+  <label>Fly<input type="number" name="fly" min="0" max="100" value="{{data.fly}}"></label>
+  <label>Swim<input type="number" name="swim" min="0" max="100" value="{{data.swim}}"></label>
+  <label>Burrow<input type="number" name="burrow" min="0" max="100" value="{{data.burrow}}"></label>
+  <label>Running die<select name="run">{{selectOptions dice selected=data.run}}</select></label>
+  <label>Running modifier<input type="number" name="runMod" min="-20" max="20" value="{{data.runMod}}"></label>
+</div>

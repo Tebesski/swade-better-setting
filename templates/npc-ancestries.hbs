@@ -1,0 +1,119 @@
+<section class="sbs-preset-layout sbs-ancestry-layout">
+  <div class="sbs-preset-form">
+    <div class="sbs-npc-library-bar">
+      <button type="button" data-action="new"><i class="fa-solid fa-plus" inert></i> New ancestry</button>
+      <button type="button" data-action="load"><i class="fa-solid fa-list" inert></i> Open existing ancestry</button>
+    </div>
+    <div class="sbs-ancestry-heading">
+      <button type="button" class="sbs-ancestry-art" data-action="art" aria-label="Choose ancestry image"><img src="{{draft.img}}" alt=""></button>
+      <label>Name<input type="text" name="ancestryName" value="{{draft.name}}" maxlength="100" required></label>
+      <label>Source<input type="text" name="source" value="{{draft.source}}"></label>
+      <label>Point target<input type="number" name="threshold" min="-100" max="100" value="{{draft.threshold}}"></label>
+    </div>
+    <label>Description<textarea name="description" rows="3" placeholder="Describe the ancestry">{{draft.description}}</textarea></label>
+    <label>Better Effects flags<input type="text" name="tags" value="{{draft.tags}}" placeholder="fey, amphibious"></label>
+    <details class="sbs-editor-accordion" data-section="ranges">
+      <summary>Attribute ranges and anomalies</summary>
+      <p class="hint">The builder constrains suggested dice to the ancestry’s range. Anomalies can shift both limits by up to the specified number of die steps.</p>
+      <label>Anomaly chance % <input class="sbs-forge-number" type="number" name="anomalyChance" min="0" max="100" value="{{draft.anomalyChance}}"></label>
+      <table class="sbs-preset-table">
+        <thead><tr><th>Attribute</th><th>Minimum die</th><th>Maximum die</th><th>Anomaly steps</th></tr></thead>
+        <tbody>{{#each attributes}}
+          <tr><th scope="row">{{name}}</th>
+            <td><select name="range-min-{{key}}" aria-label="{{name}} minimum">{{selectOptions @root.dice selected=min blank="Any"}}</select></td>
+            <td><select name="range-max-{{key}}" aria-label="{{name}} maximum">{{selectOptions @root.dice selected=max blank="Any"}}</select></td>
+            <td><input class="sbs-forge-number" type="number" name="range-anomaly-{{key}}" min="0" max="4" value="{{anomaly}}" aria-label="{{name}} anomaly steps"></td></tr>
+        {{/each}}</tbody>
+      </table>
+    </details>
+    <details class="sbs-editor-accordion" data-section="traits" open>
+      <summary>Ancestral traits</summary>
+      <p class="hint">A trait can change a native SWADE stat or describe a rule you handle at the table. Use negative points for drawbacks.</p>
+      <label><input type="checkbox" name="sizeWounds" {{checked draft.sizeWounds}}> Apply extra Wounds from Size in the NPC builder</label>
+      {{#each draft.traits}}
+        <div class="sbs-ancestry-trait">
+          <div class="sbs-ancestry-trait-fields">
+            <label>Name<input type="text" name="trait-name-{{@index}}" value="{{name}}" placeholder="Fleet-footed"></label>
+            <label>Changes<select name="trait-kind-{{@index}}">{{selectOptions @root.kinds selected=kind}}</select></label>
+            <label>Amount<span class="sbs-inline-picker">
+              {{#if (eq kind "movementMode")}}
+                <select name="trait-value-{{@index}}">{{selectOptions @root.movementModes selected=amount}}</select>
+              {{else if (eq kind "runningDie")}}
+                <select name="trait-value-{{@index}}">{{selectOptions @root.dice selected=amount}}</select>
+              {{else}}<input type="number" name="trait-value-{{@index}}" min="-100" max="100" value="{{amount}}">{{/if}}
+              {{#if (eq kind "size")}}<button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" data-index="{{@index}}" aria-label="Choose ancestry Size"></button>{{/if}}
+            </span></label>
+            <label>Points<input type="number" name="trait-points-{{@index}}" min="-100" max="100" value="{{points}}"></label>
+            <button type="button" class="icon fa-solid fa-xmark" data-action="removeTrait" data-index="{{@index}}" aria-label="Remove trait"></button>
+          </div>
+          <input type="text" name="trait-description-{{@index}}" value="{{description}}" placeholder="Describe this trait" aria-label="Trait description">
+        </div>
+      {{/each}}
+      <button type="button" data-action="addTrait"><i class="fa-solid fa-plus" inert></i> Add ancestral trait</button>
+      {{#if otherEffects.length}}
+        <p class="hint">Existing native effects are preserved.</p>
+        <ul>{{#each otherEffects}}<li>{{name}}</li>{{/each}}</ul>
+      {{/if}}
+    </details>
+    <details class="sbs-editor-accordion" data-section="grants" data-grant-drop open>
+      <summary>Granted items</summary>
+      <p class="hint">Use a picker or drop an item here. The ancestry grants a native copy to each NPC.</p>
+      {{#each groups}}
+        <details class="sbs-editor-accordion sbs-forge-item" data-section="grant-{{key}}" {{#if rows.length}}open{{/if}}>
+          <summary>{{label}} ({{rows.length}})</summary>
+          <div class="sbs-npc-library-bar">
+            {{#if (eq key "other")}}
+              <select name="grantType" aria-label="Grant item type">{{selectOptions @root.types selected=@root.grantType}}</select>
+              <button type="button" data-action="addGrant"><i class="fa-solid fa-list" inert></i> Choose grant</button>
+            {{else}}
+              <button type="button" data-action="addGrant" data-type="{{key}}"><i class="fa-solid fa-list" inert></i> Choose {{label}}</button>
+            {{/if}}
+            {{#if (eq key "skill")}}<button type="button" data-action="addCore"><i class="fa-solid fa-plus" inert></i> Add setting core skills</button>{{/if}}
+          </div>
+          {{#each rows}}
+            <div class="sbs-ancestry-trait">
+              <div class="sbs-preset-loadout">
+                <strong>{{#if name}}{{name}}{{else}}{{uuid}}{{/if}}</strong>
+                <label>Points <input type="number" name="grant-points-{{index}}" min="-100" max="100" value="{{points}}"></label>
+                <button type="button" class="icon fa-solid fa-xmark" data-action="removeGrant" data-index="{{index}}" aria-label="Remove grant"></button>
+              </div>
+              <div class="sbs-preset-fields">
+                {{#if (eq type "skill")}}
+                  <label>Starting die<select name="grant-die-{{index}}">{{selectOptions @root.dice selected=sides blank="Use source die"}}</select></label>
+                  <label>Die modifier<input type="number" name="grant-mod-{{index}}" min="-20" max="20" value="{{modifier}}"></label>
+                {{/if}}
+                {{#if (eq type "power")}}<label>Casting pool<input type="text" name="grant-casting-{{index}}" value="{{casting}}" placeholder="Use power’s Arcane field"></label>{{/if}}
+                {{#if (eq type "weapon")}}
+                  <label>Damage<input type="text" name="grant-damage-{{index}}" value="{{damage}}" placeholder="Use source damage"></label>
+                  <label>AP<input type="number" name="grant-ap-{{index}}" min="0" max="40" value="{{ap}}"></label>
+                  <label>Trait<span class="sbs-inline-picker">
+                    <input type="text" name="grant-trait-{{index}}" value="{{attackTrait}}">
+                    <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="grant-trait-{{index}}" aria-label="Choose weapon trait"></button>
+                  </span></label>
+                  <label>Range<input type="text" name="grant-range-{{index}}" value="{{range}}" placeholder="Use source range"></label>
+                {{/if}}
+              </div>
+            </div>
+          {{/each}}
+        </details>
+      {{/each}}
+    </details>
+    {{> "modules/swade-better-setting/templates/npc-forge-casting.hbs" draft.casting}}
+    <details class="sbs-editor-accordion" data-section="tables">
+      <summary>Roll tables ({{draft.tables.length}})</summary>
+      <p class="hint">Roll these tables when the NPC is created and append the results to its biography. This leaves the source tables intact.</p>
+      <button type="button" data-action="addTable"><i class="fa-solid fa-list" inert></i> Choose a roll table</button>
+      {{#each draft.tables}}
+        <div class="sbs-preset-loadout">
+          <span>{{name}}</span><label>Rolls <input type="number" name="table-count-{{@index}}" min="1" max="5" value="{{count}}"></label>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeTable" data-index="{{@index}}" aria-label="Remove {{name}}"></button>
+        </div>
+      {{/each}}
+    </details>
+  </div>
+  <footer class="sbs-preset-footer">
+    <output data-ancestry-total class="{{#unless (eq pointTotal draft.threshold)}}sbs-preset-unbalanced{{/unless}}">{{pointTotal}} / {{draft.threshold}} points</output>
+    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> {{#if libraryCopy}}Save a world copy{{else}}Save ancestry{{/if}}</button>
+    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> Save and use</button>{{/if}}
+  </footer>
+</section>

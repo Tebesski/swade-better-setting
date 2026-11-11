@@ -2,6 +2,51 @@ import {ICON, MODULE_ID, normalizeName, skillData} from "./skills.mjs";
 import {getPack, librarySkills} from "./library.mjs";
 
 let DraftSheet;
+let NPCItemDraft;
+let NPCEffectDraft;
+
+function keepDraftLocal(document, sheet) {
+  // Image, flags, and native editor actions can update the document directly.
+  document.update = async function (changes) {
+    this.updateSource(changes);
+    if (changes.img) {
+      for (const image of sheet.element?.querySelectorAll('img[data-edit="img"]') ?? []) image.src = changes.img;
+    }
+    return this;
+  };
+}
+
+function NPCFeatureDraft(Sheet) {
+  return class extends Sheet {
+    static DEFAULT_OPTIONS = {
+      form: {submitOnChange: false, submitOnClose: false, closeOnSubmit: false},
+      actions: {addDraft: async function () {
+        if (this.adding) return;
+        this.adding = true;
+        try {
+          await this.submit();
+          const data = this.document.toObject();
+          data.name = data.name.trim();
+          if (!data.name) throw new Error("Enter a name before adding this feature.");
+          await this.onAdd(data);
+          await this.close();
+        } catch (error) {
+          ui.notifications.error(error.message);
+        } finally {
+          this.adding = false;
+        }
+      }}
+    };
+    get isEditable() { return true; }
+    get isVisible() { return true; }
+    get title() { return this.editing ? `Edit ${this.document.name}` : `Add ${game.i18n.localize(`TYPES.${this.document.documentName}.${this.document.type}`)}`; }
+    async _processSubmitData(_event, _form, data) {
+      await this.document.update(data);
+      return {updated: this.document};
+    }
+  };
+}
+
 export function initializeDraftSheet() {
   class DraftTweaks extends game.swade.apps.SwadeItemTweaks {
     async _processSubmitData(_event, _form, submitData) {
@@ -100,6 +145,54 @@ export function initializeDraftSheet() {
       }
     }
   };
+  NPCItemDraft = class extends NPCFeatureDraft(game.swade.sheets.SwadeItemSheetV2) {
+    static DEFAULT_OPTIONS = {classes: ["sbs-npc-item-draft"]};
+    async _onRender(context, options) {
+      await super._onRender(context, options);
+      this.element.querySelector('[data-action="inlineDelete"]')?.remove();
+      // Effects have their own feature editor, with an actor rather than an item as their parent.
+      for (const control of this.element.querySelectorAll('[data-tab="effects"]')) control.hidden = true;
+      const content = this.element.querySelector(".window-content");
+      if (!content.querySelector(".sbs-npc-item-footer")) {
+        const footer = document.createElement("footer");
+        footer.className = "sbs-npc-item-footer";
+        footer.innerHTML = this.editing
+          ? '<button type="button" data-action="addDraft"><i class="fa-solid fa-floppy-disk" inert></i> Save Changes</button>'
+          : '<button type="button" data-action="addDraft"><i class="fa-solid fa-plus" inert></i> Add to NPC</button>';
+        content.append(footer);
+      }
+    }
+  };
+  NPCEffectDraft = class extends NPCFeatureDraft(foundry.applications.sheets.ActiveEffectConfig) {
+    static DEFAULT_OPTIONS = {classes: ["sbs-setting-dialog"]};
+    get title() { return this.editing ? super.title : "Add Effect"; }
+    async _preparePartContext(part, context) {
+      const data = await super._preparePartContext(part, context);
+      if (part === "footer") data.buttons = [{type: "button", action: "addDraft",
+        icon: this.editing ? "fa-solid fa-floppy-disk" : "fa-solid fa-plus", label: this.editing ? "Save Changes" : "Add to NPC"}];
+      return data;
+    }
+    async _processSubmitData(event, form, data) {
+      const result = await super._processSubmitData(event, form, data);
+      if (!this.adding) await this.render();
+      return result;
+    }
+  };
+}
+
+export async function openNPCFeatureDraft(type, onAdd, source) {
+  const effect = type === "effect";
+  const DocumentClass = effect ? CONFIG.ActiveEffect.documentClass : CONFIG.Item.documentClass;
+  const parent = effect ? new CONFIG.Actor.documentClass({name: "NPC draft", type: "npc"}) : undefined;
+  const name = effect ? "New Effect" : game.i18n.localize(`TYPES.Item.${type}`);
+  const data = effect ? {name, transfer: false} : {name, type, img: `systems/swade/assets/icons/${type}.svg`};
+  const draft = new DocumentClass(source ? structuredClone(source) : data, {parent});
+  const Sheet = effect ? NPCEffectDraft : NPCItemDraft;
+  const sheet = new Sheet({document: draft});
+  sheet.editing = !!source;
+  sheet.onAdd = onAdd;
+  keepDraftLocal(draft, sheet);
+  return sheet.render({force: true});
 }
 
 export async function createSkill({actor, data = {}} = {}) {
@@ -111,16 +204,8 @@ export async function createSkill({actor, data = {}} = {}) {
     ...data, name: data.name ?? game.i18n.localize("TYPES.Item.skill"), type: "skill", img: data.img ?? ICON,
     ownership: {...data.ownership, [game.user.id]: CONST.DOCUMENT_OWNERSHIP_LEVELS.OWNER}
   }, actor ? {parent: actor} : {});
-  // SWADE's image picker and Tweaks sheet call document.update directly.
-  // Keep these edits on the temporary document until the explicit submit.
-  draft.update = async function (changes) {
-    this.updateSource(changes);
-    if (changes.img) {
-      for (const image of sheet.element?.querySelectorAll('img[data-edit="img"]') ?? []) image.src = changes.img;
-    }
-    return this;
-  };
   const sheet = new DraftSheet({document: draft});
+  keepDraftLocal(draft, sheet);
   sheet.targetActor = actor;
   await sheet.render({force: true});
   return sheet;

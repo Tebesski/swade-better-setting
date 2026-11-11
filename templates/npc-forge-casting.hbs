@@ -1,0 +1,27 @@
+<details class="sbs-editor-accordion" data-section="casting">
+  <summary>Spellcasting pools</summary>
+  <p class="hint">Match powers to a named pool. A pool can grow each rank or use its own casting rule.</p>
+  {{#each this}}
+    <div class="sbs-ancestry-trait">
+      <div class="sbs-preset-fields">
+        <label>Name<input type="text" name="casting-name-{{@index}}" value="{{name}}" placeholder="Spellcasting"></label>
+        <label>Casting trait<span class="sbs-inline-picker">
+          <input type="text" name="casting-trait-{{@index}}" value="{{trait}}">
+          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="casting-trait-{{@index}}" aria-label="Choose casting trait"></button>
+        </span></label>
+        <label>Starting PP<input type="number" name="casting-points-{{@index}}" min="0" max="999" value="{{points}}"></label>
+        <label>PP per rank<input type="number" name="casting-growth-{{@index}}" min="0" max="99" value="{{growth}}"></label>
+        <label>Casting rule<select name="casting-rule-{{@index}}">{{selectOptions @root.castingRules selected=rule}}</select></label>
+        <button type="button" class="icon fa-solid fa-xmark" data-action="removeCasting" data-index="{{@index}}" aria-label="Remove pool"></button>
+      </div>
+      {{#if @root.canRequireEdge}}
+        <div class="sbs-npc-library-bar">
+          {{#if requires}}<span>Requires {{requires.name}}</span>
+            <button type="button" class="icon fa-solid fa-xmark" data-action="clearEdge" data-index="{{@index}}" aria-label="Remove required edge"></button>{{/if}}
+          <button type="button" data-action="pickEdge" data-index="{{@index}}"><i class="fa-solid fa-list" inert></i> Require an edge</button>
+        </div>
+      {{/if}}
+    </div>
+  {{/each}}
+  <button type="button" data-action="addCasting"><i class="fa-solid fa-plus" inert></i> Add casting pool</button>
+</details>

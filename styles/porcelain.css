@@ -1,0 +1,314 @@
+/* Resolve cursor URLs here so Foundry's styles can reuse them from a different directory. */
+@property --sbs-cursor-arrow-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+@property --sbs-cursor-link-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+@property --sbs-cursor-help-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+@property --sbs-cursor-text-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+@property --sbs-cursor-grab-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+@property --sbs-cursor-grabbing-icon {
+  syntax: "<url> | none";
+  inherits: true;
+  initial-value: none;
+}
+
+/* Opted-in applications and panels receive this palette. Chat uses its native theme. */
+:is(
+  body.sbs-white-swade :is(.sbs-standard-swade-sheet, .application.swade.roll-dialog),
+  body.sbs-white-setting :is(
+    .sbs-picker:not(.sbs-power-picker, .sbt-catalog-dialog, .sbp-dialog, .sbe-app),
+    .sbs-compendium-dialog:not(.sbt-library-dialog),
+    .sbs-setting-dialog, .sbs-modifier-library, .sbs-bestiary, .sbs-npc-builder, .sbs-skill-draft, .sbs-npc-item-draft
+  ),
+  body.sbs-white-templates :is(.sbt-builder, .sbt-library, .sbt-library-dialog, .sbt-catalog-dialog, .sbt-dock, .sbt-cast-options, .sbt-cast-template-controls),
+  body.sbs-white-powers :is(.sbp-dialog, .sbp-power-timers, .sbs-power-picker, .sbs-power-roll, .sbs-powers, .sbs-modifiers-tab, .sbs-casting-modifiers, .sbp-library-behaviors),
+  body.sbs-white-effects :is(.sbe-app, .sbe-aegis, .sbe-targeted-adapter)
+):not(.chat-message, .chat-message *):not(:is(.application, .window-app).sheet:not(.sbs-standard-swade-sheet, .sbs-skill-draft, .sbs-npc-item-draft, .sbe-aegis) *) {
+  --sbs-paper: #fcfaf6;
+  --sbs-surface: #fffdf9;
+  --sbs-fill: #f4efe7;
+  --sbs-line: #c9bdae;
+  --sbs-divider: #e1d8cc;
+  --sbs-ink: #29251f;
+  --sbs-muted: #63584d;
+  --sbs-accent: #853f31;
+  --sbs-accent-soft: #f2e2d9;
+  --sbs-link: #2f615a;
+
+  --sbs-cursor-arrow-icon: url("./cursors/arrow.svg");
+  --sbs-cursor-link-icon: url("./cursors/link.svg");
+  --sbs-cursor-help-icon: url("./cursors/help.svg");
+  --sbs-cursor-text-icon: url("./cursors/text.svg");
+  --sbs-cursor-grab-icon: url("./cursors/grab.svg");
+  --sbs-cursor-grabbing-icon: url("./cursors/grabbing.svg");
+  /* Hotspots from the 32px Bibata Modern Classic Windows cursors. */
+  --cursor-default: var(--sbs-cursor-arrow-icon) 4 1, default;
+  --cursor-default-down: var(--cursor-default);
+  --cursor-pointer: var(--sbs-cursor-link-icon) 9 1, pointer;
+  --cursor-pointer-down: var(--cursor-pointer);
+  --cursor-help: var(--sbs-cursor-help-icon) 3 7, help;
+  --cursor-text: var(--sbs-cursor-text-icon) 11 11, text;
+  --cursor-text-down: var(--cursor-text);
+  --cursor-grab: var(--sbs-cursor-grab-icon) 12 6, grab;
+  --cursor-grab-down: var(--sbs-cursor-grabbing-icon) 11 5, grabbing;
+
+  --color-scheme: light;
+  --color-text-primary: var(--sbs-ink);
+  --color-text-emphatic: var(--sbs-ink);
+  --color-text-secondary: var(--sbs-muted);
+  --color-text-subtle: var(--sbs-muted);
+  --color-text-accent: var(--sbs-accent);
+  --color-text-hyperlink: var(--sbs-link);
+  --color-text-selection: var(--sbs-ink);
+  --color-text-selection-bg: #ead2c5;
+  --color-form-label: var(--sbs-ink);
+  --color-form-label-hover: var(--sbs-accent);
+  --color-form-hint: var(--sbs-muted);
+  --color-form-hint-hover: var(--sbs-ink);
+  --color-border: var(--sbs-line);
+  --color-border-light-2: var(--sbs-line);
+  --color-border-light-primary: var(--sbs-line);
+  --color-border-light-secondary: var(--sbs-line);
+  --color-border-light-tertiary: var(--sbs-divider);
+  --color-border-dark-primary: var(--sbs-line);
+  --color-tabs-border: var(--sbs-line);
+  --color-fieldset-border: var(--sbs-line);
+  --color-data-border: var(--sbs-line);
+  --color-data-background: var(--sbs-fill);
+  --color-bg-option: var(--sbs-fill);
+  --color-select-option-bg: var(--sbs-surface);
+  --color-header-background: linear-gradient(110deg, var(--sbs-fill), var(--sbs-surface));
+  --color-scrollbar: #a09280;
+  --color-scrollbar-track: transparent;
+  --color-shadow-primary: #b97861;
+  --color-shadow-highlight: var(--sbs-accent);
+  --color-warm-1: var(--sbs-accent);
+  --color-warm-2: var(--sbs-accent);
+  --content-link-background: var(--sbs-fill);
+  --content-link-border-color: var(--sbs-divider);
+  --content-link-icon-color: var(--sbs-link);
+  --content-link-text-color: var(--sbs-link);
+  --background: var(--sbs-paper);
+  --swade-background: var(--sbs-paper);
+  --content-background-image: linear-gradient(var(--sbs-paper), var(--sbs-paper));
+  --content-shadow: none;
+  --swade-primary-color: var(--sbs-accent);
+  --accent-color: var(--sbs-accent);
+  --accent-color-secondary: var(--sbs-line);
+  --section-header-color: var(--sbs-accent);
+  --add-button-color: var(--sbs-muted);
+  --input-background: var(--sbs-fill);
+  --input-text-shadow: none;
+  --card-button-background-color: var(--sbs-surface);
+  --color-high-contrast: var(--sbs-ink);
+  --font-color: var(--sbs-ink);
+  --invert-if-dark: none;
+  --header-background-image: none;
+  --note-header-background-image: none;
+  --note-main-background-image: none;
+  --note-footer-background-image: none;
+  --item-unequipped-color: #63584d30;
+  --tab-box-shadow-color-1: transparent;
+  --tab-box-shadow-color-2: transparent;
+  --tab-box-shadow-color-3: transparent;
+  --tab-hover-shadow: none;
+
+  color-scheme: light;
+  accent-color: var(--sbs-accent);
+  color: var(--sbs-ink);
+  caret-color: var(--sbs-ink);
+  background-color: var(--sbs-paper);
+  background-image: none;
+
+  &.application, &.window-app {
+    border-color: var(--sbs-line);
+    box-shadow: 0 9px 30px #33271f40, 0 2px 5px #33271f24;
+  }
+
+  & > .window-content {
+    color: var(--sbs-ink);
+    background: var(--sbs-paper);
+    box-shadow: none;
+    backdrop-filter: none;
+  }
+
+  &, & > :is(.window-content, .window-header), & :is(button:disabled, input:disabled, select:disabled, textarea:disabled) {
+    cursor: var(--cursor-default);
+  }
+
+  & :is(button:not(:disabled), a, summary, select:not(:disabled), [role="button"]:not([aria-disabled="true"]),
+    label:has(input:is([type="checkbox"], [type="radio"]):enabled), input:is([type="checkbox"], [type="radio"]):enabled) {
+    cursor: var(--cursor-pointer);
+  }
+
+  & :is([data-tooltip], [data-tooltip-text]):not(:is(button, a, input, select, textarea, label)) {
+    cursor: var(--cursor-help);
+  }
+
+  & > :is(.window-header, .sbt-dock-grip) {
+    color: var(--sbs-ink);
+    background: var(--color-header-background);
+    border-bottom: 1px solid var(--sbs-line);
+  }
+
+  & > .window-header :is(.window-title, .window-icon, .header-control, .header-button) {
+    color: var(--sbs-ink);
+    text-shadow: none;
+  }
+
+  & :is(input, select, textarea, code-mirror, formula-input, color-picker, file-picker, document-tags, string-tags) {
+    --input-background-color: var(--sbs-fill);
+    --input-border-color: var(--sbs-line);
+    --input-text-color: var(--sbs-ink);
+    --input-placeholder-color: var(--sbs-muted);
+    --input-box-shadow: none;
+    --input-focus-outline-color: var(--sbs-accent);
+  }
+
+  & :is(
+    input:is(:not([type]), [type="text"], [type="search"], [type="number"], [type="password"], [type="email"], [type="tel"], [type="url"]):not(:disabled),
+    textarea:not(:disabled), [contenteditable]:not([contenteditable="false"]), .float-label > :is(label, span)
+  ) {
+    cursor: var(--cursor-text);
+  }
+
+  & .cm-content { caret-color: var(--sbs-ink); }
+
+  & :is(.sort-handle, .sbp-modifier-drag, .sbt-modifier-drag, .sbt-dock-grip) {
+    cursor: var(--cursor-grab);
+
+    &:active { cursor: var(--cursor-grab-down); }
+  }
+
+  &.sbt-dock-dragging .sbt-dock-grip { cursor: var(--cursor-grab-down); }
+
+  & :is(input[type="checkbox"], input[type="radio"]) {
+    --checkbox-background-color: #8b7c6c;
+    --checkbox-checked-color: var(--sbs-accent);
+    --checkbox-checkmark-color: var(--sbs-surface);
+  }
+
+  & :is(button, a.button) {
+    --button-background-color: var(--sbs-surface);
+    --button-border-color: var(--sbs-line);
+    --button-text-color: var(--sbs-ink);
+    --button-hover-background-color: var(--sbs-accent-soft);
+    --button-hover-border-color: var(--sbs-accent);
+    --button-hover-text-color: var(--sbs-accent);
+    --button-focus-outline-color: var(--sbs-accent);
+    --button-box-shadow: none;
+    text-shadow: none;
+    transition: none;
+  }
+
+  & > .window-header button.header-control {
+    --button-background-color: transparent;
+  }
+
+  & :is(
+    .form-footer button[type="submit"],
+    .sbs-skill-footer button[type="submit"],
+    .sbs-npc-item-footer button[data-action="addDraft"],
+    .sbs-npc-builder-footer button[data-action="create"],
+    .sbt-builder-footer button[data-action="saveClose"],
+    button.bright
+  ) {
+    --button-background-color: var(--sbs-accent);
+    --button-border-color: var(--sbs-accent);
+    --button-text-color: var(--sbs-surface);
+    --button-hover-background-color: #6d3126;
+    --button-hover-text-color: var(--sbs-surface);
+  }
+
+  & button:disabled {
+    --button-background-color: var(--sbs-fill);
+    --button-border-color: var(--sbs-divider);
+    --button-text-color: var(--sbs-muted);
+    --button-hover-background-color: var(--sbs-fill);
+    --button-hover-border-color: var(--sbs-divider);
+    --button-hover-text-color: var(--sbs-muted);
+  }
+
+  & :is(button, a, summary, input, select, textarea):focus-visible {
+    outline: 2px solid var(--sbs-accent);
+    outline-offset: 1px;
+    text-shadow: none;
+  }
+
+  & :is(fieldset, .editor, .editor-container) {
+    border-color: var(--sbs-line);
+  }
+
+  & :is(.editor-content, .ProseMirror) a:not(.broken) {
+    color: var(--sbs-link);
+  }
+
+  & img[src$="/icons/svg/mystery-man.svg"], & img[src="icons/svg/mystery-man.svg"] {
+    filter: brightness(0) opacity(.68);
+  }
+
+  & :is(table, .presets .dropdown, .sbt-behavior, .sbe-condition, .sbe-note-preview) {
+    background-color: var(--sbs-surface);
+    border-color: var(--sbs-divider);
+  }
+
+  & :is(table thead, .editor-menu, .sbe-flag, .sbt-dock-list li) {
+    color: var(--sbs-ink);
+    background: var(--sbs-fill);
+    border-color: var(--sbs-divider);
+  }
+
+  & :is(table tbody tr:nth-child(even), .sbs-bestiary-list li[data-uuid]:nth-child(odd)) {
+    background-color: var(--sbs-fill);
+  }
+
+  & :is(.sbs-bestiary-list li[data-uuid]:hover, .sbt-catalog-entry:has(input:checked), .sbt-catalog-entry:hover) {
+    background-color: var(--sbs-accent-soft);
+  }
+
+  &.swade :is(.tabs > .item, .tabs > [data-action="tab"]):not(.active) {
+    color: var(--sbs-muted);
+  }
+
+  &.swade :is(.tabs > .item, .tabs > [data-action="tab"]).active {
+    color: var(--sbs-accent);
+    background: var(--sbs-accent-soft);
+    box-shadow: inset 0 -2px var(--sbs-accent);
+    text-shadow: none;
+  }
+
+  &.swade :is(.grid-under, .grid-cover) {
+    background-image: none;
+  }
+
+  &.sbt-dock {
+    border-color: var(--sbs-line);
+    box-shadow: 0 4px 14px #33271f40;
+  }
+
+  &.sbt-dock a {
+    color: var(--sbs-muted);
+  }
+
+  &.sbt-dock a:hover { color: var(--sbs-accent); }
+  &.sbt-dock .sbt-dock-player-visibility.sbt-hidden-from-players { color: #82591f; }
+  &.sbt-dock .sbt-dock-row.sbt-expired .sbt-dock-time { color: var(--sbs-accent); }
+}
