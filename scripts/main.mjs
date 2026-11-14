@@ -1,5 +1,6 @@
 import {MODULE_ID} from "./skills.mjs";
 import {initializeLibrary, processPendingSkill, processPendingSkills} from "./library.mjs";
+import {initializeActionLibrary, libraryActions} from "./action-library.mjs";
 import {createSkill, initializeDraftSheet} from "./creation.mjs";
 import {SkillPicker} from "./picker.mjs";
 import {installCoreSkills, installSheetHooks, openActorSkills, openLibrary} from "./integrations.mjs";
@@ -25,11 +26,13 @@ async function openCompendium() {
     window: {title: "Better SWADE Compendium", icon: "fa-solid fa-book-open"},
     buttons: [
       {action: "skills", label: "Skills", icon: "fa-solid fa-list"},
+      {action: "actions", label: "Actions", icon: "fa-solid fa-sword"},
       {action: "templates", label: "Templates", icon: "fa-solid fa-shapes", disabled: !templates?.openTemplates, tooltip: templates ? undefined : "Enable Better Templates"},
       {action: "modifiers", label: "Modifiers", icon: "fa-solid fa-sliders"}
     ], rejectClose: false
   });
   if (choice === "skills") return openLibrary();
+  if (choice === "actions") return (await initializeActionLibrary())?.render(true);
   if (choice === "templates") return templates.openTemplates();
   if (choice === "modifiers") return openModifierLibrary();
 }
@@ -56,12 +59,16 @@ Hooks.once("setup", () => {
   installBestiary();
   installNPCTools();
   game.modules.get(MODULE_ID).api = {openCompendium, openLibrary, openActorSkills, createSkill, openBestiary, openNPCBuilder,
-    openModifierLibrary, saveModifierToLibrary, getGlobalModifiers, applyLibraryModifier, resolveCompendiumName,
+    openModifierLibrary, saveModifierToLibrary, getGlobalModifiers, applyLibraryModifier, resolveCompendiumName, libraryActions,
     hasModifierDrag, readModifierDrag, writeModifierDrag,
     openTraitPicker: (onSelect, {title = "Choose a trait", ...options} = {}) => new SkillPicker({mode: "traits", onSelect, ...options, window: {title}}).render({force: true})};
 });
 
 Hooks.once("ready", async () => {
+  initializeActionLibrary().catch(error => {
+    console.error(`${MODULE_ID} | Action compendium setup failed`, error);
+    ui.notifications.error(`Better Setting: ${error.message}`);
+  });
   try {
     await initializeLibrary();
     await processPendingSkills();

@@ -52,6 +52,7 @@
   --sbs-accent: #853f31;
   --sbs-accent-soft: #f2e2d9;
   --sbs-link: #2f615a;
+  --sbs-icon-backing: #817264;
 
   --sbs-cursor-arrow-icon: url("./cursors/arrow.svg");
   --sbs-cursor-link-icon: url("./cursors/link.svg");
@@ -259,6 +260,19 @@
 
   & :is(.editor-content, .ProseMirror) a:not(.broken) {
     color: var(--sbs-link);
+  }
+
+  /* Give transparent artwork contrast without changing the image colors. */
+  & :is(
+    img.profile-img, img.skill-icon, img.effect-icon, .item-image,
+    :is(.sbs-native-chat-icon, .edges) .item-img:not(:hover, :focus),
+    .sbs-choice > img, .sbs-npc-feature-link > img, .sbs-bestiary-npc img,
+    .sbs-npc-art > img, .sbs-ancestry-art > img,
+    .sbt-library-list img, .sbt-catalog-entry img, .sbe-heading > img,
+    .sbe-effect-picker-results img, .sbp-effect-icon > img, .sbp-behavior-effect > img
+  ):not([src$="icons/svg/mystery-man.svg"], .chat-message *) {
+    background-color: var(--sbs-icon-backing);
+    border-radius: 4px;
   }
 
   & img[src$="/icons/svg/mystery-man.svg"], & img[src="icons/svg/mystery-man.svg"] {

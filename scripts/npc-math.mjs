@@ -2,7 +2,22 @@ export const RANKS = ["Novice", "Seasoned", "Veteran", "Heroic", "Legendary"];
 export const ATTRIBUTES = ["agility", "smarts", "spirit", "strength", "vigor"];
 export const ROUNDS = 4;
 export const bounded = (value, min, max) => Math.min(max, Math.max(min, value));
-export const roundCR = value => Math.round(value);
+export const MIN_CR = -2;
+export function roundCR(value) {
+  const step = value > 0 && value < 1 ? .5 : 1;
+  return Math.max(MIN_CR, Math.round(value / step) * step) + 0;
+}
+export const formatCR = value => value === .5 ? "1/2" : String(value ?? "—");
+
+export function parseCR(value) {
+  const text = value.trim().replace(/^−/, "-");
+  if (!text) return null;
+  if (text === "½" || /^1\s*\/\s*2$/.test(text)) return .5;
+  if (!/^-?(?:\d+(?:[.,]\d+)?|[.,]\d+)$/.test(text)) return undefined;
+  const number = Number(text.replace(",", "."));
+  if (!Number.isFinite(number) || number < MIN_CR || number > 9999) return undefined;
+  return roundCR(number);
+}
 const TAIL_TOLERANCE = 1e-14;
 
 // P(acing die >= target), including every possible continuation of an Ace.
@@ -381,8 +396,10 @@ function advancementCurve(woundCap) {
 // Interpolate between measured combat strengths. Continue the last
 // interval beyond Legendary so manual CR and high-advance PCs stay comparable.
 export function advancementStrength(advances, woundCap = 0) {
+  // Below Novice, each CR step halves the strength of the reference combatant.
+  if (advances < 0) return 2 ** Math.max(MIN_CR, advances);
   const {strengths} = advancementCurve(woundCap);
-  const step = Math.max(0, advances) / 4;
+  const step = advances / 4;
   const i = Math.min(Math.floor(step), strengths.length - 2);
   return strengths[i] + (strengths[i + 1] - strengths[i]) * (step - i);
 }
@@ -393,11 +410,12 @@ export function creatureRating(profile, woundCap = 0) {
   const strength = estimate.score / novice;
   const upper = strengths.findIndex(anchor => anchor > strength);
   const i = upper === -1 ? strengths.length - 2 : Math.max(0, upper - 1);
-  const rawCR = strength <= 1 ? 0 : 4 * (i + (strength - strengths[i]) / (strengths[i + 1] - strengths[i]));
+  const rawCR = strength <= 1 ? Math.log2(Math.max(2 ** MIN_CR, strength)) : 4 * (i + (strength - strengths[i]) / (strengths[i + 1] - strengths[i]));
   return {...estimate, cr: roundCR(rawCR), rawCR, strength};
 }
 
 export function encounterThreat(enemies, party) {
+  if (!(enemies > 0)) return {label: "None", threat: 0, partyWin: party > 0 ? 1 : null};
   if (!(party > 0)) return {label: "Add the party to initiative", threat: null};
   const ratio = enemies / party;
   const threat = 1 / (1 + (1 / ratio) ** 2);

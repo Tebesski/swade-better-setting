@@ -22,7 +22,8 @@ async function initialize() {
   }
   if (!game.settings.get(MODULE_ID, "libraryInitialized")) {
     const existing = await pack.getDocuments();
-    const source = await game.packs.get("swade.skills")?.getDocuments() ?? [];
+    const sourcePack = game.packs.get("swade-core-rules.swade-skills") ?? game.packs.get("swade.skills");
+    const source = await sourcePack?.getDocuments() ?? [];
     const names = new Set(existing.map(item => normalizeName(item.name)));
     const missing = seedSkills(source).filter(item => !names.has(normalizeName(item.name)));
     if (missing.length) {

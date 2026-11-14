@@ -1,6 +1,6 @@
 <section class="sbs-bestiary-results" aria-label="NPC results">
   <div class="sbs-bestiary-status">
-    <strong role="status">{{#if loading}}Loading bestiary…{{else if filtering}}Reading filter data…{{else if sortingCR}}Calculating CR to sort {{count}} NPCs…{{else}}{{count}} {{#if (eq count 1)}}NPC{{else}}NPCs{{/if}}{{/if}}</strong>
+    <strong role="status">{{#if loading}}Loading bestiary…{{else if filtering}}Reading filter data…{{else if filteringCR}}Calculating CR for the filter…{{else if sortingCR}}Calculating CR to sort {{count}} NPCs…{{else}}{{count}} {{#if (eq count 1)}}NPC{{else}}NPCs{{/if}}{{/if}}</strong>
     <div class="sbs-bestiary-tools">
       {{#if canBuild}}<button type="button" data-action="build"><i class="fa-solid fa-hammer" inert></i> NPC Builder</button>{{/if}}
       <button type="button" class="icon fa-solid fa-rotate" data-action="refresh" aria-label="Refresh" data-tooltip="Refresh Bestiary" {{disabled loading}}></button>
@@ -21,7 +21,7 @@
         </div>
       </li>
     {{else}}
-      {{#unless (or loading filtering)}}<li class="sbs-bestiary-empty">No NPCs match your search and filters.</li>{{/unless}}
+      {{#unless (or loading filtering filteringCR)}}<li class="sbs-bestiary-empty">No NPCs match your search and filters.</li>{{/unless}}
     {{/each}}
   </ol>
   {{#if hasPages}}

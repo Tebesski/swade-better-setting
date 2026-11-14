@@ -1,4 +1,4 @@
-import {ATTRIBUTES, RANKS, advancementStrength, bounded, creatureRating, parseDamage, roundCR} from "./npc-math.mjs";
+import {ATTRIBUTES, MIN_CR, RANKS, advancementStrength, bounded, creatureRating, parseDamage, roundCR} from "./npc-math.mjs";
 import {MODULE_ID, normalizeName, slug} from "./skills.mjs";
 import {BETTER_POWERS, compileCasting} from "./npc-casting.mjs";
 import {tokenFootprint} from "./npc-size.mjs";
@@ -261,12 +261,14 @@ export function estimateActor(actor) {
 export function actorRating(actor) {
   const manual = actor.flags?.[MODULE_ID]?.npc?.cr;
   const advances = actor.type === "character" ? actor.system?.advances?.value : undefined;
-  const rating = Number.isFinite(manual) && manual >= 0 ? manual : advances;
-  if (Number.isFinite(rating) && rating >= 0) {
+  const overridden = Number.isFinite(manual) && manual >= MIN_CR;
+  const rating = overridden ? manual : advances;
+  if (overridden || Number.isFinite(advances) && advances >= 0) {
     const cap = game.settings.get("swade", "woundCap") ? 4 : 0;
     return {cr: roundCR(rating), rawCR: rating, strength: advancementStrength(rating, cap),
-      coverage: rating === manual ? "Manual" : "Advances", warnings: []};
+      coverage: overridden ? "Manual" : "Advances", warnings: []};
   }
+  if (!["character", "npc"].includes(actor.type)) return {cr: null, rawCR: null, strength: 0, coverage: "Unrated", warnings: []};
   return estimateActor(actor);
 }
 

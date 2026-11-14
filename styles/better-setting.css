@@ -1,5 +1,12 @@
 @import url("./porcelain.css");
 
+/* Apply SWADE's inventory icon styles without adding layout boxes to the row. */
+.swade .sbs-native-chat-icon, .swade .sbs-native-chat-icon > .inventory { display: contents; }
+.swade .sbs-native-chat-icon .item-img { margin: 0; }
+.swade-official [data-tab="actions"] li.action.swadetools-noshow details[open] > .content {
+  display: block !important;
+}
+
 /* Keep the open modifier menu above the HUD forecast, while allowing specialized menus to set their own layer. */
 :where(.application.swade.roll-dialog .presets > .dropdown:not(.collapsed)) { z-index: 1; }
 
@@ -223,6 +230,7 @@ label.float-label.sbs-trait-field > span { grid-column: 1 / -1; }
 .sbs-bestiary-range-fields { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 5px; }
 .sbs-bestiary-range-fields label { display: flex; align-items: center; gap: 5px; }
 .sbs-bestiary-range-fields select { width: auto; min-width: 45px; }
+.sbs-bestiary-cr-range input { width: 4em; text-align: center; }
 .sbs-bestiary .sbs-bestiary-select { width: 100%; justify-content: start; }
 .sbs-bestiary-conjunction { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin-block-start: 6px; font-size: .9em; }
 .sbs-bestiary-conjunction label { display: flex; align-items: center; gap: 4px; }
@@ -420,9 +428,12 @@ label.float-label.sbs-trait-field > span { grid-column: 1 / -1; }
 .sbs-npc-builder-footer { grid-area: footer; padding-block-start: 5px; border-block-start: 1px solid var(--color-border-light-tertiary); }
 .sbs-npc-builder-footer button { width: auto; }
 .sbs-npc-sheet-controls { display: flex; align-items: center; gap: 6px; }
-.sbs-npc-sheet-controls label { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
+.sbs-sheet-cr { display: flex; align-items: center; gap: 3px; white-space: nowrap; }
 .sbs-npc-sheet-controls :is(select, input) { height: 1.7em; width: auto; font-size: .95em; }
-.sbs-npc-sheet-controls input { width: 4.5em; }
+.sbs-sheet-cr input { width: 3em; text-align: center; }
+.character-detail.rank:has(> .sbs-npc-sheet-controls) > input { flex: 1; min-width: 0; }
+.character-detail.rank > .sbs-npc-sheet-controls { flex: none; margin-inline-end: 4px; }
+.character-detail.rank .sbs-sheet-cr { border-inline-start: 1px solid var(--color-border-light-tertiary); padding-inline-start: 6px; }
 .sbs-encounter-threat { display: grid; gap: 5px; padding: 6px 12px 14px; border-block-end: 1px solid var(--color-border-light-tertiary); }
 .sbs-threat-scale {
   position: relative;

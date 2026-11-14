@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import {test} from "node:test";
-import {STANDARD, aceAtLeast, advancementStrength, attackPressure, attackRating, combatEstimate, creatureRating, damageOutcomes, encounterThreat, parseDamage, recoveryOdds, referencePC, strike, traitAtLeast, volleyOdds, woundPenalty} from "../scripts/npc-math.mjs";
+import {STANDARD, aceAtLeast, advancementStrength, attackPressure, attackRating, combatEstimate, creatureRating, damageOutcomes, encounterThreat, formatCR, parseCR, parseDamage, recoveryOdds, referencePC, strike, traitAtLeast, volleyOdds, woundPenalty} from "../scripts/npc-math.mjs";
 import {BETTER_POWERS, addCastingEntry, compileCasting} from "../scripts/npc-casting.mjs";
 import {damageBenchmarks, makePreset, managedTags, npcRank, npcSource, sizeStrength} from "../scripts/npc-data.mjs";
 import {setMagazineField} from "../scripts/npc-attack.mjs";
@@ -37,7 +37,7 @@ test("combat estimates distinguish Extras, resilient creatures, Wild Cards, and 
   const extra = {...structuredClone(STANDARD), wounds: 0, bennies: 0, spirit: {sides: 6}, vigor: {sides: 6},
     attacks: STANDARD.attacks.map(attack => ({...attack, trait: {sides: 6}}))};
   const base = creatureRating(extra);
-  assert.equal(base.cr, 0);
+  assert.equal(base.cr, -2);
   assert.ok(base.strength > 0 && base.strength < 1);
   assert.ok(creatureRating({...extra, wounds: 1}).strength > base.strength);
   assert.ok(creatureRating({...extra, hardy: true}).survival > base.survival);
@@ -57,11 +57,29 @@ test("the reference rank anchors and encounter budgets share the Advancement sca
     }
     assert.ok(Number.isFinite(advancementStrength(9999, cap)));
   }
-  assert.equal(encounterThreat(0, 0).threat, null);
-  assert.equal(encounterThreat(0, 1).partyWin, 1);
+  assert.deepEqual(encounterThreat(0, 0), {label: "None", threat: 0, partyWin: null});
+  assert.deepEqual(encounterThreat(0, 1), {label: "None", threat: 0, partyWin: 1});
+  assert.equal(encounterThreat(1, 0).threat, null);
   assert.deepEqual(encounterThreat(2, 2), {label: "High", threat: .5, partyWin: .5});
   close(encounterThreat(2, 1).partyWin, .2);
   close(encounterThreat(1, 2).partyWin, .8);
+});
+
+test("weak and near-Novice profiles can earn CR -2, -1 and 1/2", () => {
+  const novice = referencePC(0);
+  const extra = sides => ({...novice, wounds: 0, bennies: 0, spirit: {sides: 6}, vigor: {sides: 6},
+    attacks: novice.attacks.map(attack => ({...attack, trait: {sides}}))});
+  const tougherExtra = {...extra(8), parry: 6};
+  const improvedNovice = {...novice, attacks: novice.attacks.map(attack => ({...attack, damage: {dice: [6, 7], flat: 0}}))};
+  assert.equal(creatureRating(extra(6)).cr, -2);
+  assert.equal(creatureRating(tougherExtra).cr, -1);
+  assert.equal(creatureRating(improvedNovice).cr, .5);
+  close(advancementStrength(-2) * 4, advancementStrength(0));
+  close(advancementStrength(-1) * 2, advancementStrength(0));
+  close(advancementStrength(.5), (advancementStrength(0) + advancementStrength(1)) / 2);
+  for (const cr of [-2, -1, 0, .5, 1, 4]) assert.equal(parseCR(formatCR(cr)), cr);
+  assert.equal(parseCR(""), null);
+  assert.equal(parseCR("-3"), undefined);
 });
 
 test("rank presets preserve specialization and source data retains native defenses and rank flags", () => {

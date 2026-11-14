@@ -1,6 +1,6 @@
 import {openNPCBuilder} from "./npc-builder.mjs";
 import {EFFECTS, NPC_FLAG, actorRating, managedTags, npcRank, rankIndex} from "./npc-data.mjs";
-import {RANKS, bounded, encounterThreat, roundCR} from "./npc-math.mjs";
+import {MIN_CR, RANKS, advancementStrength, encounterThreat, formatCR, parseCR} from "./npc-math.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {wrapMethod} from "./integrations.mjs";
 
@@ -11,27 +11,27 @@ function refreshThreat(app, root) {
   const tracker = root.querySelector(".combat-tracker");
   if (!combat || !tracker || combat.type === "dramaticTask") return;
   const {HOSTILE, FRIENDLY, SECRET} = CONST.TOKEN_DISPOSITIONS;
-  const party = {strength: 0, cr: 0, count: 0, unrated: 0};
-  const enemies = {strength: 0, cr: 0, count: 0, unrated: 0};
+  const party = {strength: 0, cr: 0, count: 0};
+  const enemies = {strength: 0, cr: 0, count: 0};
+  let unrated = 0;
   const scores = new Map();
   for (const combatant of combat.combatants) {
     const actor = combatant.actor;
-    if (combatant.defeated || combatant.isDefeated || combatant.isIncapacitated || actor?.system.status?.isIncapacitated) continue;
-    if (!["character", "npc"].includes(actor?.type)) continue;
-    const disposition = combatant.token?.disposition ?? actor.prototypeToken.disposition;
-    const enemy = disposition === HOSTILE || disposition === SECRET;
-    const allied = !enemy && (disposition === FRIENDLY || actor.hasPlayerOwner);
-    if (!enemy && !allied) continue;
+    if (!actor) continue;
+    const disposition = combatant.token?.disposition ?? actor.prototypeToken?.disposition;
+    const side = disposition === FRIENDLY ? party : disposition === HOSTILE || disposition === SECRET ? enemies : null;
+    if (!side) continue;
     const rating = actorRating(actor);
     scores.set(combatant.id, rating);
-    const side = enemy ? enemies : party;
-    if (rating.coverage === "Unrated") { side.unrated++; continue; }
-    side.strength += rating.strength;
-    side.cr += rating.rawCR;
+    const fallback = rating.coverage === "Unrated";
+    if (fallback) unrated++;
+    side.cr += fallback ? MIN_CR : rating.cr;
     side.count++;
+    if (!combatant.isDefeated && !combatant.isIncapacitated && !actor.system.status?.isIncapacitated) {
+      side.strength += fallback ? advancementStrength(MIN_CR) : rating.strength;
+    }
   }
-  const unknownSide = [party, enemies].some(side => !side.count && side.unrated);
-  const {label, threat, partyWin} = unknownSide ? {label: "Unrated", threat: null} : encounterThreat(enemies.strength, party.strength);
+  const {label, threat, partyWin} = encounterThreat(enemies.strength, party.strength);
   const panel = document.createElement("section");
   panel.className = "sbs-encounter-threat";
   const heading = document.createElement("strong");
@@ -39,9 +39,10 @@ function refreshThreat(app, root) {
   const scale = document.createElement("div");
   scale.className = "sbs-threat-scale";
   scale.tabIndex = 0;
-  const average = side => side.count ? (side.cr / side.count).toFixed(1) : "—";
-  const win = threat === null ? "—" : `${Math.round(partyWin * 100)}%`;
+  const average = side => side.count ? formatCR(Number((side.cr / side.count).toFixed(1))) : "—";
+  const win = partyWin == null ? "—" : `${Math.round(partyWin * 100)}%`;
   const details = [`Average party CR: ${average(party)}`, `Average encounter CR: ${average(enemies)}`, `Estimated party win chance: ${win}`];
+  if (unrated) details.push(`Unrated combatants count as CR ${formatCR(MIN_CR)} in this encounter.`);
   scale.dataset.tooltip = details.join("<br>");
   scale.setAttribute("aria-label", details.join(". "));
   if (threat !== null) {
@@ -60,20 +61,13 @@ function refreshThreat(app, root) {
     if (!rating || !name) continue;
     const badge = document.createElement("small");
     badge.className = "sbs-combatant-cr";
-    badge.textContent = rating.coverage === "Unrated" ? rating.coverage : `CR ${rating.cr}`;
+    badge.textContent = rating.coverage === "Unrated" ? rating.coverage : `CR ${formatCR(rating.cr)}`;
     badge.dataset.tooltip = foundry.utils.escapeHTML([rating.coverage, ...rating.warnings].join("\n"));
     name.append(badge);
   }
 }
 
-function npcControls(app, root) {
-  const actor = app.document;
-  if (!game.user.isGM || actor?.type !== "npc" || !app.isEditable) return;
-  const header = root.querySelector(".window-header");
-  if (!header) return;
-  header.querySelector(".sbs-npc-sheet-controls")?.remove();
-  const controls = document.createElement("div");
-  controls.className = "sbs-npc-sheet-controls";
+function npcRankControl(actor) {
   const rank = document.createElement("select");
   rank.setAttribute("aria-label", "NPC rank");
   for (const label of RANKS) rank.append(new Option(label, label));
@@ -91,31 +85,57 @@ function npcControls(app, root) {
         "system.advances.mode": "legacy", "system.advances.rank": label, "system.advances.value": index * 4});
     } catch (error) { ui.notifications.error(error.message); }
   });
-  const cr = document.createElement("input");
-  cr.type = "number";
-  cr.min = "0";
-  cr.max = "9999";
-  cr.step = "1";
+  return rank;
+}
+
+function actorCRControl(app, root) {
+  const actor = app.document;
+  if (!["character", "npc"].includes(actor?.type)) return;
+  const rankField = root.querySelector('.character-detail.rank:has([name="system.advances.rank"])');
+  root.querySelector(".character-detail.advances")?.removeAttribute("data-tooltip");
+  if (rankField?.dataset.tooltip) {
+    rankField.querySelector('[name="system.advances.rank"]').dataset.tooltip = rankField.dataset.tooltip;
+    rankField.removeAttribute("data-tooltip");
+  }
+  const header = root.querySelector(".window-header");
+  if (!rankField && !header) return;
+  root.querySelector(".sbs-npc-sheet-controls")?.remove();
+  const controls = document.createElement("span");
+  controls.className = "sbs-npc-sheet-controls";
+  const editable = game.user.isGM && app.isEditable;
+  if (!rankField) controls.append(editable ? npcRankControl(actor) : npcRank(actor));
+  const cr = document.createElement(editable ? "input" : "output");
+  if (editable) {
+    cr.type = "text";
+    cr.placeholder = "—";
+  }
   cr.setAttribute("aria-label", "Creature Rating");
   const updateRating = () => {
     const rating = actorRating(actor);
-    cr.dataset.tooltip = foundry.utils.escapeHTML([`CR is the equivalent number of advances on a reference Wild Card PC. Edit to override or clear to restore the estimate.`, ...rating.warnings].join("\n"));
-    cr.value = rating.coverage === "Unrated" ? "" : rating.cr;
+    cr.value = rating.coverage === "Unrated" && editable ? "" : formatCR(rating.coverage === "Unrated" ? null : rating.cr);
   };
   updateRating();
-  cr.addEventListener("keydown", event => {
-    if (event.key === "Enter") { event.preventDefault(); cr.blur(); }
-  });
-  cr.addEventListener("change", async () => {
-    try {
-      await actor.update({[`${NPC_FLAG}.cr`]: cr.value === "" ? null : roundCR(bounded(Number(cr.value), 0, 9999))});
+  if (editable) {
+    cr.addEventListener("keydown", event => {
+      if (event.key === "Enter") { event.preventDefault(); cr.blur(); }
+    });
+    cr.addEventListener("change", async event => {
+      event.stopPropagation();
+      const rating = parseCR(cr.value);
+      if (rating === undefined) ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+      else {
+        try { await actor.update({[`${NPC_FLAG}.cr`]: rating}); }
+        catch (error) { ui.notifications.error(error.message); }
+      }
       updateRating();
-    } catch (error) { ui.notifications.error(error.message); }
-  });
-  const crLabel = document.createElement("label");
+    });
+  }
+  const crLabel = document.createElement(editable ? "label" : "span");
+  crLabel.className = "sbs-sheet-cr";
   crLabel.append("CR ", cr);
-  controls.append(rank, crLabel);
-  header.querySelector('[data-action="toggleControls"], [data-action="close"]')?.before(controls);
+  controls.append(crLabel);
+  if (rankField) rankField.append(controls);
+  else header.querySelector('[data-action="toggleControls"], [data-action="close"]')?.before(controls);
 }
 
 export function installNPCTools() {
@@ -152,15 +172,22 @@ export function installNPCTools() {
     if (footer.querySelector(".sbs-open-bestiary")) footer.querySelector(".sbs-open-bestiary").before(button);
     else footer.append(button);
   });
-  Hooks.on("renderSwadeNPCSheet", npcControls);
+  Hooks.on("renderCharacterSheet", actorCRControl);
+  Hooks.on("renderSwadeNPCSheet", actorCRControl);
   Hooks.on("renderCombatTracker", refreshThreat);
+  let refreshPending = false;
   const refresh = () => {
-    if (!game.user.isGM) return;
-    for (const app of foundry.applications.instances.values()) {
-      if (app instanceof foundry.applications.sidebar.tabs.CombatTracker && app.rendered) refreshThreat(app, app.element);
-    }
+    if (!game.user.isGM || refreshPending) return;
+    refreshPending = true;
+    queueMicrotask(() => {
+      refreshPending = false;
+      for (const app of [ui.combat, ui.combat?.popout]) {
+        if (app?.element?.isConnected) refreshThreat(app, app.element);
+      }
+    });
   };
-  for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect", "deleteActiveEffect", "updateToken"]) Hooks.on(hook, refresh);
+  for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
+    "deleteActiveEffect", "updateToken", "updateCombatant"]) Hooks.on(hook, refresh);
   Hooks.on("preUpdateActor", (actor, changes) => {
     if (actor.type !== "npc" || !actor.getFlag(MODULE_ID, "npc")?.rank) return;
     const path = "system.wildcard";

@@ -1,6 +1,6 @@
 import {librarySkills} from "./library.mjs";
 import {ChoicePicker} from "./picker.mjs";
-import {ATTRIBUTES, RANKS, advancementStrength, bounded, roundCR, traitAtLeast} from "./npc-math.mjs";
+import {ATTRIBUTES, RANKS, advancementStrength, bounded, formatCR, parseCR, traitAtLeast} from "./npc-math.mjs";
 import {EFFECTS, EFFECT_TEMPLATE, ROLE_PROFILES, actorTrait, attackTags, damageBenchmarks, estimateActor, findAttackTrait, makePreset, npcSource, rankIndex, sizeStrength, traitAttribute, usesMelee} from "./npc-data.mjs";
 import {BETTER_POWERS, GENERAL_ENTRY, addCastingEntry, validEntryName} from "./npc-casting.mjs";
 import {MODULE_ID, STANDARD_SKILLS, normalizeName, skillData, slug} from "./skills.mjs";
@@ -506,7 +506,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       art: this.token.prototypeToken.texture?.src || actor.prototypeToken.texture.src || actor.img,
       power: draft.mode === "power", ranged: draft.mode === "ranged", hasAttack: draft.mode !== "none",
       castingEntries, castingRules: CASTING_RULES, hasBetterPowers, entryChoices, attackRows, signatureDetails,
-      cr: draft.cr ?? (estimate.coverage === "Unrated" ? "" : estimate.cr), damageError: this.damageError,
+      cr: draft.cr === null && estimate.coverage === "Unrated" ? "" : formatCR(draft.cr ?? estimate.cr), damageError: this.damageError,
       initiative: INITIATIVE.map(option => ({...option, checked: draft.initiative[option.key]})),
       tinyMelee: draft.size === -4 && draft.mode === "melee",
       defenses: {parry, toughness, armor}, wounds};
@@ -538,7 +538,9 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     if (attackOption) return this.changeAttackOption(input, attack, attackOption);
     if (input.matches("[data-cr]")) {
-      this.draft.cr = input.value === "" ? null : roundCR(bounded(Number(input.value), 0, 9999));
+      const cr = parseCR(input.value);
+      if (cr === undefined) ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+      else this.draft.cr = cr;
       return this.render({parts: ["identity"]});
     }
     if (input.dataset.defense) {

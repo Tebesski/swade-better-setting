@@ -3,7 +3,7 @@ import {BestiaryCatalog, ROW_FIELDS, catalogRow} from "./bestiary-catalog.mjs";
 import {wrapMethod} from "./integrations.mjs";
 import {ChoicePicker} from "./picker.mjs";
 import {MODULE_ID, normalizeName} from "./skills.mjs";
-import {RANKS} from "./npc-math.mjs";
+import {RANKS, formatCR, parseCR} from "./npc-math.mjs";
 
 const {ApplicationV2, HandlebarsApplicationMixin} = foundry.applications.api;
 const WORLD = "world";
@@ -27,7 +27,7 @@ const rankOrder = rank => RANKS.indexOf(rank) + 1 || RANKS.length + 1;
 function ratingLabel(rating) {
   if (!rating) return {value: "CR …", title: "Calculating Creature Rating"};
   if (rating.cr === null) return {value: "CR —", title: "No automatic Creature Rating"};
-  return {value: `CR ${Math.round(rating.cr)}`, title: `Creature Rating · ${rating.coverage}`};
+  return {value: `CR ${formatCR(rating.cr)}`, title: `Creature Rating · ${rating.coverage}`};
 }
 
 function facetKey(group, value) {
@@ -95,6 +95,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
         this.query = this.sourceQuery = "";
         this.wildcard = null;
         this.woundRange = {min: 0, max: 3};
+        this.crRange = {min: null, max: null};
         this.suggestions = null;
         return this.showMatches();
       },
@@ -124,6 +125,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
     this.anyGroups = new Set();
     this.wildcard = null;
     this.woundRange = {min: 0, max: 3};
+    this.crRange = {min: null, max: null};
     this.failed = new Set();
     this.catalog = new BestiaryCatalog((source, error) => this.sourceFailed(source, error));
     this.query = "";
@@ -301,10 +303,13 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
       disabled: this.loading || !!this.wildcard && this.wildcard !== choice.key}));
     const matches = [];
     const missingFacets = [];
+    const missingRatings = [];
     const filters = [...this.filters].filter(([key, values]) => values.size && key !== "source" && key !== "rank")
       .map(([key, values]) => [key, [...values.keys()]]);
     const {min, max} = this.woundRange;
     const woundFilter = min !== 0 || max !== 3;
+    const {min: minCR, max: maxCR} = this.crRange;
+    const crFilter = minCR !== null || maxCR !== null;
     if (!this.loading) {
       const nameMatches = npcNameSearch(this.query);
       const ranks = this.filters.get("rank");
@@ -322,6 +327,14 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
           const choices = facets?.get(type);
           return this.anyGroups.has(type) ? values.some(key => choices?.has(key)) : values.every(key => choices?.has(key));
         })) continue;
+        if (crFilter) {
+          const rating = this.catalog.rating(row);
+          if (!rating) {
+            missingRatings.push(row);
+            continue;
+          }
+          if (rating.cr == null || rating.cr < (minCR ?? -Infinity) || rating.cr > (maxCR ?? Infinity)) continue;
+        }
         matches.push(row);
       }
       matches.sort((a, b) => this.compareRows(a, b));
@@ -329,17 +342,19 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
     const pages = Math.max(1, Math.ceil(matches.length / PAGE_SIZE));
     this.page = Math.max(0, Math.min(this.page, pages - 1));
     const pageRows = matches.slice(this.page * PAGE_SIZE, (this.page + 1) * PAGE_SIZE);
-    const ratingRows = (this.sort === "cr" ? matches : pageRows).filter(row => !this.catalog.rating(row));
+    const ratingRows = crFilter ? missingRatings : (this.sort === "cr" ? matches : pageRows).filter(row => !this.catalog.rating(row));
     const filterGroups = filters.map(([group]) => group);
     if (woundFilter) filterGroups.push("wounds");
     return {...context, groups, sources, ranks, wildcards, woundOptions: WOUNDS, woundRange: this.woundRange,
       woundLower: min / 3 * 100, woundUpper: max / 3 * 100, query: this.query, sourceQuery: this.sourceQuery, loading: this.loading,
+      crFrom: minCR === null ? "" : formatCR(minCR), crTo: maxCR === null ? "" : formatCR(maxCR),
       sort: this.sort, sortOptions: SORT_OPTIONS, ascending: this.ascending,
       canDrag: CONFIG.Actor.documentClass.canUserCreate(game.user) || game.user.can("TOKEN_CREATE"),
       canBuild: CONFIG.Actor.documentClass.canUserCreate(game.user),
       matches: pageRows.map(row => ({...row, rankClass: row.rank.toLowerCase(), rating: ratingLabel(this.catalog.rating(row))})),
       count: matches.length, missingFacets, filterGroups, ratingRows,
-      filtering: missingFacets.length > 0, sortingCR: this.sort === "cr" && ratingRows.length > 0,
+      filtering: missingFacets.length > 0, filteringCR: missingRatings.length > 0,
+      sortingCR: !crFilter && this.sort === "cr" && ratingRows.length > 0,
       page: this.page + 1, pages, hasPages: pages > 1, previous: this.page > 0, next: this.page + 1 < pages,
       failed: [...this.failed].join(", ")};
   }
@@ -347,7 +362,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
   compareRows(a, b) {
     const direction = this.ascending ? 1 : -1;
     if (this.sort === "cr") {
-      const aCR = this.catalog.rating(a)?.cr, bCR = this.catalog.rating(b)?.cr;
+      const aCR = this.catalog.rating(a)?.rawCR, bCR = this.catalog.rating(b)?.rawCR;
       if ((aCR == null) !== (bCR == null)) return aCR == null ? 1 : -1;
       if (aCR != null && aCR !== bCR) return direction * (aCR - bCR);
     }
@@ -389,7 +404,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
       badge.textContent = value;
       badge.title = title;
     });
-    if (active() && (context.sortingCR || context.failed !== [...this.failed].join(", "))) await this.render({parts: ["results"]});
+    if (active() && (context.filteringCR || context.sortingCR || context.failed !== [...this.failed].join(", "))) await this.render({parts: ["results"]});
   }
 
   async _onRender(context, options) {
@@ -429,12 +444,37 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
         }
       });
       filters.addEventListener("keydown", event => {
-        if (event.key !== "Enter" || !event.target.matches("[data-facet-input]")) return;
+        if (event.key !== "Enter") return;
+        if (event.target.matches("[data-cr-bound]")) {
+          event.preventDefault();
+          event.target.blur();
+          return;
+        }
+        if (!event.target.matches("[data-facet-input]")) return;
         event.preventDefault();
         this.submitSuggestion(event.target, true);
       });
       filters.addEventListener("change", event => {
         const input = event.target;
+        if (input.matches("[data-cr-bound]")) {
+          const bound = input.dataset.crBound;
+          const value = parseCR(input.value);
+          if (value === undefined) {
+            ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+            input.value = this.crRange[bound] === null ? "" : formatCR(this.crRange[bound]);
+            return;
+          }
+          this.crRange[bound] = value;
+          const {min, max} = this.crRange;
+          if (min !== null && max !== null && min > max) this.crRange[bound === "min" ? "max" : "min"] = value;
+          for (const field of filters.querySelectorAll("[data-cr-bound]")) {
+            const bound = this.crRange[field.dataset.crBound];
+            field.value = bound === null ? "" : formatCR(bound);
+          }
+          clearTimeout(this.searchTimer);
+          void this.showMatches({parts: ["results"]}).catch(report);
+          return;
+        }
         if (input.matches("[data-wound-bound]")) {
           this.updateWounds(input, filters);
           clearTimeout(this.woundTimer);

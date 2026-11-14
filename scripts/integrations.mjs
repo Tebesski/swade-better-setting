@@ -80,6 +80,7 @@ export function installSheetHooks(openCompendium) {
     if (!root) return;
     try {
       const actor = app.actor ?? (app.document?.documentName === "Actor" ? app.document : null);
+      if (root.matches(".swade.sheet.actor") && actor) installActorChatIcons(root, actor);
       if (["character", "npc"].includes(actor?.type) && app.isEditable) {
         // Capture before ApplicationV2 dispatches the system's createDocument action.
         if (!root.dataset.sbsSkillListener) {
@@ -138,6 +139,67 @@ export function installSheetHooks(openCompendium) {
     button.addEventListener("click", () => openCompendium().catch(report));
     html.querySelector(".header-actions")?.append(button);
   });
+}
+
+function installActorChatIcons(root, actor) {
+  for (const icon of root.querySelectorAll('.effects-list li[data-effect-id] img.effect-icon')) {
+    if (icon.closest("button")) continue;
+    const frame = document.createElement("span");
+    frame.className = "sbs-native-chat-icon swade-official";
+    const inventory = document.createElement("span");
+    inventory.className = "inventory";
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "item-img item-show sbs-effect-chat";
+    button.title = game.i18n.localize("SWADE.ShowInChat");
+    button.setAttribute("aria-label", `${button.title}: ${icon.alt}`);
+    button.style.backgroundImage = `url(${CSS.escape(icon.getAttribute("src"))})`;
+    inventory.append(button);
+    frame.append(inventory);
+    icon.replaceWith(frame);
+  }
+  if (root.dataset.sbsChatIcons) return;
+  root.dataset.sbsChatIcons = "true";
+  // SWADE Tools can remove the action attribute and bind rolls directly to item icons.
+  // Capture explicit chat controls before those handlers run.
+  root.addEventListener("click", event => {
+    if (event.button !== 0) return;
+    const actionName = event.target.closest('[data-tab="actions"] li.action.swadetools-noshow summary .item-name');
+    if (actionName) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      actionName.closest("summary").click();
+      return;
+    }
+    const control = event.target.closest(".item-show");
+    if (!control) return;
+    const item = actor.items.get(control.closest("[data-item-id]")?.dataset.itemId);
+    const row = control.closest("[data-effect-id]");
+    const source = row?.dataset.parentId;
+    const parent = source && source !== actor.id ? actor.items.get(source) : actor;
+    const effect = control.matches(".sbs-effect-chat") && parent?.effects.get(row?.dataset.effectId);
+    if (!item && !effect) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    void (effect ? showEffectInChat(actor, effect) : item.show()).catch(report);
+  }, {capture: true});
+}
+
+async function showEffectInChat(actor, effect) {
+  const section = document.createElement("section");
+  const heading = document.createElement("h3");
+  heading.textContent = effect.name;
+  const description = document.createElement("div");
+  description.innerHTML = await foundry.applications.ux.TextEditor.implementation.enrichHTML(effect.description || "", {
+    relativeTo: effect, rollData: actor.getRollData(), secrets: false
+  });
+  section.append(heading, description);
+  const Message = CONFIG.ChatMessage.documentClass;
+  const data = {speaker: Message.getSpeaker({actor, token: actor.token}), content: section.outerHTML};
+  if (actor.type === "npc" && game.settings.get("swade", "hideNpcItemChatCards")) {
+    data.whisper = game.users.filter(user => user.isGM).map(user => user.id);
+  } else Message.applyMode(data, game.settings.get("core", "messageMode") ?? "public");
+  return Message.create(data);
 }
 
 function getContextSkill(target) {

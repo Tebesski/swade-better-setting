@@ -1,5 +1,6 @@
 import {hasWoundAdjustment, npcFacets} from "./bestiary-data.mjs";
 import {actorRating, EFFECTS, npcRank} from "./npc-data.mjs";
+import {MIN_CR, roundCR} from "./npc-math.mjs";
 import {MODULE_ID} from "./skills.mjs";
 
 export const ROW_FIELDS = ["system.wildcard", "system.advances.rank", "system.advances.value",
@@ -28,7 +29,7 @@ export function catalogRow(record, source) {
   const inspectable = source.pack ? source.inspectable : record.testUserPermission(game.user, "OBSERVER");
   return {source, id: record.id ?? record._id, uuid: record.uuid, name: record.name, img: record.img,
     rank: npcRank(record), wildcard: record.isWildcard ?? !!record.system?.wildcard, inspectable,
-    manual: Number.isFinite(cr) && cr >= 0 ? {cr, coverage: "Manual"} : null};
+    manual: Number.isFinite(cr) && cr >= MIN_CR ? {cr: roundCR(cr), rawCR: cr, coverage: "Manual"} : null};
 }
 
 export class BestiaryCatalog {
@@ -168,7 +169,8 @@ export class BestiaryCatalog {
   async loadRatings(rows, active, update) {
     await this.loadActors(rows.filter(row => !this.rating(row)), active, (row, actor) => {
       const estimate = actor && actorRating(actor);
-      const rating = estimate ? {cr: estimate.coverage === "Unrated" ? null : estimate.rawCR ?? estimate.cr, coverage: estimate.coverage} : noRating;
+      const rating = estimate && estimate.coverage !== "Unrated"
+        ? {cr: estimate.cr, rawCR: estimate.rawCR, coverage: estimate.coverage} : noRating;
       this.ratings.set(row.uuid, rating);
       update(row, rating);
     });

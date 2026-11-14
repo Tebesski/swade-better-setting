@@ -36,6 +36,13 @@
           <span>{{name}}</span></label>
       {{/each}}
     </div>
+    <section class="sbs-bestiary-facet" aria-label="Creature Rating">
+      <strong>CR</strong>
+      <div class="sbs-bestiary-range-fields sbs-bestiary-cr-range">
+        <label>From <input type="text" data-cr-bound="min" value="{{crFrom}}" placeholder="Any" aria-label="Minimum CR" {{disabled loading}}></label>
+        <label>To <input type="text" data-cr-bound="max" value="{{crTo}}" placeholder="Any" aria-label="Maximum CR" {{disabled loading}}></label>
+      </div>
+    </section>
   </details>
 
   <details class="sbs-bestiary-filter" data-filter="details">

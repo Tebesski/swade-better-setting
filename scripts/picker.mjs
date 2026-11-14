@@ -129,7 +129,7 @@ export class SkillPicker extends ChoicePicker {
     actions: {
       star: async function (_event, target) { await this.star(target.dataset.key); },
       createSkill: async function () { await this.onCreate?.(); },
-      editSkill: async function (_event, target) { (await this.skills()).find(item => item.id === target.dataset.key)?.sheet.render({force: true}); },
+      editSkill: function (_event, target) { return this.openSkillSheet(target.dataset.key); },
       deleteSkill: async function (_event, target) {
         const item = (await this.skills()).find(item => item.id === target.dataset.key);
         await item?.deleteDialog();
@@ -139,6 +139,11 @@ export class SkillPicker extends ChoicePicker {
   };
   get favoriteFlag() { return this.mode === "traits" ? "traitFavorites" : "skillFavorites"; }
   async skills() { return librarySkills(); }
+  async openSkillSheet(id) {
+    // Foundry applies updates to the cached document, not the copies returned by getDocuments().
+    const item = await getPack()?.getDocument(id);
+    if (item?.type === "skill") return item.sheet.render({force: true});
+  }
   async _prepareContext(options) {
     const context = await super._prepareContext(options);
     const favorites = new Set(game.user.getFlag(MODULE_ID, this.favoriteFlag) ?? []);
@@ -182,7 +187,7 @@ export class SkillPicker extends ChoicePicker {
   get closeOnSelect() { return this.mode !== "manage"; }
 
   async select(entry) {
-    if (this.mode === "manage") return (await this.skills()).find(item => item.id === entry.key)?.sheet.render({force: true});
+    if (this.mode === "manage") return this.openSkillSheet(entry.key);
     const value = entry.kind === "attribute" ? entry.key.slice("attribute:".length) : entry.name;
     return this.onSelect?.(value, {...entry, linkedSkills: entry.kind === "attribute" && this.linkedAttributes.has(value)});
   }
