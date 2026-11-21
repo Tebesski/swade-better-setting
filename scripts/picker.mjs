@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID, normalizeName} from "./skills.mjs";
 import {getPack, librarySkills} from "./library.mjs";
 
@@ -33,8 +34,8 @@ export class ChoicePicker extends HandlebarsApplicationMixin(ApplicationV2) {
     this.page = Math.max(0, Math.min(this.page, pages - 1));
     const rows = this.pageSize ? matches.slice(this.page * this.pageSize, (this.page + 1) * this.pageSize) : matches;
     return {...await super._prepareContext(options), query: this.query, loading: this.loading,
-      loadingMessage: this.loadingMessage ?? "Loading choices…", notice: this.notice,
-      searchLabel: "Search choices", emptyMessage: "No matching choices.", sections: [{rows}],
+      loadingMessage: this.loadingMessage ?? sbsI18n("swade-better-setting.UI.Loadingchoices_747544a156"), notice: this.notice,
+      searchLabel: sbsI18n("swade-better-setting.UI.Searchchoices_cac413d0cb"), emptyMessage: sbsI18n("swade-better-setting.UI.Nomatchingchoices_d4ac3258af"), sections: [{rows}],
       categories: this.categories, category: this.category, canPreview: !!this.onPreview,
       choicePages: pages > 1, choicePage: this.page + 1, choiceTotalPages: pages,
       previousChoices: this.page > 0, nextChoices: this.page + 1 < pages};
@@ -119,13 +120,13 @@ export class ChoicePicker extends HandlebarsApplicationMixin(ApplicationV2) {
 }
 
 export class SkillPicker extends ChoicePicker {
-  constructor({mode = "skills", onCreate, actor, includeLinkedSkills = false, linkedAttributes = [], ...options} = {}) {
+  constructor({mode = sbsI18n("swade-better-setting.UI.skills_32c1cf49a2"), onCreate, actor, includeLinkedSkills = false, linkedAttributes = [], ...options} = {}) {
     super(options);
     Object.assign(this, {mode, onCreate, actor, includeLinkedSkills});
     this.linkedAttributes = new Set(linkedAttributes);
   }
   static DEFAULT_OPTIONS = {
-    window: {title: "Skills Compendium", resizable: true},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.SkillsCompendium_966b0b86c9"); }, resizable: true},
     actions: {
       star: async function (_event, target) { await this.star(target.dataset.key); },
       createSkill: async function () { await this.onCreate?.(); },
@@ -137,7 +138,7 @@ export class SkillPicker extends ChoicePicker {
       }
     }
   };
-  get favoriteFlag() { return this.mode === "traits" ? "traitFavorites" : "skillFavorites"; }
+  get favoriteFlag() { return this.mode === "traits" ? sbsI18n("swade-better-setting.UI.traitFavorites_fc3be74494") : sbsI18n("swade-better-setting.UI.skillFavorites_d2bc66c94c"); }
   async skills() { return librarySkills(); }
   async openSkillSheet(id) {
     // Foundry applies updates to the cached document, not the copies returned by getDocuments().
@@ -149,7 +150,7 @@ export class SkillPicker extends ChoicePicker {
     const favorites = new Set(game.user.getFlag(MODULE_ID, this.favoriteFlag) ?? []);
     const skills = (await this.skills()).map(item => ({
       key: item.id, favoriteKey: `skill:${item.id}`, name: item.name, img: item.img,
-      detail: item.system.isCoreSkill ? "Core" : "", core: item.system.isCoreSkill, kind: "skill"
+      detail: item.system.isCoreSkill ? sbsI18n("swade-better-setting.UI.Core_70ea1983c9") : "", core: item.system.isCoreSkill, kind: "skill"
     }));
     const attributes = this.mode === "traits" ? Object.entries(CONFIG.SWADE.attributes).map(([key, attr]) => ({
       key: `attribute:${key}`, favoriteKey: `attribute:${key}`, name: game.i18n.localize(attr.long), kind: "attribute",
@@ -161,13 +162,22 @@ export class SkillPicker extends ChoicePicker {
     const section = (label, rows) => ({label, rows: rows.map(item => ({...item, canStar: true, canManage: manage && game.user.isGM && !getPack()?.locked}))});
     const sections = [section("Starred", entries.filter(item => item.starred))];
     if (this.mode === "traits") sections.push(section("Attributes", entries.filter(item => item.kind === "attribute" && !item.starred)));
-    sections.push(section("Core Skills", entries.filter(item => item.kind === "skill" && item.core && !item.starred)));
+    sections.push(section(sbsI18n("swade-better-setting.UI.CoreSkills_f0518e5e8d"), entries.filter(item => item.kind === "skill" && item.core && !item.starred)));
     sections.push(section("Skills", entries.filter(item => item.kind === "skill" && !item.core && !item.starred)));
     return {...context, canCreate: !!this.onCreate, sections: sections.filter(group => group.rows.length),
-      searchLabel: "Search skills and traits", emptyMessage: "No matching skills or traits."};
+      searchLabel: sbsI18n("swade-better-setting.UI.Searchskillsandtraits_fea072e056"), emptyMessage: sbsI18n("swade-better-setting.UI.Nomatchingskillsortraits_110e325902")};
   }
   async _onRender(context, options) {
     await super._onRender(context, options);
+    for (const control of this.element.querySelectorAll('.sbs-choice[data-action="choose"]')) {
+      const entry = this.entries.find(item => item.key === control.dataset.key);
+      if (entry?.kind !== "skill") continue;
+      control.addEventListener("contextmenu", event => {
+        event.preventDefault();
+        event.stopPropagation();
+        void this.openSkillSheet(entry.key).catch(error => ui.notifications.error(error.message));
+      });
+    }
     for (const checkbox of this.element.querySelectorAll("[data-linked-attribute]")) {
       checkbox.addEventListener("change", () => {
         const key = checkbox.dataset.linkedAttribute.slice("attribute:".length);

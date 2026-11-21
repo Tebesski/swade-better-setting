@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID, skillData, slug} from "./skills.mjs";
 import {ATTRIBUTES, bounded} from "./npc-math.mjs";
 import {copyItem, draggedLibraryItem, itemCategories, itemChoices, resolveItem, tableChoices} from "./npc-catalog.mjs";
@@ -14,13 +15,13 @@ const {ApplicationV2, HandlebarsApplicationMixin, DialogV2} = foundry.applicatio
 const ANCESTRY_FLAG = "ancestralTrait";
 const FORGE = "ancestryForge";
 const DICE = {4: "d4", 6: "d6", 8: "d8", 10: "d10", 12: "d12"};
-const GRANT_TYPES = {ability: "Abilities", edge: "Edges", hindrance: "Hindrances", skill: "Skills",
-  gear: "Gear", weapon: "Weapons", armor: "Armor", shield: "Shields", power: "Powers", action: "Actions"};
-const CHANGES = {text: "Description only", size: "Size", wounds: "Wounds", parry: "Parry", toughness: "Toughness",
-  ground: "Walk", fly: "Fly", swim: "Swim", burrow: "Burrow", movementMode: "Default movement mode",
-  runningDie: "Running die", runMod: "Running modifier", hardy: "Hardy",
-  animal: "Animal Smarts", fatigue: "Maximum Fatigue", fatigueIgnored: "Ignore Fatigue", woundsIgnored: "Ignore Wounds",
-  bennies: "Maximum Bennies", recover: "Unshake bonus", soak: "Soak bonus",
+const GRANT_TYPES = {get ability() { return sbsI18n("swade-better-setting.UI.Abilities_81932b99d9"); }, get edge() { return sbsI18n("swade-better-setting.UI.Edges_658b158af9"); }, get hindrance() { return sbsI18n("swade-better-setting.UI.Hindrances_6276d146ad"); }, get skill() { return sbsI18n("swade-better-setting.UI.Skills_66d0f523a3"); },
+  get gear() { return sbsI18n("swade-better-setting.UI.Gear_d6eaec65e7"); }, get weapon() { return sbsI18n("swade-better-setting.UI.Weapons_aafc7b0e9b"); }, get armor() { return sbsI18n("swade-better-setting.UI.Armor_a592855d05"); }, get shield() { return sbsI18n("swade-better-setting.UI.Shields_36786280d5"); }, get power() { return sbsI18n("swade-better-setting.UI.Powers_3286cc91e5"); }, action: "Actions"};
+const CHANGES = {get text() { return sbsI18n("swade-better-setting.UI.Descriptiononly_afe4a1d395"); }, get size() { return sbsI18n("swade-better-setting.UI.Size_1af8519073"); }, get wounds() { return sbsI18n("swade-better-setting.UI.Wounds_16a5581737"); }, get parry() { return sbsI18n("swade-better-setting.UI.Parry_e5567f841f"); }, get toughness() { return sbsI18n("swade-better-setting.UI.Toughness_19cd2c1eec"); },
+  get ground() { return sbsI18n("swade-better-setting.UI.Walk_08ee52ae12"); }, get fly() { return sbsI18n("swade-better-setting.UI.Fly_31bbe05d43"); }, get swim() { return sbsI18n("swade-better-setting.UI.Swim_dd4fa375c7"); }, get burrow() { return sbsI18n("swade-better-setting.UI.Burrow_339a13fffc"); }, get movementMode() { return sbsI18n("swade-better-setting.UI.Defaultmovementmode_882e7614b2"); },
+  get runningDie() { return sbsI18n("swade-better-setting.UI.Runningdie_d1032010c7"); }, get runMod() { return sbsI18n("swade-better-setting.UI.Runningmodifier_e92c7f3b41"); }, get hardy() { return sbsI18n("swade-better-setting.UI.Hardy_f3c19b4122"); },
+  get animal() { return sbsI18n("swade-better-setting.UI.AnimalSmarts_3bda33e096"); }, get fatigue() { return sbsI18n("swade-better-setting.UI.MaximumFatigue_d998824447"); }, get fatigueIgnored() { return sbsI18n("swade-better-setting.UI.IgnoreFatigue_dd5e698c1a"); }, get woundsIgnored() { return sbsI18n("swade-better-setting.UI.IgnoreWounds_fed19d4d78"); },
+  get bennies() { return sbsI18n("swade-better-setting.UI.MaximumBennies_3ecf870b93"); }, get recover() { return sbsI18n("swade-better-setting.UI.Unshakebonus_12adc7c951"); }, get soak() { return sbsI18n("swade-better-setting.UI.Soakbonus_b8f7a18e3a"); },
   ...Object.fromEntries(ATTRIBUTES.map(name => [name, `${name[0].toUpperCase() + name.slice(1)} die steps`]))};
 const KEYS = {size: "system.stats.size", wounds: "system.wounds.max", parry: "system.stats.parry.value",
   toughness: "system.stats.toughness.value", ground: "system.pace.ground", fly: "system.pace.fly", swim: "system.pace.swim",
@@ -94,14 +95,14 @@ export async function ancestryTableNotes(entries) {
   for (const entry of entries ?? []) {
     try {
       const table = await boundedRead(() => foundry.utils.fromUuid(entry.uuid));
-      if (table?.documentName !== "RollTable" || !table.visible) throw new Error("The roll table is unavailable.");
+      if (table?.documentName !== "RollTable" || !table.visible) throw new Error(sbsI18n("swade-better-setting.UI.Therolltableisunavailable_22133aa23a"));
       const rolls = [];
       for (let i = 0; i < entry.count; i++) {
         const draw = await table.roll();
         rolls.push(...draw.results.map(result => result.description || foundry.utils.escapeHTML(result.name || result.documentUuid || "")));
       }
       if (rolls.length) results.push(`<h3>${foundry.utils.escapeHTML(table.name)}</h3><ul>${rolls.map(text => `<li>${text}</li>`).join("")}</ul>`);
-    } catch (error) { ui.notifications.warn(`Ancestry table ${entry.name}: ${error.message}`); }
+    } catch (error) { ui.notifications.warn(sbsI18n("swade-better-setting.UI.Ancestrytable_fe0fb7bdba", {p0: (entry.name), p1: (error.message)})); }
   }
   return results.join("");
 }
@@ -109,7 +110,7 @@ export async function ancestryTableNotes(entries) {
 export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     tag: "form", classes: ["sbs-setting-dialog", "sbs-npc-preset-editor", "sbs-ancestry-editor"],
-    window: {title: "Ancestry Builder", icon: "fa-solid fa-people-group", resizable: true},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.AncestryBuilder_3cdb168a9f"); }, icon: "fa-solid fa-people-group", resizable: true},
     position: {width: 810, height: 640},
     actions: {
       new: function () { return this.switchTo().catch(report); },
@@ -127,7 +128,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       pickTrait: function (_event, control) { return this.pickTrait(control.dataset.input).catch(report); },
       pickSize: function (_event, control) { return this.pickSize(Number(control.dataset.index)).catch(report); },
       addCasting: function () {
-        this.capture(); this.draft.casting.push({name: "", trait: "Spellcasting", points: 10, growth: 0, rule: "inherit"});
+        this.capture(); this.draft.casting.push({name: "", trait: sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1"), points: 10, growth: 0, rule: "inherit"});
         this.dirty = true; return this.render();
       },
       removeCasting: function (_event, control) {
@@ -204,8 +205,8 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _prepareContext() {
     const groups = [
-      {key: "skill", label: "Starting skills"}, {key: "edge", label: "Edges"}, {key: "hindrance", label: "Hindrances"},
-      {key: "power", label: "Powers"}, {key: "weapon", label: "Natural weapons"}, {key: "other", label: "Other grants"}
+      {key: "skill", label: sbsI18n("swade-better-setting.UI.Startingskills_0852011f75")}, {key: "edge", label: sbsI18n("swade-better-setting.UI.Edges_658b158af9")}, {key: "hindrance", label: sbsI18n("swade-better-setting.UI.Hindrances_6276d146ad")},
+      {key: "power", label: sbsI18n("swade-better-setting.UI.Powers_3286cc91e5")}, {key: "weapon", label: sbsI18n("swade-better-setting.UI.Naturalweapons_ff3ee259ff")}, {key: "other", label: sbsI18n("swade-better-setting.UI.Othergrants_ce0b0862b9")}
     ];
     const other = type => !groups.some(group => group.key === type);
     for (const group of groups) group.rows = this.draft.grants.map((grant, index) => ({...grant, index})).filter(grant =>
@@ -233,7 +234,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       this.dirty = true;
       this.capture();
       const label = this.parts.editor.querySelector("[data-ancestry-total]");
-      label.textContent = `${this.pointTotal} / ${this.draft.threshold} points`;
+      label.textContent = sbsI18n("swade-better-setting.UI.points_7bfeaf02e0", {p0: (this.pointTotal), p1: (this.draft.threshold)});
       label.classList.toggle("sbs-preset-unbalanced", this.pointTotal !== this.draft.threshold);
     };
     root.onchange = event => {
@@ -247,7 +248,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async switchTo(item) {
-    if (this.dirty && !await DialogV2.confirm({window: {title: "Discard unsaved changes?"}, content: "<p>Switch ancestries and discard the current edits?</p>", rejectClose: false})) return;
+    if (this.dirty && !await DialogV2.confirm({window: {title: sbsI18n("swade-better-setting.UI.Discardunsavedchanges_470e7ee2a5")}, content: `<p>${sbsI18n("swade-better-setting.UI.Switchancestriesanddiscardthecurrent_84bf8cf254")}</p>`, rejectClose: false})) return;
     this.load(item);
     return this.render();
   }
@@ -257,7 +258,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
   async pick(type, onSelect) {
     await this.picker?.close();
     const picker = this.picker = new ChoicePicker({choices: [], loading: true, pageSize: 100,
-      window: {title: `Choose ${GRANT_TYPES[type]?.toLowerCase() ?? "an ancestry"}`}, onSelect,
+      window: {title: sbsI18n("swade-better-setting.UI.Choose_acc8cc694a", {p0: (GRANT_TYPES[type]?.toLowerCase() ?? "an ancestry")})}, onSelect,
       onPreview: async uuid => (await resolveItem(uuid, type)).sheet.render({force: true})});
     await picker.render({force: true});
     const choices = await itemChoices(type);
@@ -297,13 +298,13 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async pickTrait(name) {
     const skills = await librarySkills();
-    const choices = [...skills.map(item => ({key: item.name, name: item.name, img: item.img, detail: "Skill"})),
+    const choices = [...skills.map(item => ({key: item.name, name: item.name, img: item.img, detail: sbsI18n("swade-better-setting.UI.Skill_6df1bb18a5")})),
       ...ATTRIBUTES.map(key => {
         const label = game.i18n.localize(CONFIG.SWADE.attributes[key].long);
-        return {key: label, name: label, detail: "Attribute"};
+        return {key: label, name: label, detail: sbsI18n("swade-better-setting.UI.Attribute_1d289028b7")};
       })];
     await this.picker?.close();
-    this.picker = new ChoicePicker({choices, window: {title: "Choose a trait"}, onSelect: value => {
+    this.picker = new ChoicePicker({choices, window: {title: sbsI18n("swade-better-setting.UI.Chooseatrait_0650f3338f")}, onSelect: value => {
       const input = this.element.querySelector(`[name="${name}"]`);
       if (input) { input.value = value; input.dispatchEvent(new Event("input", {bubbles: true})); }
     }});
@@ -317,7 +318,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.sizePicker?.close();
     const picker = this.sizePicker = new DialogV2({
       classes: ["sbs-setting-dialog", "sbs-npc-size-picker"], position: {width: 790, height: 565},
-      window: {title: "Size Table", resizable: true}, content: "<div></div>", buttons: [{action: "dismiss", label: "Close"}]
+      window: {title: sbsI18n("swade-better-setting.UI.SizeTable_a85aa336bb"), resizable: true}, content: `<div></div>`, buttons: [{action: "dismiss", label: sbsI18n("swade-better-setting.UI.Close_7d9eb7acb1")}]
     });
     await picker.render({force: true});
     picker.element.querySelector(".dialog-content").replaceChildren(renderSizeReference({selected: trait.amount, select: async size => {
@@ -333,7 +334,7 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     this.capture();
     await this.picker?.close();
     const draft = this.draft;
-    const picker = this.picker = new ChoicePicker({choices: [], loading: true, pageSize: 100, window: {title: "Choose a roll table"},
+    const picker = this.picker = new ChoicePicker({choices: [], loading: true, pageSize: 100, window: {title: sbsI18n("swade-better-setting.UI.Choosearolltable_494d00be8f")},
       onPreview: async uuid => (await foundry.utils.fromUuid(uuid))?.sheet?.render({force: true}),
       onSelect: (uuid, entry) => {
         if (this.draft !== draft || draft.tables.some(table => table.uuid === uuid)) return;
@@ -359,11 +360,11 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.saving) return;
     this.capture();
     const {name, img, source, description, threshold, traits, grants, tags, ranges, anomalyChance, sizeWounds, casting, tables} = this.draft;
-    if (!name || traits.some(trait => !trait.name)) throw new Error("Name the ancestry and each ancestral trait.");
-    if (Object.values(ranges).some(range => range.min && range.max && range.min > range.max)) throw new Error("A minimum die cannot exceed its maximum.");
+    if (!name || traits.some(trait => !trait.name)) throw new Error(sbsI18n("swade-better-setting.UI.Nametheancestryandeachancestral_b6311fbf96"));
+    if (Object.values(ranges).some(range => range.min && range.max && range.min > range.max)) throw new Error(sbsI18n("swade-better-setting.UI.Aminimumdiecannotexceedits_9afb7b5840"));
     if (casting.some(entry => !validEntryName(entry.name) || !entry.trait) || new Set(casting.map(entry => entry.name.toLowerCase())).size !== casting.length)
-      throw new Error("Give each casting pool a unique valid name and a trait.");
-    if (grants.some(grant => grant.damage && !Roll.validate(grant.damage))) throw new Error("Enter a valid damage formula for each natural weapon.");
+      throw new Error(sbsI18n("swade-better-setting.UI.Giveeachcastingpoolaunique_29f2193a06"));
+    if (grants.some(grant => grant.damage && !Roll.validate(grant.damage))) throw new Error(sbsI18n("swade-better-setting.UI.Enteravaliddamageformulafor_80fce9a54f"));
     const copy = !this.item?.isOwner || this.item.inCompendium;
     const original = this.item?.toObject();
     const data = {...(original ? skillData(original) : {}), name, img, type: "ancestry",
@@ -378,11 +379,11 @@ export class AncestryEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       new CONFIG.Item.documentClass(structuredClone(data), {strict: true});
       const item = copy ? await CONFIG.Item.documentClass.create(data) : await this.item.update(data);
-      if (!item) throw new Error("Foundry could not save the ancestry.");
+      if (!item) throw new Error(sbsI18n("swade-better-setting.UI.Foundrycouldnotsavetheancestry_5f05b59b45"));
       this.load(item);
       await this.onSave?.(item, use);
       if (use) return this.close();
-      ui.notifications.info(`Saved ${item.name}.`);
+      ui.notifications.info(sbsI18n("swade-better-setting.UI.Saved_a29abddcbd", {p0: (item.name)}));
       return this.render();
     } finally { this.saving = false; }
   }

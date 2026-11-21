@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {bounded, RANKS} from "./npc-math.mjs";
 import {normalizeName} from "./skills.mjs";
 
@@ -73,7 +74,7 @@ export function spendAttributeSteps(attributes, weights, steps, seed, limit = (_
   return result;
 }
 
-export const CASTING_RULES = {inherit: "World setting", pp: "Use Power Points", "no-pp": "No Power Points"};
+export const CASTING_RULES = {get inherit() { return sbsI18n("swade-better-setting.UI.Worldsetting_a8fed27d20"); }, get pp() { return sbsI18n("swade-better-setting.UI.UsePowerPoints_fe5e84184b"); }, get "no-pp"() { return sbsI18n("swade-better-setting.UI.NoPowerPoints_fbaa49cd57"); }};
 export function readCasting(values, rows) {
   const read = key => String(values.get(key) ?? "").trim();
   return rows.map((entry, index) => ({...entry, name: read(`casting-name-${index}`), trait: read(`casting-trait-${index}`),

@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {librarySkills} from "./library.mjs";
 import {ChoicePicker} from "./picker.mjs";
 import {ATTRIBUTES, RANKS, advancementStrength, bounded, formatCR, parseCR, traitAtLeast} from "./npc-math.mjs";
@@ -17,19 +18,19 @@ import {MovementTable} from "./npc-movement.mjs";
 import {chooseLoadout, limitAncestryDie, spendAttributeSteps, variantRoll} from "./npc-forge-options.mjs";
 
 const {ApplicationV2, HandlebarsApplicationMixin, DialogV2} = foundry.applications.api;
-const MODES = {melee: "Melee", ranged: "Ranged", power: "Damaging power", none: "None"};
-const WEAPON_MODES = {0: "Melee", 1: "Ranged", 2: "Melee and ranged"};
-const CASTING_RULES = {inherit: "World setting", pp: "Use Power Points", "no-pp": "No Power Points"};
+const MODES = {get melee() { return sbsI18n("swade-better-setting.UI.Melee_2e24eb8ac3"); }, get ranged() { return sbsI18n("swade-better-setting.UI.Ranged_3f0b51a249"); }, get power() { return sbsI18n("swade-better-setting.UI.Damagingpower_be19d8bdd1"); }, get none() { return sbsI18n("swade-better-setting.UI.None_dc937b5989"); }};
+const WEAPON_MODES = {get 0() { return sbsI18n("swade-better-setting.UI.Melee_2e24eb8ac3"); }, get 1() { return sbsI18n("swade-better-setting.UI.Ranged_3f0b51a249"); }, get 2() { return sbsI18n("swade-better-setting.UI.Meleeandranged_f6744be4d2"); }};
+const CASTING_RULES = {get inherit() { return sbsI18n("swade-better-setting.UI.Worldsetting_a8fed27d20"); }, get pp() { return sbsI18n("swade-better-setting.UI.UsePowerPoints_fe5e84184b"); }, get "no-pp"() { return sbsI18n("swade-better-setting.UI.NoPowerPoints_fbaa49cd57"); }};
 const DICE = {4: "d4", 6: "d6", 8: "d8", 10: "d10", 12: "d12"};
-const FEATURE_TYPES = {edge: "Edges", hindrance: "Hindrances", ability: "Special abilities", action: "Actions",
-  armor: "Armor", shield: "Shields", gear: "Gear", consumable: "Consumables", effect: "Effect"};
+const FEATURE_TYPES = {get edge() { return sbsI18n("swade-better-setting.UI.Edges_658b158af9"); }, get hindrance() { return sbsI18n("swade-better-setting.UI.Hindrances_6276d146ad"); }, get ability() { return sbsI18n("swade-better-setting.UI.Specialabilities_75ba244384"); }, action: "Actions",
+  get armor() { return sbsI18n("swade-better-setting.UI.Armor_a592855d05"); }, get shield() { return sbsI18n("swade-better-setting.UI.Shields_36786280d5"); }, get gear() { return sbsI18n("swade-better-setting.UI.Gear_d6eaec65e7"); }, get consumable() { return sbsI18n("swade-better-setting.UI.Consumables_7cb53ac085"); }, get effect() { return sbsI18n("swade-better-setting.UI.Effect_2252d5cf93"); }};
 const ATTACK_OPTIONS_TEMPLATE = `modules/${MODULE_ID}/templates/npc-attack-options.hbs`;
 const SIGNATURE = "signature";
 const INITIATIVE = [
-  {key: "hasLevelHeaded", label: "Level Headed", hint: "Draw two Action Cards and choose one."},
-  {key: "hasImpLevelHeaded", label: "Improved Level Headed", hint: "Draw three Action Cards and choose one."},
-  {key: "hasQuick", label: "Quick", hint: "Redraw Action Cards of 5 or lower using SWADE’s Quick procedure."},
-  {key: "hasHesitant", label: "Hesitant", hint: "Draw two Action Cards and take the lower one unless a Joker is drawn."}
+  {key: "hasLevelHeaded", get label() { return sbsI18n("swade-better-setting.UI.LevelHeaded_e9b7312c80"); }, get hint() { return sbsI18n("swade-better-setting.UI.DrawtwoActionCardsandchoose_b02e436217"); }},
+  {key: "hasImpLevelHeaded", get label() { return sbsI18n("swade-better-setting.UI.ImprovedLevelHeaded_ec4a9442b2"); }, get hint() { return sbsI18n("swade-better-setting.UI.DrawthreeActionCardsandchoose_15e25f3749"); }},
+  {key: "hasQuick", get label() { return sbsI18n("swade-better-setting.UI.Quick_9f49fadb6a"); }, get hint() { return sbsI18n("swade-better-setting.UI.RedrawActionCardsof5or_b6608a6385"); }},
+  {key: "hasHesitant", get label() { return sbsI18n("swade-better-setting.UI.Hesitant_dbba85a8f3"); }, get hint() { return sbsI18n("swade-better-setting.UI.DrawtwoActionCardsandtake_39163ec013"); }}
 ];
 const LIMITS = {size: [-4, 20], armor: [0, 40], parry: [-12, 24], ground: [0, 100], run: [4, 12], fly: [0, 100], swim: [0, 100], burrow: [0, 100], runMod: [-20, 20],
   ap: [0, 40], signatureRof: [1, 6], powerCost: [0, 100], bennies: [0, 10], resilience: [0, 2]};
@@ -46,7 +47,7 @@ function report(error) {
 class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["sbs-npc-builder"], position: {width: 1000, height: 650},
-    window: {title: "NPC Builder", icon: "fa-solid fa-hammer", resizable: false},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.NPCBuilder_3ca078e37c"); }, icon: "fa-solid fa-hammer", resizable: false},
     actions: {
       art: function (event) { return this.pickArt(event.shiftKey).catch(report); },
       reset: function () {
@@ -186,7 +187,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     try {
       const added = await Promise.all([...desired].filter(([ref]) => !present.has(ref) || changed(ref)).map(async ([ref, row]) => {
         try { return {ref, row, item: copyItem(await boundedRead(() => resolveItem(row.uuid, row.type)))}; }
-        catch (error) { ui.notifications.warn(`Archetype item unavailable: ${row.name}.`); return null; }
+        catch (error) { ui.notifications.warn(sbsI18n("swade-better-setting.UI.Archetypeitemunavailable_7284b493b7", {p0: (row.name)})); return null; }
       }));
       if (request !== this.loadoutRequest) return;
       this.features = this.features.filter(item => {
@@ -227,7 +228,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     const requested = nameOverride || item.system.arcane;
     const configured = pools.find(pool => normalizeName(pool.name) === normalizeName(requested) && hasEdge(pool.requires));
     const name = configured?.name || (validEntryName(requested) ? requested : "");
-    const trait = configured?.trait || item.system.actions?.trait || "Spellcasting";
+    const trait = configured?.trait || item.system.actions?.trait || sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1");
     const points = configured ? bounded(configured.points + Math.max(0, rankIndex(this.draft.rank)) * configured.growth, 0, 999)
       : Math.max(10, Number(item.system.pp) || 0);
     const entries = this.draft.spellcasting;
@@ -273,7 +274,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       this.ancestry = prepared;
       this.ancestryItem = item;
       this.draft.ancestry = uuid;
-      if (prepared?.missing.length) ui.notifications.warn(`Unavailable ancestry grants: ${prepared.missing.join(", ")}.`);
+      if (prepared?.missing.length) ui.notifications.warn(sbsI18n("swade-better-setting.UI.Unavailableancestrygrants_0ef791adbd", {p0: (prepared.missing.join(", "))}));
       await this.syncLoadout();
       this.applyPreset();
     } finally {
@@ -311,11 +312,11 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     const data = preset ?? {...movementValues(this.draft), label: ""};
     const content = await foundry.applications.handlebars.renderTemplate(`modules/${MODULE_ID}/templates/npc-movement.hbs`,
       {data, modes: MOVEMENT_MODES, dice: DICE});
-    const result = await DialogV2.prompt({classes: ["sbs-setting-dialog"], window: {title: preset ? "Edit movement preset" : "New movement preset"},
-      content, rejectClose: false, ok: {label: "Save preset", callback: (_event, button) => Object.fromEntries(new FormData(button.form))}});
+    const result = await DialogV2.prompt({classes: ["sbs-setting-dialog"], window: {title: preset ? sbsI18n("swade-better-setting.UI.Editmovementpreset_8814b4aa8f") : sbsI18n("swade-better-setting.UI.Newmovementpreset_d203cf168b")},
+      content, rejectClose: false, ok: {label: sbsI18n("swade-better-setting.UI.Savepreset_362a1376e6"), callback: (_event, button) => Object.fromEntries(new FormData(button.form))}});
     if (!result) return;
     const label = result.label.trim();
-    if (!label) throw new Error("Enter a name for the movement preset.");
+    if (!label) throw new Error(sbsI18n("swade-better-setting.UI.Enteranameforthemovement_8ec6eb575e"));
     await saveMovement(key ?? uid(), {label, ...movementValues(result)});
     this.applyPreset();
     return this.renderDraft();
@@ -323,7 +324,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async removeMovement(key) {
     if (!game.user.isGM || !namedMovement(key)) return;
-    if (!await DialogV2.confirm({window: {title: "Delete movement preset?"}, content: "<p>Remove this preset from the world library?</p>", rejectClose: false})) return;
+    if (!await DialogV2.confirm({window: {title: sbsI18n("swade-better-setting.UI.Deletemovementpreset_70fc060364")}, content: `<p>${sbsI18n("swade-better-setting.UI.Removethispresetfromtheworld_77843c353e")}</p>`, rejectClose: false})) return;
     await removeMovement(key);
     this.applyPreset();
     return this.renderDraft();
@@ -360,7 +361,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       this.draft.signatureEntry = null;
     }
     if (this.draft.mode === "power" && !this.draft.spellcasting[this.draft.signatureEntry]) {
-      const trait = this.draft.trait || "Spellcasting";
+      const trait = this.draft.trait || sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1");
       const pool = profile.casting?.find(entry => !entry.requires && normalizeName(entry.trait) === normalizeName(trait));
       const name = pool?.name || trait;
       const known = Object.values(this.draft.spellcasting).some(entry => normalizeName(entry.name) === normalizeName(name));
@@ -424,7 +425,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   get damageError() {
     const {mode, damage} = this.draft;
     return mode !== "none" && !(mode === "melee" && this.draft.size === -4) && damage && !Roll.validate(damage)
-      ? "Enter a valid SWADE damage formula, such as @str+1d6 or 2d6." : "";
+      ? sbsI18n("swade-better-setting.UI.EnteravalidSWADEdamageformula_f4818abc9b") : "";
   }
 
   source({preview = false, extraPowers = [], entryId} = {}) {
@@ -492,7 +493,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
         Object.values(this.archetype.skillOptions ?? {}).some(row => row.chance < 100) || this.ancestry?.options.anomalyChance > 0,
       movementModes: MOVEMENT_MODES,
       ranks: Object.fromEntries(RANKS.map(rank => [rank, rank])), modes: MODES, weaponModes: WEAPON_MODES, labels, featureTypes: FEATURE_TYPES, featureType: this.featureType,
-      disposition: {[-1]: "Hostile", 0: "Neutral", 1: "Friendly"},
+      disposition: {[-1]: sbsI18n("swade-better-setting.UI.Hostile_b3478c03ae"), 0: sbsI18n("swade-better-setting.UI.Neutral_1c6ac69f1e"), 1: sbsI18n("swade-better-setting.UI.Friendly_397423500c")},
       traitListId: `${this.id}-skills`, skillChoices: [...new Set([...Object.values(labels), ...[...this.catalog.values()].map(entry => entry.name)])].sort(),
       attributes: ATTRIBUTES.map(key => {
         const die = draft.attributes[key], effective = actor.system.attributes[key].die;
@@ -539,7 +540,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     if (attackOption) return this.changeAttackOption(input, attack, attackOption);
     if (input.matches("[data-cr]")) {
       const cr = parseCR(input.value);
-      if (cr === undefined) ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+      if (cr === undefined) ui.notifications.warn(sbsI18n("swade-better-setting.UI.EnteraCreatureRatingbetween2_f2f3095b31"));
       else this.draft.cr = cr;
       return this.render({parts: ["identity"]});
     }
@@ -563,7 +564,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
         if (!validEntryName(value) || key === GENERAL_ENTRY || Object.values(this.draft.spellcasting)
           .some(other => other !== row && normalizeName(other.name) === key)) {
           input.value = row.name;
-          throw new Error("Enter a unique spellcasting entry name without periods or brackets. General is reserved.");
+          throw new Error(sbsI18n("swade-better-setting.UI.Enterauniquespellcastingentryname_87a1e3148b"));
         }
         row.name = value;
       } else if (entryField === "points") row.points = bounded(Math.trunc(Number(value)) || 0, 0, 999);
@@ -586,7 +587,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
         bounded(Math.trunc(Number(input.value)), Number(input.min || 0), Number(input.max || 2)) : input.value.trim();
       if (attackField === "system.damage" && value && !Roll.validate(value)) {
         input.value = item.system.damage;
-        throw new Error("Enter a valid SWADE damage formula, such as @str+1d6 or 2d6.");
+        throw new Error(sbsI18n("swade-better-setting.UI.EnteravalidSWADEdamageformula_f4818abc9b"));
       }
       foundry.utils.setProperty(item, attackField, value);
       if (attackField === "system.actions.trait") this.applyPreset();
@@ -611,8 +612,8 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       if (path === "role") return this.selectArchetype(next);
       if (path === "rank") await this.syncLoadout();
       if (path === "focus") this.draft.focus = value.trim() || this.archetype.focus;
-      if (["rank", "role", "focus", "core", "mode", "size", "wildcard", "signatureEntry", "trait"].includes(path)) this.applyPreset();
-      if (["rank", "role", "focus", "mode", "core", "wildcard", "size", "signatureEntry", "signatureRof", "trait", "damage", "attackName"].includes(path)) return this.renderDraft();
+      if (["rank", "role", "focus", "core", "mode", "size", "wildcard", sbsI18n("swade-better-setting.UI.signatureEntry_2a9b25492e"), "trait"].includes(path)) this.applyPreset();
+      if (["rank", "role", "focus", "mode", "core", "wildcard", "size", sbsI18n("swade-better-setting.UI.signatureEntry_2a9b25492e"), sbsI18n("swade-better-setting.UI.signatureRof_39f79eba79"), "trait", "damage", sbsI18n("swade-better-setting.UI.attackName_946792a692")].includes(path)) return this.renderDraft();
     } else return;
     if (!["name", "tags"].includes(path)) return this.render({parts: ["identity"]});
   }
@@ -621,10 +622,10 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.sizePicker?.rendered) return this.sizePicker.bringToFront();
     const picker = new DialogV2({
       classes: ["sbs-setting-dialog", "sbs-npc-size-picker"],
-      window: {title: "Size Table", resizable: true},
+      window: {title: sbsI18n("swade-better-setting.UI.SizeTable_a85aa336bb"), resizable: true},
       position: {width: 790, height: 565},
-      content: "<div></div>",
-      buttons: [{action: "dismiss", label: "Close"}]
+      content: `<div></div>`,
+      buttons: [{action: "dismiss", label: sbsI18n("swade-better-setting.UI.Close_7d9eb7acb1")}]
     });
     this.sizePicker = picker;
     await picker.render({force: true});
@@ -646,7 +647,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async changeAttackOption(input, key, path) {
     const {shared, weapon, ranged} = this.draft.signatureOptions;
-    const rangedField = ["shots", "currentShots", "ammo", "reloadType", "ppReloadCost"].includes(path);
+    const rangedField = ["shots", sbsI18n("swade-better-setting.UI.currentShots_41d83e78e1"), "ammo", sbsI18n("swade-better-setting.UI.reloadType_068c482a72"), sbsI18n("swade-better-setting.UI.ppReloadCost_43dd017bcc")].includes(path);
     const sharedField = /^(bonusDamage|actions\.|templates\.)/.test(path);
     const system = key === SIGNATURE ? (sharedField ? shared : rangedField ? ranged : weapon)
       : this.features.find(item => item._id === key)?.system;
@@ -657,7 +658,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       : input.value.trim();
     if (["actions.traitMod", "actions.dmgMod"].includes(path) && value && !Roll.validate(value)) {
       input.value = foundry.utils.getProperty(system, path) ?? "";
-      throw new Error("Enter a valid SWADE modifier formula.");
+      throw new Error(sbsI18n("swade-better-setting.UI.EnteravalidSWADEmodifierformula_b15842617f"));
     }
     if (path === "shots" || path === "currentShots") setMagazineField(system, path, value);
     else foundry.utils.setProperty(system, path, value);
@@ -670,13 +671,13 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     const names = new Set(Object.values(entries).map(entry => normalizeName(entry.name)));
     let name = "Spellcasting";
     for (let suffix = 2; names.has(normalizeName(name)); suffix++) name = `Spellcasting ${suffix}`;
-    addCastingEntry(entries, uid, {name, trait: "Spellcasting"});
+    addCastingEntry(entries, uid, {name, trait: sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1")});
     await this.renderDraft();
   }
 
   async removeCasting(id) {
     if ((this.draft.mode === "power" && this.draft.signatureEntry === id) || Object.values(this.draft.powerEntries).includes(id)) {
-      ui.notifications.warn("Move the powers to another entry before removing this entry.");
+      ui.notifications.warn(sbsI18n("swade-better-setting.UI.Movethepowerstoanotherentry_a7d7e3e654"));
       return;
     }
     delete this.draft.spellcasting[id];
@@ -687,7 +688,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   async pickSkill() {
     const choices = [...this.catalog].filter(([key]) => !this.skills.has(key)).map(([key, entry]) => ({key, name: entry.name, img: entry.item?.img}));
     choices.sort((a, b) => a.name.localeCompare(b.name));
-    await this.openPicker("Choose a skill", choices, key => {
+    await this.openPicker(sbsI18n("swade-better-setting.UI.Chooseaskill_70a5cc6292"), choices, key => {
       const entry = this.catalog.get(key);
       this.removed.delete(key);
       this.setSkill(key, entry, entry.item?.system.die ?? {sides: 4}, true);
@@ -699,8 +700,8 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     const skills = new Map([...this.catalog].map(([key, skill]) => [key, {key, name: skill.name, img: skill.item?.img}]));
     for (const [key, skill] of this.skills) skills.set(key, {key, name: skill.name, img: skill.data.img});
     const choices = [...skills.values()].sort((a, b) => a.name.localeCompare(b.name));
-    if (entry) choices.unshift(...Object.entries(attributeLabels()).map(([key, name]) => ({key: `attribute:${key}`, name, detail: "Attribute"})));
-    return this.openPicker(entry ? "Choose casting trait" : "Choose a skill", choices, (_key, {name}) => {
+    if (entry) choices.unshift(...Object.entries(attributeLabels()).map(([key, name]) => ({key: `attribute:${key}`, name, detail: sbsI18n("swade-better-setting.UI.Attribute_1d289028b7")})));
+    return this.openPicker(entry ? sbsI18n("swade-better-setting.UI.Choosecastingtrait_fa422539f1") : sbsI18n("swade-better-setting.UI.Chooseaskill_70a5cc6292"), choices, (_key, {name}) => {
       if (entry) this.draft.spellcasting[entry].trait = name;
       else if (attack) this.features.find(item => item._id === attack).system.actions.trait = name;
       else {
@@ -721,12 +722,12 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   async pickFlag(key) {
     const api = game.modules.get(EFFECTS)?.api;
     const saved = game.settings.settings.has(`${EFFECTS}.flagLibrary`) ? game.settings.get(EFFECTS, "flagLibrary") : [];
-    const flags = game.modules.get("swade-better-templates")?.api?.flagCatalog?.() ?? saved;
+    const flags = api?.catalogFlags?.() ?? game.modules.get("swade-better-templates")?.api?.flagCatalog?.() ?? saved;
     const current = attackTags(key ? this.attackTagText(key) : this.draft.tags, api);
     const reserved = key ? [] : attackTags([...RANKS, "wildcard", "extra"], api);
     const choices = attackTags(flags, api).filter(flag => !current.includes(flag) && !reserved.includes(flag))
       .map(flag => ({key: flag, name: flag}));
-    return this.openPicker("Choose a Better Effects flag", choices, flag => {
+    return this.openPicker(sbsI18n("swade-better-setting.UI.ChooseaBetterEffectsflag_f6d04c1a76"), choices, flag => {
       const tags = attackTags([...(key ? this.attackTagText(key) : this.draft.tags).split(","), flag], api).join(", ");
       if (key) this.attackTags.set(key, tags);
       else this.draft.tags = tags;
@@ -744,10 +745,10 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     if (!choices.length) return;
     const formula = await DialogV2.wait({
       classes: ["sbs-setting-dialog", "sbs-npc-damage-guide"],
-      window: {title: `${this.draft.rank} Damage Guide`},
+      window: {title: sbsI18n("swade-better-setting.UI.DamageGuide_bbff6182ad", {p0: (this.draft.rank)})},
       position: {width: 460},
       rejectClose: false,
-      content: "<p>Choose a base damage formula. AP is applied separately, up to the target’s Armor. It increases effectiveness against armored targets only.</p>",
+      content: `<p>${sbsI18n("swade-better-setting.UI.ChooseabasedamageformulaAP_3a5486c748")}</p>`,
       buttons: choices.map(({label, formula}, i) => ({action: `damage-${i}`, label: `${label}: ${formula}`, callback: () => formula}))
     });
     if (typeof formula !== "string" || !this.rendered) return;
@@ -769,12 +770,12 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 
   async pickFeature(type, entryId) {
-    const title = {power: "Choose a power", weapon: "Choose a weapon"}[type] ?? `Choose ${FEATURE_TYPES[type]?.toLowerCase()}`;
+    const title = {power: sbsI18n("swade-better-setting.UI.Chooseapower_510dcc8435"), weapon: sbsI18n("swade-better-setting.UI.Chooseaweapon_d5e0aee89e")}[type] ?? `Choose ${FEATURE_TYPES[type]?.toLowerCase()}`;
     const picker = await this.openPicker(title, [], async uuid => {
       const copy = copyItem(await resolveItem(uuid, type));
       if (["armor", "weapon", "shield"].includes(type)) copy.system.equipStatus = 3;
       if (entryId) {
-        if (!this.draft.spellcasting[entryId]) throw new Error("That spellcasting entry was removed.");
+        if (!this.draft.spellcasting[entryId]) throw new Error(sbsI18n("swade-better-setting.UI.Thatspellcastingentrywasremoved_ec2efa3dbf"));
         this.draft.powerEntries[copy._id] = entryId;
       }
       this.features.push(copy);
@@ -796,24 +797,24 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   async addAttack() {
     const {size, rank} = this.draft;
     const suggestions = damageBenchmarks(rank, "melee", size);
-    this.features.push({_id: uid(), name: "New attack", type: "weapon", img: "systems/swade/assets/icons/weapon.svg",
+    this.features.push({_id: uid(), name: sbsI18n("swade-better-setting.UI.Newattack_d8f7db2be0"), type: "weapon", img: "systems/swade/assets/icons/weapon.svg",
       system: {damage: (suggestions[1] ?? suggestions[0]).formula, ap: 0, equipStatus: 3, rangeType: 0, range: "", rof: 1, weight: 0,
-        ...(size === -4 ? {bonusDamageDice: 0} : {}), actions: {trait: "Fighting"}}});
+        ...(size === -4 ? {bonusDamageDice: 0} : {}), actions: {trait: sbsI18n("swade-better-setting.UI.Fighting_21e2e5c54b")}}});
     this.applyPreset();
     await this.renderDraft();
   }
 
   async pickEffect() {
     const api = game.modules.get(EFFECTS)?.api;
-    const picker = await this.openPicker("Choose an actor effect", [], async reference => {
+    const picker = await this.openPicker(sbsI18n("swade-better-setting.UI.Chooseanactoreffect_bf21738820"), [], async reference => {
       let effects;
       if (reference.startsWith("status:")) effects = [await CONFIG.ActiveEffect.documentClass.fromStatusEffect(reference.slice(7))];
       else {
         const doc = await foundry.utils.fromUuid(reference);
-        if (!doc?.testUserPermission(game.user, "LIMITED")) throw new Error("This effect is no longer available.");
+        if (!doc?.testUserPermission(game.user, "LIMITED")) throw new Error(sbsI18n("swade-better-setting.UI.Thiseffectisnolongeravailable_bba7ecff03"));
         effects = doc.documentName === "ActiveEffect" ? [doc] : doc.type === EFFECT_TEMPLATE ? [...doc.effects] : [];
       }
-      if (!effects.length) throw new Error("The selected source contains no effects.");
+      if (!effects.length) throw new Error(sbsI18n("swade-better-setting.UI.Theselectedsourcecontainsnoeffects_e531ec8aa7"));
       for (const effect of effects) {
         const source = effect.toObject();
         delete source._stats;
@@ -840,10 +841,10 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     const tier = Math.max(0, rankIndex(this.draft.rank));
     const count = 2 + Math.floor(tier / 2) + Number(this.draft.wildcard);
     const options = Object.entries(POWER_THEMES).map(([key, name]) => `<option value="${key}">${name}</option>`).join("");
-    const request = await DialogV2.prompt({classes: ["sbs-setting-dialog"], window: {title: "Generate Powers"}, rejectClose: false,
-      content: `<label>Theme<select name="theme">${options}</select></label>
-        <label>Number of powers<input name="count" type="number" min="1" max="6" step="1" value="${count}"></label>`,
-      ok: {label: "Generate", callback: (_event, button) => Object.fromEntries(new FormData(button.form))}});
+    const request = await DialogV2.prompt({classes: ["sbs-setting-dialog"], window: {title: sbsI18n("swade-better-setting.UI.GeneratePowers_3281bb805e")}, rejectClose: false,
+      content: `<label>${sbsI18n("swade-better-setting.UI.Theme_efb52e7172")}<select name="theme">${options}</select></label>
+        <label>${sbsI18n("swade-better-setting.UI.Numberofpowers_262177b7b1")}<input name="count" type="number" min="1" max="6" step="1" value="${count}"></label>`,
+      ok: {label: sbsI18n("swade-better-setting.UI.Generate_49e49bb440"), callback: (_event, button) => Object.fromEntries(new FormData(button.form))}});
     if (!request || this.generating || !this.draft.spellcasting[entryId]) return;
     this.generating = true;
     try {
@@ -892,13 +893,13 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
     }
     const present = new Set(this.features.filter(item => item.type === "power").map(powerKey));
     const added = selected.filter(item => !present.has(powerKey(item)));
-    if (!added.length) return ui.notifications.info("No matching powers fit this entry’s rank, casting limits and combat rating.");
+    if (!added.length) return ui.notifications.info(sbsI18n("swade-better-setting.UI.Nomatchingpowersfitthisentry_f7fdb6a079"));
     for (const item of added) {
       draft.powerEntries[item._id] = entry.id;
       this.features.push(item);
     }
     this.applyPreset();
-    if (added.length < limit) ui.notifications.info(`Added ${added.length} of ${limit} requested powers that fit this entry.`);
+    if (added.length < limit) ui.notifications.info(sbsI18n("swade-better-setting.UI.Addedofrequestedpowersthatfit_8d957af229", {p0: (added.length), p1: (limit)}));
     return this.renderDraft();
   }
 
@@ -943,7 +944,7 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
   async pickArt(shift) {
     const modern = game.modules.get("tokenizer-2")?.api;
     const legacy = game.modules.get("vtta-tokenizer")?.api;
-    const name = this.draft.name.trim() || "New NPC";
+    const name = this.draft.name.trim() || sbsI18n("swade-better-setting.UI.NewNPC_fa1f3b3abf");
     const src = this.token.prototypeToken.texture?.src || this.token.img || CONFIG.Actor.documentClass.DEFAULT_ICON;
     if (!shift && modern?.openEditorStandalone) {
       const art = await modern.openEditorStandalone({name, type: "npc", sourceImage: src, disposition: this.draft.disposition,
@@ -967,10 +968,10 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async create() {
     if (this.creating) return;
-    if (!this.draft.name.trim()) throw new Error("Enter a name for the NPC.");
+    if (!this.draft.name.trim()) throw new Error(sbsI18n("swade-better-setting.UI.EnteranamefortheNPC_0c2bba8e81"));
     if (this.damageError) throw new Error(this.damageError);
-    if (this.ancestryLoading || this.loadoutLoading) throw new Error("Wait for the ancestry and archetype items to finish loading.");
-    if (!CONFIG.Actor.documentClass.canUserCreate(game.user)) throw new Error("You do not have permission to create actors.");
+    if (this.ancestryLoading || this.loadoutLoading) throw new Error(sbsI18n("swade-better-setting.UI.Waitfortheancestryandarchetype_2080708104"));
+    if (!CONFIG.Actor.documentClass.canUserCreate(game.user)) throw new Error(sbsI18n("swade-better-setting.UI.Youdonothavepermissionto_97a3f10df1"));
     this.creating = true;
     try {
       const source = this.source();

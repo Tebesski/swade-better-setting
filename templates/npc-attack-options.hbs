@@ -1,14 +1,14 @@
 <details class="sbs-npc-nested" data-section="options-{{key}}">
-  <summary>Attack options and flags</summary>
+  <summary>{{localize "swade-better-setting.UI.Attackoptionsandflags_dc4d07688b"}}</summary>
   <div class="sbs-npc-fields">
     {{#each fields}}
       {{#if magazine}}
-        <div class="sbs-npc-magazine" role="group" aria-label="Shots">
-          <span>Shots</span>
+        <div class="sbs-npc-magazine" role="group" aria-label="{{localize "swade-better-setting.UI.Shots_2bce1f4a65"}}">
+          <span>{{localize "swade-better-setting.UI.Shots_2bce1f4a65"}}</span>
           <div>
-            <input type="number" data-attack="{{../key}}" data-attack-option="currentShots" min="0" max="{{capacity}}" step="1" value="{{loaded}}" aria-label="Shots loaded">
+            <input type="number" data-attack="{{../key}}" data-attack-option="currentShots" min="0" max="{{capacity}}" step="1" value="{{loaded}}" aria-label="{{localize "swade-better-setting.UI.Shotsloaded_0cc70c1395"}}">
             <span aria-hidden="true">/</span>
-            <input type="number" data-attack="{{../key}}" data-attack-option="shots" min="0" max="9999" step="1" value="{{capacity}}" aria-label="Shot capacity">
+            <input type="number" data-attack="{{../key}}" data-attack-option="shots" min="0" max="9999" step="1" value="{{capacity}}" aria-label="{{localize "swade-better-setting.UI.Shotcapacity_1f53bc3f2b"}}">
           </div>
         </div>
       {{else}}
@@ -25,14 +25,14 @@
       {{/if}}
     {{/each}}
     <div class="sbs-npc-with-picker sbs-npc-attack-tags">
-      <label for="{{@root.partId}}-flags-{{key}}">Better Effects flags
+      <label for="{{@root.partId}}-flags-{{key}}">{{localize "swade-better-setting.UI.BetterEffectsflags_3bb5f82be2"}}
       </label>
-      <input id="{{@root.partId}}-flags-{{key}}" type="text" data-attack-flags="{{key}}" value="{{tags}}" placeholder="fire, silver" autocomplete="off">
-      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" data-key="{{key}}" aria-label="Choose attack flag"></button>
+      <input id="{{@root.partId}}-flags-{{key}}" type="text" data-attack-flags="{{key}}" value="{{tags}}" placeholder="{{localize "swade-better-setting.UI.firesilver_8578cc40fc"}}" autocomplete="off">
+      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" data-key="{{key}}" aria-label="{{localize "swade-better-setting.UI.Chooseattackflag_61adc9941a"}}"></button>
     </div>
   </div>
   <fieldset class="sbs-npc-attack-templates">
-    <legend>Area templates</legend>
+    <legend>{{localize "swade-better-setting.UI.Areatemplates_26a180c394"}}</legend>
     {{#each templates}}
       <label class="sbs-npc-check"><input type="checkbox" data-attack="{{../key}}" data-attack-option="templates.{{name}}" {{checked enabled}}> {{label}}</label>
     {{/each}}

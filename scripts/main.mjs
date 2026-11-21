@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {initializeLibrary, processPendingSkill, processPendingSkills} from "./library.mjs";
 import {initializeActionLibrary, libraryActions} from "./action-library.mjs";
@@ -8,6 +9,12 @@ import {installBestiary, openBestiary} from "./bestiary.mjs";
 import {openNPCBuilder} from "./npc-builder.mjs";
 import {installNPCTools} from "./npc-tools.mjs";
 import {registerThemes} from "./themes.mjs";
+import {installPartySheet, registerPartyShortcut} from "./party-sheet.mjs";
+import {registerPartyVaults} from "./party-vaults.mjs";
+import {installAdvancedTargeting, registerAdvancedTargeting, withAdvancedTargeting} from "./advanced-targeting.mjs";
+import {installRollLayout} from "./roll-layout.mjs";
+import {installImprovisedWeapons, openInventoryItemBuilder} from "./improvised-weapons.mjs";
+import {installChatLayout} from "./chat-layout.mjs";
 import {installEncumbrance, registerEncumbranceSettings} from "./encumbrance.mjs";
 import {ROLE_PROFILES} from "./npc-data.mjs";
 import {registerNPCPresets} from "./npc-presets.mjs";
@@ -23,12 +30,12 @@ async function openCompendium() {
       const title = dialog.element.querySelector(".window-title");
       if (title) { title.tabIndex = -1; title.focus(); }
     },
-    window: {title: "Better SWADE Compendium", icon: "fa-solid fa-book-open"},
+    window: {title: sbsI18n("swade-better-setting.UI.BetterSWADECompendium_157f0debd8"), icon: "fa-solid fa-book-open"},
     buttons: [
-      {action: "skills", label: "Skills", icon: "fa-solid fa-list"},
-      {action: "actions", label: "Actions", icon: "fa-solid fa-sword"},
-      {action: "templates", label: "Templates", icon: "fa-solid fa-shapes", disabled: !templates?.openTemplates, tooltip: templates ? undefined : "Enable Better Templates"},
-      {action: "modifiers", label: "Modifiers", icon: "fa-solid fa-sliders"}
+      {action: "skills", label: sbsI18n("swade-better-setting.UI.Skills_66d0f523a3"), icon: "fa-solid fa-list"},
+      {action: "actions", label: sbsI18n("swade-better-setting.UI.Actions_ff8059dc67"), icon: "fa-solid fa-sword"},
+      {action: "templates", label: sbsI18n("swade-better-setting.UI.Templates_56b564b75c"), icon: "fa-solid fa-shapes", disabled: !templates?.openTemplates, tooltip: templates ? undefined : sbsI18n("swade-better-setting.UI.EnableBetterTemplates_253eee3859")},
+      {action: "modifiers", label: sbsI18n("swade-better-setting.UI.Modifiers_072da57fac"), icon: "fa-solid fa-sliders"}
     ], rejectClose: false
   });
   if (choice === "skills") return openLibrary();
@@ -38,6 +45,11 @@ async function openCompendium() {
 }
 
 Hooks.once("init", () => {
+  if (game.system.id === "swade") {
+    registerPartyVaults();
+    registerPartyShortcut();
+    registerAdvancedTargeting();
+  }
   registerThemes();
   registerEncumbranceSettings();
   registerNPCPresets(ROLE_PROFILES);
@@ -46,7 +58,7 @@ Hooks.once("init", () => {
     render() { return openCompendium(); }
   }
   game.settings.registerMenu(MODULE_ID, "skillCompendium", {
-    name: "Better SWADE Compendium", label: "Open Compendium", hint: "Browse the shared skills, templates, and modifiers.",
+    name: sbsI18n("swade-better-setting.UI.BetterSWADECompendium_157f0debd8"), label: sbsI18n("swade-better-setting.UI.OpenCompendium_139418072b"),
     icon: "fa-solid fa-book-open", type: BetterCompendiumMenu, restricted: false
   });
 });
@@ -61,20 +73,26 @@ Hooks.once("setup", () => {
   game.modules.get(MODULE_ID).api = {openCompendium, openLibrary, openActorSkills, createSkill, openBestiary, openNPCBuilder,
     openModifierLibrary, saveModifierToLibrary, getGlobalModifiers, applyLibraryModifier, resolveCompendiumName, libraryActions,
     hasModifierDrag, readModifierDrag, writeModifierDrag,
-    openTraitPicker: (onSelect, {title = "Choose a trait", ...options} = {}) => new SkillPicker({mode: "traits", onSelect, ...options, window: {title}}).render({force: true})};
+    withAdvancedTargeting, openInventoryItemBuilder,
+    openTraitPicker: (onSelect, {title = sbsI18n("swade-better-setting.UI.Chooseatrait_0650f3338f"), ...options} = {}) => new SkillPicker({mode: "traits", onSelect, ...options, window: {title}}).render({force: true})};
 });
 
 Hooks.once("ready", async () => {
+  installRollLayout();
+  installImprovisedWeapons();
+  installChatLayout();
+  installAdvancedTargeting();
+  installPartySheet();
   initializeActionLibrary().catch(error => {
     console.error(`${MODULE_ID} | Action compendium setup failed`, error);
-    ui.notifications.error(`Better Setting: ${error.message}`);
+    ui.notifications.error(sbsI18n("swade-better-setting.UI.BetterSetting_352b8d58a9", {p0: (error.message)}));
   });
   try {
     await initializeLibrary();
     await processPendingSkills();
   } catch (error) {
     console.error(`${MODULE_ID} | Skill compendium setup failed`, error);
-    ui.notifications.error(`Better Setting: ${error.message}`);
+    ui.notifications.error(sbsI18n("swade-better-setting.UI.BetterSetting_352b8d58a9", {p0: (error.message)}));
   }
 });
 

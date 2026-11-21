@@ -17,11 +17,52 @@
                "minimum": "6.0.0"
             }
          }
+      ],
+      "recommends": [
+         {
+            "id": "swade-better-effects",
+            "type": "module",
+            "reason": "Custom effects and the Gear compendium's alchemy."
+         },
+         {
+            "id": "swade-better-usables",
+            "type": "module",
+            "reason": "Gear compendium doses, charge pools, coatings, and use behaviours."
+         },
+         {
+            "id": "swade-grid-inventory",
+            "type": "module",
+            "reason": "Gear compendium containers, equipment slots, and attachments."
+         },
+         {
+            "id": "swade-better-money",
+            "type": "module",
+            "reason": "Optional physical currency for the Gear compendium's money storage."
+         }
       ]
    },
    "esmodules": ["scripts/main.mjs"],
    "styles": ["styles/better-setting.css"],
-      "url": "#{URL}#",
+   "packs": [
+      {
+         "name": "macros",
+         "label": "Better Setting - Macros",
+         "path": "packs/macros",
+         "type": "Macro",
+         "ownership": {
+            "PLAYER": "OBSERVER",
+            "ASSISTANT": "OWNER"
+         }
+      }
+   ],
+   "url": "#{URL}#",
    "manifest": "#{MANIFEST}#",
-   "download": "#{DOWNLOAD}#"
+   "download": "#{DOWNLOAD}#",
+   "languages": [
+      {
+         "lang": "en",
+         "name": "English",
+         "path": "lang/en.json"
+      }
+   ]
 }

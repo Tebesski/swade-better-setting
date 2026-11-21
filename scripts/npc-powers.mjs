@@ -1,8 +1,9 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {EFFECTS, rankIndex} from "./npc-data.mjs";
 import {slug} from "./skills.mjs";
 
-export const POWER_THEMES = {random: "Random mix", battle: "Battle", protection: "Protection", restoration: "Restoration",
-  control: "Control", trickery: "Trickery", exploration: "Exploration"};
+export const POWER_THEMES = {get random() { return sbsI18n("swade-better-setting.UI.Randommix_e23708e01b"); }, get battle() { return sbsI18n("swade-better-setting.UI.Battle_1b18ebbc3f"); }, get protection() { return sbsI18n("swade-better-setting.UI.Protection_0e97ad0216"); }, get restoration() { return sbsI18n("swade-better-setting.UI.Restoration_6a3c6c7789"); },
+  control: "Control", get trickery() { return sbsI18n("swade-better-setting.UI.Trickery_82ddb261e5"); }, get exploration() { return sbsI18n("swade-better-setting.UI.Exploration_f08e7f4a8d"); }};
 
 const themes = {
   battle: /bolt|blast|burst|damage|smite|attack|weapon|fire|lightning|drain|havoc/,
@@ -22,7 +23,7 @@ export function powerCandidates(items, {rank, theme, existing, canCast}) {
   for (const item of items) {
     const system = item.system;
     if (!system) continue;
-    const required = rankIndex(system.rank || "Novice");
+    const required = rankIndex(system.rank || sbsI18n("swade-better-setting.UI.Novice_7df0f3202d"));
     const key = powerKey(item);
     if (!key || seen.has(key) || required < 0 || required > limit || !canCast(Math.max(0, Number(system.pp) || 0))) continue;
     const tags = item.flags?.[EFFECTS]?.tags;

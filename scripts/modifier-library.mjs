@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID, normalizeName} from "./skills.mjs";
 import {resolveCompendiumName} from "./compendium-names.mjs";
 
@@ -46,7 +47,7 @@ export function getGlobalModifiers(item, kind, local = []) {
 
 function writeEntries(change, {refresh = true} = {}) {
   const pending = writes.then(async () => {
-    if (!game.user.isGM) throw new Error("A GM must manage the Modifiers Compendium.");
+    if (!game.user.isGM) throw new Error(sbsI18n("swade-better-setting.UI.AGMmustmanagetheModifiers_823277aaa4"));
     const current = data();
     const next = await change(clone(current.entries));
     if (next) {
@@ -67,7 +68,7 @@ function rename(entry, id, name, global = entry.global) {
 function saveEntry(entry, {preserveGroup = false} = {}) {
   return writeEntries(async entries => {
     const name = entry.name.trim();
-    if (!name) throw new Error("Enter a name for the modifier.");
+    if (!name) throw new Error(sbsI18n("swade-better-setting.UI.Enteranameforthemodifier_b8651eb1dc"));
     const choice = await resolveCompendiumName(name, entries, "modifier");
     if (!choice) return;
     const id = choice.replace?.id ?? entry.id;
@@ -80,9 +81,9 @@ function saveEntry(entry, {preserveGroup = false} = {}) {
 export async function saveModifierToLibrary(item, id) {
   const power = powerRows(item).find(row => row.id === id);
   const template = templateRows(item).find(row => row.id === id);
-  if (!power && !template) throw new Error("Save the modifier before adding it to the compendium.");
+  if (!power && !template) throw new Error(sbsI18n("swade-better-setting.UI.Savethemodifierbeforeaddingit_040f736d6f"));
   const entry = modifierPair(power, template);
-  if (await saveEntry(rename(entry, randomID(), entry.name), {preserveGroup: true})) ui.notifications.info("Modifier saved to the compendium.");
+  if (await saveEntry(rename(entry, randomID(), entry.name), {preserveGroup: true})) ui.notifications.info(sbsI18n("swade-better-setting.UI.Modifiersavedtothecompendium_6952e7229d"));
 }
 
 export function writeModifierDrag(event, source, id, uuid) {
@@ -99,7 +100,7 @@ export function readModifierDrag(event) {
 export async function applyLibraryModifier(item, id) {
   if (item?.type !== "power" || !item.isOwner || (item.compendium?.locked && item.pack)) return false;
   const entry = rows().find(row => row.id === id && !row.global);
-  if (!entry) throw new Error("This individual modifier is no longer available.");
+  if (!entry) throw new Error(sbsI18n("swade-better-setting.UI.Thisindividualmodifierisnolonger_48e0d200ae"));
   const power = powerRows(item);
   const template = templateRows(item);
   const existing = [...new Map([...template, ...power].map(row => [row.id, row])).values()];
@@ -136,7 +137,7 @@ async function migrateLegacyCatalog() {
 
 const findEntry = (entries, id) => {
   const entry = entries.find(row => row.id === id);
-  if (!entry) throw new Error("This modifier was removed.");
+  if (!entry) throw new Error(sbsI18n("swade-better-setting.UI.Thismodifierwasremoved_0a30d0eaa1"));
   return entry;
 };
 const formattedCost = cost => cost > 0 ? `+${cost}` : String(cost ?? 0);
@@ -173,8 +174,8 @@ class ModifierLibrary extends HandlebarsApplicationMixin(ApplicationV2) {
   descriptionTimers = new Map();
   static DEFAULT_OPTIONS = {
     classes: ["sbs-modifier-library"], position: {width: 560, height: 540},
-    window: {title: "Modifiers Compendium", icon: "fa-solid fa-sliders", resizable: true},
-    actions: Object.fromEntries(["create", "remove", "addOption", "removeOption", "select"].map(action =>
+    window: {get title() { return sbsI18n("swade-better-setting.UI.ModifiersCompendium_8ec22c8a7c"); }, icon: "fa-solid fa-sliders", resizable: true},
+    actions: Object.fromEntries(["create", "remove", sbsI18n("swade-better-setting.UI.addOption_1a9cc5a89d"), sbsI18n("swade-better-setting.UI.removeOption_1a801ae08c"), "select"].map(action =>
       [action, async function (_event, target) { try { await this.act(action, target); } catch (error) { report(error); } }]))
   };
   static PARTS = {body: {template: `modules/${MODULE_ID}/templates/modifier-library.hbs`, scrollable: [".sbs-library-entries"]}};
@@ -185,7 +186,7 @@ class ModifierLibrary extends HandlebarsApplicationMixin(ApplicationV2) {
     const picker = Boolean(this.item);
     const editable = game.user.isGM && !picker;
     const sorted = [...rows()].sort((a, b) => a.name.localeCompare(b.name));
-    const groups = (picker ? ["Individual"] : ["Individual", "Global"]).map((label, index) => ({
+    const groups = (picker ? [sbsI18n("swade-better-setting.UI.Individual_010dd7b94f")] : [sbsI18n("swade-better-setting.UI.Individual_010dd7b94f"), sbsI18n("swade-better-setting.UI.Global_a258b30f88")]).map((label, index) => ({
       label, open: root?.querySelector(`[data-group-name="${label}"]`)?.open ?? !index,
       rows: sorted.filter(row => row.global === Boolean(index)).map(row => ({
         ...row.powers, global: row.global, expanded: open.has(row.id) || this.expand === row.id,
@@ -292,7 +293,7 @@ class ModifierLibrary extends HandlebarsApplicationMixin(ApplicationV2) {
       if (!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)?$/.test(raw) || !Number.isFinite(cost)) {
         const saved = rows().find(row => row.id === id)?.powers.options.find(row => row.id === option)?.cost ?? 0;
         field.textContent = saved ? formattedCost(saved) : "";
-        return report(new Error("Enter a numeric modifier cost."));
+        return report(new Error(sbsI18n("swade-better-setting.UI.Enteranumericmodifiercost_9e0f8821ac")));
       }
       field.textContent = cost ? formattedCost(cost) : "";
       void writeEntries(entries => {
@@ -364,9 +365,9 @@ class ModifierLibrary extends HandlebarsApplicationMixin(ApplicationV2) {
     await this.flushDescriptions();
     if (action === "create") {
       const global = target.closest("[data-group-name]").dataset.groupName === "Global";
-      const name = await DialogV2.prompt({classes: ["sbs-compendium-dialog"], window: {title: "Create modifier"}, rejectClose: false,
-        content: '<label>Name <input name="name" required></label>',
-        ok: {label: "Create", callback: (_event, button) => button.form.elements.name.value.trim()}});
+      const name = await DialogV2.prompt({classes: ["sbs-compendium-dialog"], window: {title: sbsI18n("swade-better-setting.UI.Createmodifier_e576437a9a")}, rejectClose: false,
+        content: `<label>${sbsI18n("swade-better-setting.UI.Name_dcd1d5223f")} <input name="name" required></label>`,
+        ok: {label: sbsI18n("swade-better-setting.UI.Create_4759498ac2"), callback: (_event, button) => button.form.elements.name.value.trim()}});
       if (!name) return;
       const modifier = {id: randomID(), name, description: "", options: [{id: randomID(), label: "", cost: 0}]};
       this.expand = modifier.id;
@@ -374,8 +375,8 @@ class ModifierLibrary extends HandlebarsApplicationMixin(ApplicationV2) {
       return;
     }
     if (action === "remove") {
-      if (await DialogV2.confirm({classes: ["sbs-compendium-dialog"], window: {title: "Remove modifier"},
-        content: "<p>Remove this modifier from the compendium?</p>", rejectClose: false})) {
+      if (await DialogV2.confirm({classes: ["sbs-compendium-dialog"], window: {title: sbsI18n("swade-better-setting.UI.Removemodifier_f66e522d96")},
+        content: `<p>${sbsI18n("swade-better-setting.UI.Removethismodifierfromthecompendium_3e3b690425")}</p>`, rejectClose: false})) {
         await writeEntries(entries => entries.filter(row => row.id !== id));
       }
       return;

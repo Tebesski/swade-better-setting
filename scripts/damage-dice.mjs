@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 const dieTypes = [4, 6, 8, 10, 12];
 const dieToken = /\[[^\]]*\]|@[\p{L}\p{N}_]+(?:[-.][\p{L}\p{N}_]+)*|(?<![\p{L}\p{N}_@.])(\d*)d(\d+)(?![\d.])([a-z][a-z\d<>=]*)?(\s*\[[^\]]*\])?/giu;
 
@@ -83,5 +84,5 @@ export function applyDamageAdjustment(state, change, source, readAmount) {
   }
 
   const after = display();
-  if (before !== after) state.adjustments.push({source, label: change.label || (add ? "Add Damage Dice" : "Increase Die Type"), before, after});
+  if (before !== after) state.adjustments.push({source, label: change.label || (add ? sbsI18n("swade-better-setting.UI.AddDamageDice_73624e9689") : sbsI18n("swade-better-setting.UI.IncreaseDieType_26ecc75f97")), before, after});
 }

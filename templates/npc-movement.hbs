@@ -1,10 +1,10 @@
-<label>Name<input type="text" name="label" value="{{data.label}}" required placeholder="Movement preset name"></label>
+<label>{{localize "swade-better-setting.UI.Name_dcd1d5223f"}}<input type="text" name="label" value="{{data.label}}" required placeholder="{{localize "swade-better-setting.UI.Movementpresetname_19f0431683"}}"></label>
 <div class="sbs-preset-fields">
-  <label>Default mode<select name="paceBase">{{selectOptions modes selected=data.paceBase}}</select></label>
-  <label>Walk<input type="number" name="ground" min="0" max="100" value="{{data.ground}}"></label>
-  <label>Fly<input type="number" name="fly" min="0" max="100" value="{{data.fly}}"></label>
-  <label>Swim<input type="number" name="swim" min="0" max="100" value="{{data.swim}}"></label>
-  <label>Burrow<input type="number" name="burrow" min="0" max="100" value="{{data.burrow}}"></label>
-  <label>Running die<select name="run">{{selectOptions dice selected=data.run}}</select></label>
-  <label>Running modifier<input type="number" name="runMod" min="-20" max="20" value="{{data.runMod}}"></label>
+  <label>{{localize "swade-better-setting.UI.Defaultmode_e4810f30b9"}}<select name="paceBase">{{selectOptions modes selected=data.paceBase}}</select></label>
+  <label>{{localize "swade-better-setting.UI.Walk_08ee52ae12"}}<input type="number" name="ground" min="0" max="100" value="{{data.ground}}"></label>
+  <label>{{localize "swade-better-setting.UI.Fly_31bbe05d43"}}<input type="number" name="fly" min="0" max="100" value="{{data.fly}}"></label>
+  <label>{{localize "swade-better-setting.UI.Swim_dd4fa375c7"}}<input type="number" name="swim" min="0" max="100" value="{{data.swim}}"></label>
+  <label>{{localize "swade-better-setting.UI.Burrow_339a13fffc"}}<input type="number" name="burrow" min="0" max="100" value="{{data.burrow}}"></label>
+  <label>{{localize "swade-better-setting.UI.Runningdie_d1032010c7"}}<select name="run">{{selectOptions dice selected=data.run}}</select></label>
+  <label>{{localize "swade-better-setting.UI.Runningmodifier_e92c7f3b41"}}<input type="number" name="runMod" min="-20" max="20" value="{{data.runMod}}"></label>
 </div>

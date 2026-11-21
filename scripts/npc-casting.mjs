@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {bounded} from "./npc-math.mjs";
 import {normalizeName} from "./skills.mjs";
 
@@ -12,10 +13,10 @@ export function validEntryName(name) {
 export function addCastingEntry(entries, idFactory, {name, trait, points = 10} = {}) {
   const label = String(name ?? "").trim();
   const general = !label || normalizeName(label) === GENERAL_ENTRY;
-  const display = general ? "General" : label;
+  const display = general ? sbsI18n("swade-better-setting.UI.General_c910d474dc") : label;
   const existing = Object.values(entries).find(entry => normalizeName(entry.name) === normalizeName(display));
   if (existing) return existing;
-  if (!validEntryName(display)) throw new Error("Spellcasting entry names must omit periods and brackets.");
+  if (!validEntryName(display)) throw new Error(sbsI18n("swade-better-setting.UI.Spellcastingentrynamesmustomitperiods_b2ab237788"));
   const id = general ? GENERAL_ENTRY : idFactory();
   const entry = {id, name: display, trait: String(trait ?? "").trim(), points: bounded(Math.trunc(Number(points)) || 0, 0, 999), rule: "inherit"};
   entries[id] = entry;
@@ -27,11 +28,11 @@ export function compileCasting(draft, items, idFactory) {
   const assignments = {...draft.powerEntries};
   let signature = draft.signatureEntry;
   if (draft.mode === "power" && !entries[signature]) {
-    signature = addCastingEntry(entries, idFactory, {name: draft.arcane || "Spellcasting", trait: draft.trait, points: draft.powerPoints}).id;
+    signature = addCastingEntry(entries, idFactory, {name: draft.arcane || sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1"), trait: draft.trait, points: draft.powerPoints}).id;
   }
   for (const item of items) if (item.type === "power" && !entries[assignments[item._id]]) {
     const name = validEntryName(item.system.arcane) ? item.system.arcane : "";
-    const trait = item.system.actions?.trait || "Spellcasting";
+    const trait = item.system.actions?.trait || sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1");
     const points = Math.max(10, Number(item.system.pp) || 0);
     assignments[item._id] = addCastingEntry(entries, idFactory, {name, trait, points}).id;
   }

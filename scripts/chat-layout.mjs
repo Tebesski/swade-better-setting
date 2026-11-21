@@ -1,0 +1,147 @@
+import {t as sbsI18n} from "./i18n.mjs";
+import {usesTargetRows} from "./chat-target-data.mjs";
+
+const observers = new Map();
+const descriptions = new WeakMap();
+
+function after(anchor, node) {
+  if (node && anchor.nextElementSibling !== node) anchor.after(node);
+  return node ?? anchor;
+}
+
+function powerDescription(root, content, item) {
+  let state = descriptions.get(root);
+  if (state) return state;
+  const description = document.createElement("section"); description.className = "sbs-power-description";
+  const modifiers = document.createElement("section"); modifiers.className = "sbs-power-description-modifiers";
+  const accordion = document.createElement("details"); accordion.className = "sbs-chat-description"; accordion.open = true;
+  const divider = document.createElement("summary"); divider.className = "sbs-description-divider";
+  divider.setAttribute("aria-label", sbsI18n("swade-better-setting.UI.Itemdescription_89ed70057c"));
+  divider.dataset.tooltipText = sbsI18n("swade-better-setting.UI.Collapseorexpanditemdescription_53c9288942");
+  const label = document.createElement("span"); label.className = "sbs-description-label"; label.textContent = sbsI18n("swade-better-setting.UI.Description_526e0087cc");
+  divider.append(label); accordion.append(divider, description, modifiers);
+  state = {description, modifiers, accordion}; descriptions.set(root, state);
+  const powers = game.modules.get("swade-better-powers")?.api;
+  const load = powers?.powerChatDescription ? powers.powerChatDescription(item) : (async () => {
+    const source = document.createElement("div"); source.innerHTML = item.system.description ?? "";
+    const legacy = source.querySelector(".sbs-power-modifier-summary"); legacy?.remove();
+    const enrich = text => foundry.applications.ux.TextEditor.implementation.enrichHTML(text, {relativeTo: item, secrets: false});
+    return {description: await enrich(source.innerHTML), modifiers: await enrich(legacy?.outerHTML ?? "")};
+  })();
+  void load.then(data => {
+    if (!content.contains(description)) return;
+    description.innerHTML = data.description; modifiers.innerHTML = data.modifiers;
+  }).catch(error => console.error("Better Setting | Power chat description", error));
+  return state;
+}
+
+function layout(message, root) {
+  if (message.isContentVisible === false || message.visible === false) return;
+  const content = root.querySelector(".message-content");
+  if (!content || (!message.rolls?.length && !content.querySelector(".swade.chat-card"))) return;
+  root.classList.add("sbs-chat-card");
+  const speaker = message.speaker ?? {};
+  const token = game.scenes.get(speaker.scene)?.tokens.get(speaker.token);
+  const actor = token?.actor ?? game.actors.get(speaker.actor);
+  const header = root.querySelector(".message-header");
+  if (header && actor?.testUserPermission(game.user, "LIMITED") && !header.querySelector(".sbs-chat-avatar")) {
+    const portrait = root.ownerDocument.createElement("img");
+    portrait.className = "sbs-chat-avatar";
+    portrait.src = token && (!token.hidden || game.user.isGM) ? token.texture.src : actor.img;
+    portrait.alt = "";
+    header.classList.add("sbs-has-avatar");
+    header.prepend(portrait);
+  }
+  const itemUuid = message.flags?.["swade-hud"]?.powerCast?.itemUuid
+    ?? message.flags?.["swade-better-powers"]?.powerCast?.itemUuid
+    ?? message.flags?.["swade-better-effects"]?.context?.itemUuid
+    ?? content.querySelector("[data-item-uuid]")?.dataset.itemUuid;
+  const item = (itemUuid ? foundry.utils.fromUuidSync(itemUuid) : null) ?? actor?.items.get(message.flags?.["swade-tools"]?.itemroll);
+  const context = message.flags?.["swade-better-effects"]?.context ?? {};
+  let rows = content.querySelector(".sbe-target-responses");
+  if (!usesTargetRows({item, context})) { rows?.remove(); rows = null; }
+  root.classList.toggle("sbs-has-target-rows", !!rows);
+  const card = content.querySelector(".swade-hud-power-cast") ?? content;
+  content.querySelectorAll(".sbs-chat-item-meta").forEach(node => node.remove());
+  const flags = content.querySelector(".sbe-chat-roll-flags");
+  const hideItem = item?.actor?.type === "npc" && !game.user.isGM && game.settings.get("swade", "hideNpcItemChatCards");
+  if (item && !hideItem) {
+    let itemHeader = card.querySelector(":scope > .card-header") ?? content.querySelector(".card-header");
+    if (!itemHeader) {
+      itemHeader = root.ownerDocument.createElement("header");
+      itemHeader.className = "card-header flexrow sbs-roll-item-header";
+      const icon = root.ownerDocument.createElement("img"); icon.src = item.img; icon.alt = "";
+      const title = root.ownerDocument.createElement("strong"); title.textContent = item.name;
+      itemHeader.append(icon, title); content.prepend(itemHeader);
+    }
+    if (item.type === "power") {
+      root.classList.add("sbs-power-card");
+      root.classList.toggle("sbs-damaging-power", !!String(item.system.damage ?? "").trim());
+      // The HUD finishes its native card asynchronously. Reuse its header and
+      // discard our interim header rather than nesting both in the result.
+      for (const duplicate of content.querySelectorAll(".card-header")) if (duplicate !== itemHeader) duplicate.remove();
+      if (card.firstElementChild !== itemHeader) card.prepend(itemHeader);
+      content.querySelectorAll(".resist-rolls").forEach(group => group.remove());
+    }
+    if (item.type === "power" && item.system.rank && !itemHeader.querySelector(".sbs-chat-rank")) {
+      const rank = root.ownerDocument.createElement("span");
+      rank.className = "sbs-chat-rank"; rank.textContent = item.system.rank; itemHeader.append(rank);
+    }
+    let meta = content.querySelector(".sbs-chat-stats");
+    if (!meta) {
+      meta = root.ownerDocument.createElement("div"); meta.className = "sbs-chat-stats";
+      for (const [label, value] of [[sbsI18n("swade-better-setting.UI.Range_5de74a81b1"), item.system.range], [sbsI18n("swade-better-setting.UI.Duration_4fc52a3c4c"), item.type === "power" ? item.system.duration : null]]) {
+        if (!value) continue;
+        const field = root.ownerDocument.createElement("span"), title = root.ownerDocument.createElement("strong");
+        title.textContent = label + " "; field.append(title, String(value)); meta.append(field);
+      }
+    }
+    let anchor = after(itemHeader, flags);
+    anchor = after(anchor, meta);
+    if (item.type === "power") {
+      const description = powerDescription(root, content, item);
+      after(anchor, description.accordion);
+    }
+  } else if (flags && content.firstElementChild !== flags) {
+    content.prepend(flags);
+  }
+  if (rows && card.lastElementChild !== rows) card.append(rows);
+  const roll = content.querySelector(".swade-roll-message");
+  const modifiers = [...content.querySelectorAll("details.modifiers")];
+  if (roll && modifiers.length) {
+    const main = modifiers[0]; main.classList.add("sbs-roll-modifier-accordion");
+    for (const extra of modifiers.slice(1)) {
+      const list = main.querySelector(".modifier-list"), other = extra.querySelector(".modifier-list");
+      if (list && other) { list.append(...other.children); extra.remove(); }
+    }
+    if (roll.lastElementChild !== main) roll.append(main);
+  }
+}
+
+export function installChatLayout() {
+  Hooks.on("renderChatMessageHTML", (message, root) => {
+    observers.get(message.id)?.disconnect();
+    layout(message, root);
+    if (!root.classList.contains("sbs-chat-card")) return;
+    // Other modules enrich their cards asynchronously. Move existing nodes so
+    // native roll, damage, effect and template handlers remain attached.
+    const observer = new MutationObserver(() => layout(message, root));
+    observer.observe(root, {childList: true, subtree: true});
+    observers.set(message.id, observer);
+    root.addEventListener("click", event => {
+      const portrait = event.target.closest(".sbe-target-row img");
+      if (!portrait) return;
+      event.preventDefault(); event.stopImmediatePropagation();
+      const token = foundry.utils.fromUuidSync(portrait.closest(".sbe-target-row").dataset.tokenUuid);
+      if (!canvas.ready || token?.parent.id !== canvas.scene.id || !token.object?.visible) return ui.notifications.warn(sbsI18n("swade-better-setting.UI.Thistargetisnotvisibleon_0a78971b2e"));
+      void canvas.animatePan({x: token.object.center.x, y: token.object.center.y});
+    }, {capture: true});
+    // Removed history entries must not retain observers or document references.
+    for (const [id, old] of observers) {
+      if (id !== message.id && !document.querySelector(`.chat-message[data-message-id="${CSS.escape(id)}"]`)) {
+        old.disconnect(); observers.delete(id);
+      }
+    }
+  });
+  Hooks.on("deleteChatMessage", message => { observers.get(message.id)?.disconnect(); observers.delete(message.id); });
+}

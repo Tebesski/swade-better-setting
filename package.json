@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "test": "node --test tests/*.test.mjs",
+    "packs:build": "node tools/build-packs.mjs",
     "test:foundry": "node tests/foundry.mjs",
-    "test:compendium": "node tests/compendium-foundry.mjs"
+    "test:compendium": "node tests/compendium-foundry.mjs",
+    "check:localization": "node tools/check-localization.mjs"
   },
   "devDependencies": {
+    "@foundryvtt/foundryvtt-cli": "3.0.5",
+    "acorn": "^8.19.0",
+    "acorn-walk": "^8.3.5",
     "playwright": "^1.64.1"
   }
 }

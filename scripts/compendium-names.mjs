@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {normalizeName} from "./skills.mjs";
 
 export async function resolveCompendiumName(name, rows, noun, {exclude, classes = []} = {}) {
@@ -10,10 +11,10 @@ export async function resolveCompendiumName(name, rows, noun, {exclude, classes 
   while (taken(`${base} (${number})`)) number++;
   const copy = `${base} (${number})`;
   const prompt = document.createElement("p");
-  prompt.textContent = `“${name}” already exists. Replace it or save a copy as “${copy}”?`;
+  prompt.textContent = sbsI18n("swade-better-setting.UI.alreadyexistsReplaceitorsave_194e393945", {p0: (name), p1: (copy)});
   const action = await foundry.applications.api.DialogV2.wait({
-    classes: ["sbs-compendium-dialog", ...classes], window: {title: `Save ${noun}`}, content: prompt.outerHTML, rejectClose: false,
-    buttons: [{action: "replace", label: "Replace"}, {action: "copy", label: "Save Copy"}, {action: "cancel", label: "Cancel"}]
+    classes: ["sbs-compendium-dialog", ...classes], window: {title: sbsI18n("swade-better-setting.UI.Save_9ee47a0dfe", {p0: (noun)})}, content: prompt.outerHTML, rejectClose: false,
+    buttons: [{action: "replace", label: sbsI18n("swade-better-setting.UI.Replace_95e154398a")}, {action: "copy", label: sbsI18n("swade-better-setting.UI.SaveCopy_ffe7d40232")}, {action: "cancel", label: sbsI18n("swade-better-setting.UI.Cancel_19766ed6cc")}]
   });
   if (action === "replace") return {name, replace: existing};
   if (action === "copy") return {name: copy};

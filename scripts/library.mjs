@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID, PACK_ID, PACK_NAME, normalizeName, seedSkills, skillData} from "./skills.mjs";
 
 let initialization;
@@ -16,7 +17,7 @@ async function initialize() {
   if (!isPrimaryGM()) return pack;
   if (!pack) {
     pack = await foundry.documents.collections.CompendiumCollection.createCompendium({
-      name: PACK_NAME, label: "Better Setting — Skills", type: "Item", system: "swade",
+      name: PACK_NAME, label: sbsI18n("swade-better-setting.UI.BetterSettingSkills_94dd9dc19b"), type: "Item", system: "swade",
       ownership: {PLAYER: "OBSERVER", TRUSTED: "OBSERVER", ASSISTANT: "OWNER", GAMEMASTER: "OWNER"}
     });
   }
@@ -27,7 +28,7 @@ async function initialize() {
     const names = new Set(existing.map(item => normalizeName(item.name)));
     const missing = seedSkills(source).filter(item => !names.has(normalizeName(item.name)));
     if (missing.length) {
-      if (pack.locked) throw new Error("Unlock Better Setting — Skills to finish its initial setup.");
+      if (pack.locked) throw new Error(sbsI18n("swade-better-setting.UI.UnlockBetterSettingSkillstofinish_0718101e4b"));
       await CONFIG.Item.documentClass.createDocuments(missing, {pack: pack.collection});
     }
     await game.settings.set(MODULE_ID, "libraryInitialized", true);
@@ -38,14 +39,14 @@ async function initialize() {
 export async function librarySkills() {
   await initializeLibrary();
   const pack = getPack();
-  if (!pack) throw new Error("A GM must join once to set up the Better Setting skill compendium.");
+  if (!pack) throw new Error(sbsI18n("swade-better-setting.UI.AGMmustjoinonceto_1154b937b4"));
   return (await pack.getDocuments()).filter(item => item.type === "skill").sort((a, b) => a.name.localeCompare(b.name));
 }
 
 export function storeSkill(document) {
   const operation = writes.then(async () => {
     const pack = getPack();
-    if (!game.user.isGM || !pack || pack.locked) throw new Error("A GM must unlock the Better Setting skill compendium to add this skill.");
+    if (!game.user.isGM || !pack || pack.locked) throw new Error(sbsI18n("swade-better-setting.UI.AGMmustunlocktheBetter_529492ae84"));
     const skills = await librarySkills();
     const existing = skills.find(item => normalizeName(item.name) === normalizeName(document.name));
     if (existing) return existing;
@@ -67,7 +68,7 @@ export async function processPendingSkill(item) {
     await item.unsetFlag(MODULE_ID, "pendingLibrary");
   } catch (error) {
     console.error(`${MODULE_ID} | Could not save ${item.name} to the skill compendium`, error);
-    ui.notifications.warn(`“${item.name}” is on the actor, but its compendium copy is pending. ${error.message}`);
+    ui.notifications.warn(sbsI18n("swade-better-setting.UI.isontheactorbutits_5b442e9088", {p0: (item.name), p1: (error.message)}));
   }
 }
 

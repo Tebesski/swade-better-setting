@@ -1,4 +1,5 @@
-export const RANKS = ["Novice", "Seasoned", "Veteran", "Heroic", "Legendary"];
+import {t as sbsI18n} from "./i18n.mjs";
+export const RANKS = [sbsI18n("swade-better-setting.UI.Novice_7df0f3202d"), sbsI18n("swade-better-setting.UI.Seasoned_dad61913b1"), sbsI18n("swade-better-setting.UI.Veteran_abcf0f136c"), sbsI18n("swade-better-setting.UI.Heroic_4d9a10c232"), sbsI18n("swade-better-setting.UI.Legendary_c80b041f5d")];
 export const ATTRIBUTES = ["agility", "smarts", "spirit", "strength", "vigor"];
 export const ROUNDS = 4;
 export const bounded = (value, min, max) => Math.min(max, Math.max(min, value));
@@ -415,10 +416,10 @@ export function creatureRating(profile, woundCap = 0) {
 }
 
 export function encounterThreat(enemies, party) {
-  if (!(enemies > 0)) return {label: "None", threat: 0, partyWin: party > 0 ? 1 : null};
-  if (!(party > 0)) return {label: "Add the party to initiative", threat: null};
+  if (!(enemies > 0)) return {label: sbsI18n("swade-better-setting.UI.None_dc937b5989"), threat: 0, partyWin: party > 0 ? 1 : null};
+  if (!(party > 0)) return {label: sbsI18n("swade-better-setting.UI.Addthepartytoinitiative_4097bf09e0"), threat: null};
   const ratio = enemies / party;
   const threat = 1 / (1 + (1 / ratio) ** 2);
-  const label = threat < .2 ? "Low" : threat < .4 ? "Moderate" : threat < .6 ? "High" : threat < .8 ? "Severe" : "Extreme";
+  const label = threat < .2 ? sbsI18n("swade-better-setting.UI.Low_f793de205e") : threat < .4 ? sbsI18n("swade-better-setting.UI.Moderate_5c42afc7a2") : threat < .6 ? sbsI18n("swade-better-setting.UI.High_c4ebc6d4a5") : threat < .8 ? sbsI18n("swade-better-setting.UI.Severe_aa93f64a30") : sbsI18n("swade-better-setting.UI.Extreme_8fca425ffb");
   return {label, threat, partyWin: 1 - threat};
 }

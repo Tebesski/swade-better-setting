@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {openNPCBuilder} from "./npc-builder.mjs";
 import {EFFECTS, NPC_FLAG, actorRating, managedTags, npcRank, rankIndex} from "./npc-data.mjs";
 import {MIN_CR, RANKS, advancementStrength, encounterThreat, formatCR, parseCR} from "./npc-math.mjs";
@@ -35,7 +36,7 @@ function refreshThreat(app, root) {
   const panel = document.createElement("section");
   panel.className = "sbs-encounter-threat";
   const heading = document.createElement("strong");
-  heading.textContent = `Threat Level: ${label}`;
+  heading.textContent = sbsI18n("swade-better-setting.UI.ThreatLevel_4f38feb60a", {p0: (label)});
   const scale = document.createElement("div");
   scale.className = "sbs-threat-scale";
   scale.tabIndex = 0;
@@ -43,7 +44,7 @@ function refreshThreat(app, root) {
   const win = partyWin == null ? "—" : `${Math.round(partyWin * 100)}%`;
   const details = [`Average party CR: ${average(party)}`, `Average encounter CR: ${average(enemies)}`, `Estimated party win chance: ${win}`];
   if (unrated) details.push(`Unrated combatants count as CR ${formatCR(MIN_CR)} in this encounter.`);
-  scale.dataset.tooltip = details.join("<br>");
+  scale.dataset.tooltip = details.join(`<br>`);
   scale.setAttribute("aria-label", details.join(". "));
   if (threat !== null) {
     const pointer = document.createElement("i");
@@ -69,7 +70,7 @@ function refreshThreat(app, root) {
 
 function npcRankControl(actor) {
   const rank = document.createElement("select");
-  rank.setAttribute("aria-label", "NPC rank");
+  rank.setAttribute("aria-label", sbsI18n("swade-better-setting.UI.NPCrank_9e7c51da46"));
   for (const label of RANKS) rank.append(new Option(label, label));
   const currentRank = npcRank(actor);
   if (!RANKS.includes(currentRank)) rank.prepend(new Option(currentRank, currentRank));
@@ -109,7 +110,7 @@ function actorCRControl(app, root) {
     cr.type = "text";
     cr.placeholder = "—";
   }
-  cr.setAttribute("aria-label", "Creature Rating");
+  cr.setAttribute("aria-label", sbsI18n("swade-better-setting.UI.CreatureRating_3c8803106b"));
   const updateRating = () => {
     const rating = actorRating(actor);
     cr.value = rating.coverage === "Unrated" && editable ? "" : formatCR(rating.coverage === "Unrated" ? null : rating.cr);
@@ -122,7 +123,7 @@ function actorCRControl(app, root) {
     cr.addEventListener("change", async event => {
       event.stopPropagation();
       const rating = parseCR(cr.value);
-      if (rating === undefined) ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+      if (rating === undefined) ui.notifications.warn(sbsI18n("swade-better-setting.UI.EnteraCreatureRatingbetween2_f2f3095b31"));
       else {
         try { await actor.update({[`${NPC_FLAG}.cr`]: rating}); }
         catch (error) { ui.notifications.error(error.message); }
@@ -132,7 +133,7 @@ function actorCRControl(app, root) {
   }
   const crLabel = document.createElement(editable ? "label" : "span");
   crLabel.className = "sbs-sheet-cr";
-  crLabel.append("CR ", cr);
+  crLabel.append(sbsI18n("swade-better-setting.UI.CR_69c295250c"), cr);
   controls.append(crLabel);
   if (rankField) rankField.append(controls);
   else header.querySelector('[data-action="toggleControls"], [data-action="close"]')?.before(controls);
@@ -147,7 +148,7 @@ export function installNPCTools() {
   wrapMethod(actors, "calcParry", function (original, ...args) {
     return defense(this, "parry") ?? original(...args);
   });
-  wrapMethod(actors, "calcArmor", function (original, location = "torso") {
+  wrapMethod(actors, "calcArmor", function (original, location = sbsI18n("swade-better-setting.UI.torso_2c9e8e214d")) {
     const armor = location === "torso" ? defense(this, "armor") : undefined;
     return armor ?? original(location);
   });
@@ -157,7 +158,7 @@ export function installNPCTools() {
   });
   Hooks.on("swadePreRollAttribute", (actor, attribute) => {
     if (attribute !== "strength" || actor.system.stats?.size !== -4) return;
-    ui.notifications.info("Tiny creatures have fixed Strength 1 and do not roll Strength.");
+    ui.notifications.info(sbsI18n("swade-better-setting.UI.TinycreatureshavefixedStrength1_940ba853d1"));
     return false;
   });
 
@@ -167,7 +168,7 @@ export function installNPCTools() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sbs-open-builder";
-    button.innerHTML = '<i class="fa-solid fa-hammer" inert></i> NPC Builder';
+    button.innerHTML = `<i class="fa-solid fa-hammer" inert></i> ${sbsI18n("swade-better-setting.UI.NPCBuilder_3ca078e37c")}`;
     button.addEventListener("click", () => openNPCBuilder());
     if (footer.querySelector(".sbs-open-bestiary")) footer.querySelector(".sbs-open-bestiary").before(button);
     else footer.append(button);
@@ -186,8 +187,8 @@ export function installNPCTools() {
       }
     });
   };
-  for (const hook of ["updateActor", "createItem", "updateItem", "deleteItem", "createActiveEffect", "updateActiveEffect",
-    "deleteActiveEffect", "updateToken", "updateCombatant"]) Hooks.on(hook, refresh);
+  for (const hook of [sbsI18n("swade-better-setting.UI.updateActor_688e2852e2"), sbsI18n("swade-better-setting.UI.createItem_2be87307d5"), sbsI18n("swade-better-setting.UI.updateItem_fc765ef48a"), sbsI18n("swade-better-setting.UI.deleteItem_0259ed622a"), sbsI18n("swade-better-setting.UI.createActiveEffect_4607bdbb60"), sbsI18n("swade-better-setting.UI.updateActiveEffect_5ddfac034c"),
+    sbsI18n("swade-better-setting.UI.deleteActiveEffect_1194b28b56"), sbsI18n("swade-better-setting.UI.updateToken_0a526b9437"), sbsI18n("swade-better-setting.UI.updateCombatant_37669944be")]) Hooks.on(hook, refresh);
   Hooks.on("preUpdateActor", (actor, changes) => {
     if (actor.type !== "npc" || !actor.getFlag(MODULE_ID, "npc")?.rank) return;
     const path = "system.wildcard";

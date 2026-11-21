@@ -1,0 +1,10 @@
+<section class="{{tabs.description.tabCssClass}} sbs-party-content" data-group="primary" data-tab="description">
+  <fieldset class="sbs-party-panel description-container">
+    <legend>{{localize "swade-better-setting.UI.PartyNotes_7085081f2d"}}</legend>
+    {{#if editableParty}}
+      {{formInputSimple 'system.description' enriched=description toggled=true classes='big-editor'}}
+    {{else if description}}
+      <div class="editor-content">{{{description}}}</div>
+    {{else}}<p class="hint">{{localize "swade-better-setting.UI.Nopartynotes_7c1bf091bb"}}</p>{{/if}}
+  </fieldset>
+</section>

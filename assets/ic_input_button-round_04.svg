@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <!-- Round button: ring with filled center (bullseye/selected) -->
+  <path fill-rule="evenodd" fill="white" d="
+    M 8 64 A 56 56 0 0 1 120 64 A 56 56 0 0 1 8 64 Z
+    M 20 64 A 44 44 0 0 0 108 64 A 44 44 0 0 0 20 64 Z
+    M 42 64 A 22 22 0 0 1 86 64 A 22 22 0 0 1 42 64 Z
+  "/>
+</svg>

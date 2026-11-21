@@ -1,23 +1,23 @@
 <section class="sbs-preset-layout sbs-ancestry-layout">
   <div class="sbs-preset-form">
     <div class="sbs-npc-library-bar">
-      <button type="button" data-action="new"><i class="fa-solid fa-plus" inert></i> New ancestry</button>
-      <button type="button" data-action="load"><i class="fa-solid fa-list" inert></i> Open existing ancestry</button>
+      <button type="button" data-action="new"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.Newancestry_3bf7df9360"}}</button>
+      <button type="button" data-action="load"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Openexistingancestry_f7ae3cc6bc"}}</button>
     </div>
     <div class="sbs-ancestry-heading">
-      <button type="button" class="sbs-ancestry-art" data-action="art" aria-label="Choose ancestry image"><img src="{{draft.img}}" alt=""></button>
-      <label>Name<input type="text" name="ancestryName" value="{{draft.name}}" maxlength="100" required></label>
-      <label>Source<input type="text" name="source" value="{{draft.source}}"></label>
-      <label>Point target<input type="number" name="threshold" min="-100" max="100" value="{{draft.threshold}}"></label>
+      <button type="button" class="sbs-ancestry-art" data-action="art" aria-label="{{localize "swade-better-setting.UI.Chooseancestryimage_2808d38492"}}"><img src="{{draft.img}}" alt=""></button>
+      <label>{{localize "swade-better-setting.UI.Name_dcd1d5223f"}}<input type="text" name="ancestryName" value="{{draft.name}}" maxlength="100" required></label>
+      <label>{{localize "swade-better-setting.UI.Source_0e570ca6fa"}}<input type="text" name="source" value="{{draft.source}}"></label>
+      <label>{{localize "swade-better-setting.UI.Pointtarget_8847416284"}}<input type="number" name="threshold" min="-100" max="100" value="{{draft.threshold}}"></label>
     </div>
-    <label>Description<textarea name="description" rows="3" placeholder="Describe the ancestry">{{draft.description}}</textarea></label>
-    <label>Better Effects flags<input type="text" name="tags" value="{{draft.tags}}" placeholder="fey, amphibious"></label>
+    <label>{{localize "swade-better-setting.UI.Description_526e0087cc"}}<textarea name="description" rows="3" placeholder="{{localize "swade-better-setting.UI.Describetheancestry_980b768b59"}}">{{draft.description}}</textarea></label>
+    <label>{{localize "swade-better-setting.UI.BetterEffectsflags_3bb5f82be2"}}<input type="text" name="tags" value="{{draft.tags}}" placeholder="{{localize "swade-better-setting.UI.feyamphibious_f009643482"}}"></label>
     <details class="sbs-editor-accordion" data-section="ranges">
-      <summary>Attribute ranges and anomalies</summary>
-      <p class="hint">The builder constrains suggested dice to the ancestry’s range. Anomalies can shift both limits by up to the specified number of die steps.</p>
-      <label>Anomaly chance % <input class="sbs-forge-number" type="number" name="anomalyChance" min="0" max="100" value="{{draft.anomalyChance}}"></label>
+      <summary>{{localize "swade-better-setting.UI.Attributerangesandanomalies_bf787f8d47"}}</summary>
+      <p class="hint">{{localize "swade-better-setting.UI.Thebuilderconstrainssuggesteddiceto_259c0cef61"}}</p>
+      <label>{{localize "swade-better-setting.UI.Anomalychance_46b2bf19f8"}} <input class="sbs-forge-number" type="number" name="anomalyChance" min="0" max="100" value="{{draft.anomalyChance}}"></label>
       <table class="sbs-preset-table">
-        <thead><tr><th>Attribute</th><th>Minimum die</th><th>Maximum die</th><th>Anomaly steps</th></tr></thead>
+        <thead><tr><th>{{localize "swade-better-setting.UI.Attribute_1d289028b7"}}</th><th>{{localize "swade-better-setting.UI.Minimumdie_48c31116fc"}}</th><th>{{localize "swade-better-setting.UI.Maximumdie_5bfa5a29c7"}}</th><th>{{localize "swade-better-setting.UI.Anomalysteps_ebc5920daf"}}</th></tr></thead>
         <tbody>{{#each attributes}}
           <tr><th scope="row">{{name}}</th>
             <td><select name="range-min-{{key}}" aria-label="{{name}} minimum">{{selectOptions @root.dice selected=min blank="Any"}}</select></td>
@@ -27,70 +27,70 @@
       </table>
     </details>
     <details class="sbs-editor-accordion" data-section="traits" open>
-      <summary>Ancestral traits</summary>
-      <p class="hint">A trait can change a native SWADE stat or describe a rule you handle at the table. Use negative points for drawbacks.</p>
-      <label><input type="checkbox" name="sizeWounds" {{checked draft.sizeWounds}}> Apply extra Wounds from Size in the NPC builder</label>
+      <summary>{{localize "swade-better-setting.UI.Ancestraltraits_4033a091a4"}}</summary>
+      <p class="hint">{{localize "swade-better-setting.UI.Atraitcanchangeanative_e8f8028509"}}</p>
+      <label><input type="checkbox" name="sizeWounds" {{checked draft.sizeWounds}}> {{localize "swade-better-setting.UI.ApplyextraWoundsfromSizein_8a206c1706"}}</label>
       {{#each draft.traits}}
         <div class="sbs-ancestry-trait">
           <div class="sbs-ancestry-trait-fields">
-            <label>Name<input type="text" name="trait-name-{{@index}}" value="{{name}}" placeholder="Fleet-footed"></label>
-            <label>Changes<select name="trait-kind-{{@index}}">{{selectOptions @root.kinds selected=kind}}</select></label>
-            <label>Amount<span class="sbs-inline-picker">
+            <label>{{localize "swade-better-setting.UI.Name_dcd1d5223f"}}<input type="text" name="trait-name-{{@index}}" value="{{name}}" placeholder="{{localize "swade-better-setting.UI.Fleetfooted_0f7cd8d0aa"}}"></label>
+            <label>{{localize "swade-better-setting.UI.Changes_bbd4b6a86b"}}<select name="trait-kind-{{@index}}">{{selectOptions @root.kinds selected=kind}}</select></label>
+            <label>{{localize "swade-better-setting.UI.Amount_49e96d7cdf"}}<span class="sbs-inline-picker">
               {{#if (eq kind "movementMode")}}
                 <select name="trait-value-{{@index}}">{{selectOptions @root.movementModes selected=amount}}</select>
               {{else if (eq kind "runningDie")}}
                 <select name="trait-value-{{@index}}">{{selectOptions @root.dice selected=amount}}</select>
               {{else}}<input type="number" name="trait-value-{{@index}}" min="-100" max="100" value="{{amount}}">{{/if}}
-              {{#if (eq kind "size")}}<button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" data-index="{{@index}}" aria-label="Choose ancestry Size"></button>{{/if}}
+              {{#if (eq kind "size")}}<button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" data-index="{{@index}}" aria-label="{{localize "swade-better-setting.UI.ChooseancestrySize_fe10ad690c"}}"></button>{{/if}}
             </span></label>
-            <label>Points<input type="number" name="trait-points-{{@index}}" min="-100" max="100" value="{{points}}"></label>
-            <button type="button" class="icon fa-solid fa-xmark" data-action="removeTrait" data-index="{{@index}}" aria-label="Remove trait"></button>
+            <label>{{localize "swade-better-setting.UI.Points_77deabe238"}}<input type="number" name="trait-points-{{@index}}" min="-100" max="100" value="{{points}}"></label>
+            <button type="button" class="icon fa-solid fa-xmark" data-action="removeTrait" data-index="{{@index}}" aria-label="{{localize "swade-better-setting.UI.Removetrait_38a4dd9879"}}"></button>
           </div>
-          <input type="text" name="trait-description-{{@index}}" value="{{description}}" placeholder="Describe this trait" aria-label="Trait description">
+          <input type="text" name="trait-description-{{@index}}" value="{{description}}" placeholder="{{localize "swade-better-setting.UI.Describethistrait_2b9d7348e8"}}" aria-label="{{localize "swade-better-setting.UI.Traitdescription_900c88785a"}}">
         </div>
       {{/each}}
-      <button type="button" data-action="addTrait"><i class="fa-solid fa-plus" inert></i> Add ancestral trait</button>
+      <button type="button" data-action="addTrait"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.Addancestraltrait_d32db53dcd"}}</button>
       {{#if otherEffects.length}}
-        <p class="hint">Existing native effects are preserved.</p>
+        <p class="hint">{{localize "swade-better-setting.UI.Existingnativeeffectsarepreserved_ff362b8b9b"}}</p>
         <ul>{{#each otherEffects}}<li>{{name}}</li>{{/each}}</ul>
       {{/if}}
     </details>
     <details class="sbs-editor-accordion" data-section="grants" data-grant-drop open>
-      <summary>Granted items</summary>
-      <p class="hint">Use a picker or drop an item here. The ancestry grants a native copy to each NPC.</p>
+      <summary>{{localize "swade-better-setting.UI.Granteditems_0d72ce05cc"}}</summary>
+      <p class="hint">{{localize "swade-better-setting.UI.Useapickerordropan_af3cec0597"}}</p>
       {{#each groups}}
         <details class="sbs-editor-accordion sbs-forge-item" data-section="grant-{{key}}" {{#if rows.length}}open{{/if}}>
           <summary>{{label}} ({{rows.length}})</summary>
           <div class="sbs-npc-library-bar">
             {{#if (eq key "other")}}
-              <select name="grantType" aria-label="Grant item type">{{selectOptions @root.types selected=@root.grantType}}</select>
-              <button type="button" data-action="addGrant"><i class="fa-solid fa-list" inert></i> Choose grant</button>
+              <select name="grantType" aria-label="{{localize "swade-better-setting.UI.Grantitemtype_44b9c414a1"}}">{{selectOptions @root.types selected=@root.grantType}}</select>
+              <button type="button" data-action="addGrant"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Choosegrant_84d6332e33"}}</button>
             {{else}}
-              <button type="button" data-action="addGrant" data-type="{{key}}"><i class="fa-solid fa-list" inert></i> Choose {{label}}</button>
+              <button type="button" data-action="addGrant" data-type="{{key}}"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Choose_c7f937836f"}} {{label}}</button>
             {{/if}}
-            {{#if (eq key "skill")}}<button type="button" data-action="addCore"><i class="fa-solid fa-plus" inert></i> Add setting core skills</button>{{/if}}
+            {{#if (eq key "skill")}}<button type="button" data-action="addCore"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.Addsettingcoreskills_4f652d44b3"}}</button>{{/if}}
           </div>
           {{#each rows}}
             <div class="sbs-ancestry-trait">
               <div class="sbs-preset-loadout">
                 <strong>{{#if name}}{{name}}{{else}}{{uuid}}{{/if}}</strong>
-                <label>Points <input type="number" name="grant-points-{{index}}" min="-100" max="100" value="{{points}}"></label>
-                <button type="button" class="icon fa-solid fa-xmark" data-action="removeGrant" data-index="{{index}}" aria-label="Remove grant"></button>
+                <label>{{localize "swade-better-setting.UI.Points_77deabe238"}} <input type="number" name="grant-points-{{index}}" min="-100" max="100" value="{{points}}"></label>
+                <button type="button" class="icon fa-solid fa-xmark" data-action="removeGrant" data-index="{{index}}" aria-label="{{localize "swade-better-setting.UI.Removegrant_8c57bf6c5e"}}"></button>
               </div>
               <div class="sbs-preset-fields">
                 {{#if (eq type "skill")}}
-                  <label>Starting die<select name="grant-die-{{index}}">{{selectOptions @root.dice selected=sides blank="Use source die"}}</select></label>
-                  <label>Die modifier<input type="number" name="grant-mod-{{index}}" min="-20" max="20" value="{{modifier}}"></label>
+                  <label>{{localize "swade-better-setting.UI.Startingdie_d8404b467c"}}<select name="grant-die-{{index}}">{{selectOptions @root.dice selected=sides blank="Use source die"}}</select></label>
+                  <label>{{localize "swade-better-setting.UI.Diemodifier_4d22fd1fd2"}}<input type="number" name="grant-mod-{{index}}" min="-20" max="20" value="{{modifier}}"></label>
                 {{/if}}
-                {{#if (eq type "power")}}<label>Casting pool<input type="text" name="grant-casting-{{index}}" value="{{casting}}" placeholder="Use power’s Arcane field"></label>{{/if}}
+                {{#if (eq type "power")}}<label>{{localize "swade-better-setting.UI.Castingpool_79993bcdf5"}}<input type="text" name="grant-casting-{{index}}" value="{{casting}}" placeholder="{{localize "swade-better-setting.UI.UsepowersArcanefield_b7a9ed3c13"}}"></label>{{/if}}
                 {{#if (eq type "weapon")}}
-                  <label>Damage<input type="text" name="grant-damage-{{index}}" value="{{damage}}" placeholder="Use source damage"></label>
-                  <label>AP<input type="number" name="grant-ap-{{index}}" min="0" max="40" value="{{ap}}"></label>
-                  <label>Trait<span class="sbs-inline-picker">
+                  <label>{{localize "swade-better-setting.UI.Damage_0c874f581a"}}<input type="text" name="grant-damage-{{index}}" value="{{damage}}" placeholder="{{localize "swade-better-setting.UI.Usesourcedamage_ce4b8c4775"}}"></label>
+                  <label>{{localize "swade-better-setting.UI.AP_84810bfea2"}}<input type="number" name="grant-ap-{{index}}" min="0" max="40" value="{{ap}}"></label>
+                  <label>{{localize "swade-better-setting.UI.Trait_28e3e479e0"}}<span class="sbs-inline-picker">
                     <input type="text" name="grant-trait-{{index}}" value="{{attackTrait}}">
-                    <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="grant-trait-{{index}}" aria-label="Choose weapon trait"></button>
+                    <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="grant-trait-{{index}}" aria-label="{{localize "swade-better-setting.UI.Chooseweapontrait_c8d59ead66"}}"></button>
                   </span></label>
-                  <label>Range<input type="text" name="grant-range-{{index}}" value="{{range}}" placeholder="Use source range"></label>
+                  <label>{{localize "swade-better-setting.UI.Range_5de74a81b1"}}<input type="text" name="grant-range-{{index}}" value="{{range}}" placeholder="{{localize "swade-better-setting.UI.Usesourcerange_7e25278b55"}}"></label>
                 {{/if}}
               </div>
             </div>
@@ -100,20 +100,20 @@
     </details>
     {{> "modules/swade-better-setting/templates/npc-forge-casting.hbs" draft.casting}}
     <details class="sbs-editor-accordion" data-section="tables">
-      <summary>Roll tables ({{draft.tables.length}})</summary>
-      <p class="hint">Roll these tables when the NPC is created and append the results to its biography. This leaves the source tables intact.</p>
-      <button type="button" data-action="addTable"><i class="fa-solid fa-list" inert></i> Choose a roll table</button>
+      <summary>{{localize "swade-better-setting.UI.Rolltables_87a9a568f5"}}{{draft.tables.length}})</summary>
+      <p class="hint">{{localize "swade-better-setting.UI.RollthesetableswhentheNPC_bf07dd6824"}}</p>
+      <button type="button" data-action="addTable"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Choosearolltable_494d00be8f"}}</button>
       {{#each draft.tables}}
         <div class="sbs-preset-loadout">
-          <span>{{name}}</span><label>Rolls <input type="number" name="table-count-{{@index}}" min="1" max="5" value="{{count}}"></label>
+          <span>{{name}}</span><label>{{localize "swade-better-setting.UI.Rolls_2f7581767e"}} <input type="number" name="table-count-{{@index}}" min="1" max="5" value="{{count}}"></label>
           <button type="button" class="icon fa-solid fa-xmark" data-action="removeTable" data-index="{{@index}}" aria-label="Remove {{name}}"></button>
         </div>
       {{/each}}
     </details>
   </div>
   <footer class="sbs-preset-footer">
-    <output data-ancestry-total class="{{#unless (eq pointTotal draft.threshold)}}sbs-preset-unbalanced{{/unless}}">{{pointTotal}} / {{draft.threshold}} points</output>
-    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> {{#if libraryCopy}}Save a world copy{{else}}Save ancestry{{/if}}</button>
-    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> Save and use</button>{{/if}}
+    <output data-ancestry-total class="{{#unless (eq pointTotal draft.threshold)}}sbs-preset-unbalanced{{/unless}}">{{pointTotal}} / {{draft.threshold}} {{localize "swade-better-setting.UI.points_c54a061dfc"}}</output>
+    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> {{#if libraryCopy}}{{localize "swade-better-setting.UI.Saveaworldcopy_7655235c23"}}{{else}}{{localize "swade-better-setting.UI.Saveancestry_d9d438c935"}}{{/if}}</button>
+    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> {{localize "swade-better-setting.UI.Saveanduse_bf9278b987"}}</button>{{/if}}
   </footer>
 </section>

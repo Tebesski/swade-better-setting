@@ -1,0 +1,99 @@
+{{#*inline "skill"}}
+  {{#if canRoll}}
+    <button type="button" class="sbs-party-skill {{#if core}}core{{/if}}" data-action="rollPartySkill"
+      data-member-uuid="{{uuid}}" data-skill-id="{{id}}" title="Roll {{owner}}’s {{name}}">
+      {{name}} <strong>{{die}}</strong>
+    </button>
+  {{else}}
+    <span class="sbs-party-skill {{#if core}}core{{/if}}" title="{{owner}}">{{name}} <strong>{{die}}</strong></span>
+  {{/if}}
+{{/inline}}
+{{#*inline "bennies"}}
+  <span class="sbs-party-benny-icons {{#unless bennies}}empty{{/unless}}" aria-hidden="true">
+    {{#each bennyStack}}<img src="{{@root.benny}}" alt="">{{/each}}
+  </span>
+  <span class="sbs-party-benny-count">{{bennies}}</span>
+{{/inline}}
+<section class="{{tabs.members.tabCssClass}} sbs-party-content" data-tab="members" data-group="primary">
+  {{#if partySkills.length}}
+    <details class="sbs-party-panel sbs-party-summary" data-summary-id="best-party-skills" open>
+      <summary>{{localize "swade-better-setting.UI.Bestpartyskills_32e81f46c6"}}</summary>
+      <div class="sbs-party-skills">
+        {{#each partySkills}}
+          <span class="sbs-party-skill {{#if core}}core{{/if}}" tabindex="0" data-tooltip-text="{{owners}}">
+            {{name}} <strong>{{die}}</strong>
+          </span>
+        {{/each}}
+      </div>
+    </details>
+  {{/if}}
+  <div class="sbs-party-section-head">
+    <h2>{{localize "swade-better-setting.UI.Members_1044a4c056"}}</h2>
+    {{#if editableParty}}
+      <button type="button" data-action="addPartyMember"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.AddMember_e7d80d8f7f"}}</button>
+    {{/if}}
+  </div>
+  {{#each members}}
+    <article class="sbs-party-member" data-member-uuid="{{uuid}}">
+      {{#unless missing}}
+        <button type="button" class="sbs-party-link sbs-party-portrait" data-action="openMember" data-party-portrait aria-label="Open {{name}}">
+          <img src="{{img}}" alt="">
+        </button>
+      {{/unless}}
+      <div class="sbs-party-member-body">
+        <header class="sbs-party-member-head">
+          <div>
+            {{#if missing}}<strong>{{name}}</strong>{{else}}<button type="button" class="sbs-party-link" data-action="openMember">{{name}}</button>{{/if}}
+            {{#if profile}}<small>{{profile}}</small>{{/if}}
+          </div>
+          {{#if (or wildcard @root.editableParty)}}
+          <div class="sbs-party-member-actions">
+          {{#if wildcard}}
+            {{#if canAdjustBennies}}
+              <button type="button" class="sbs-party-bennies" data-action="changePartyBenny" data-member-uuid="{{uuid}}"
+                aria-label="{{name}} · {{bennies}} Bennies" data-tooltip-text="{{localize "swade-better-setting.UI.LeftclicktogiveaBenny_b171fa1860"}}">{{> bennies}}</button>
+            {{else}}<span class="sbs-party-bennies" aria-label="{{bennies}} Bennies">{{> bennies}}</span>{{/if}}
+          {{/if}}
+          {{#if @root.editableParty}}
+            <button type="button" class="icon" data-action="removePartyMember" aria-label="Remove {{name}}">
+              <i class="fa-solid fa-user-minus" inert></i>
+            </button>
+          {{/if}}
+          </div>
+          {{/if}}
+        </header>
+        {{#unless missing}}
+          <dl class="sbs-party-stats">
+            <div class="wounds {{#if wounded}}wounded{{/if}}"><dt><i class="fa-solid fa-heart-crack" inert></i> {{localize "swade-better-setting.UI.Wounds_16a5581737"}}</dt><dd>{{wounds}}</dd></div>
+            <div class="fatigue"><dt><i class="fa-solid fa-battery-quarter" inert></i> {{localize "swade-better-setting.UI.Fatigue_c83bec1f02"}}</dt><dd>{{fatigue}}</dd></div>
+            <div class="parry"><dt><i class="fa-solid fa-shield-halved" inert></i> {{localize "swade-better-setting.UI.Parry_e5567f841f"}}</dt><dd>{{parry}}</dd></div>
+            <div class="toughness"><dt><i class="fa-solid fa-heart" inert></i> {{localize "swade-better-setting.UI.Toughness_19cd2c1eec"}}</dt><dd>{{toughness}} <small title="{{localize "swade-better-setting.UI.Armor_a592855d05"}}">({{armor}})</small></dd></div>
+            <div class="pace"><dt><i class="fa-solid fa-person-walking" inert></i> {{localize "swade-better-setting.UI.GroundPace_d17c7654b0"}}</dt><dd>{{#if (eq pace null)}}—{{else}}{{pace}}{{/if}}</dd></div>
+          </dl>
+          {{#if skills.length}}
+            <details class="sbs-party-member-skills" data-summary-id="{{uuid}}-skills">
+              <summary>{{localize "swade-better-setting.UI.Skills_66d0f523a3"}}</summary>
+              <div class="sbs-party-skills">{{#each skills}}{{> skill}}{{/each}}</div>
+            </details>
+          {{/if}}
+          {{#if attributes.length}}
+            <details class="sbs-party-member-skills" data-summary-id="{{uuid}}-attributes">
+              <summary>{{localize "swade-better-setting.UI.Attributes_4b0ed88f7d"}}</summary>
+              <div class="sbs-party-skills">
+                {{#each attributes}}
+                  {{#if canRoll}}
+                    <button type="button" class="sbs-party-skill" data-action="rollPartyAttribute" data-member-uuid="{{uuid}}"
+                      data-attribute="{{id}}">{{name}} <strong>{{die}}</strong></button>
+                  {{else}}<span class="sbs-party-skill">{{name}} <strong>{{die}}</strong></span>{{/if}}
+                {{/each}}
+              </div>
+            </details>
+          {{/if}}
+        {{/unless}}
+      </div>
+    </article>
+  {{else}}
+    {{#if editableParty}}<p class="hint">{{localize "swade-better-setting.UI.Draganactorhereorchoose_a33e95bf22"}}</p>
+    {{else}}<p class="hint">{{localize "swade-better-setting.UI.Novisiblepartymembers_66259dd293"}}</p>{{/if}}
+  {{/each}}
+</section>

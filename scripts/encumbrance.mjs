@@ -1,16 +1,17 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {wrapMethod} from "./integrations.mjs";
 
 const ARMOR_SETTING = "armorStrengthPenalties";
 const ENCUMBRANCE_SETTING = "effectEncumbrance";
-const STATUS = "encumbered";
+const STATUS = sbsI18n("swade-better-setting.UI.encumbered_2ef998271f");
 const AUTO = "weightEncumbered";
 const OVERRIDE = "encumbranceDismissed";
 const OVERLOAD = "encumbranceOverload";
 const FATIGUE_MODIFIER = "Encumbered (Resist Fatigue)";
 const PACE_TYPES = ["ground", "fly", "swim", "burrow"];
 const WEIGHT_ITEMS = new Set(["armor", "weapon", "shield", "gear", "consumable"]);
-const WEIGHT_FIELDS = ["weight", "quantity", "equipStatus"];
+const WEIGHT_FIELDS = ["weight", "quantity", sbsI18n("swade-better-setting.UI.equipStatus_fff032c7a5")];
 const pending = new Map();
 const fatigueRolls = new Set();
 
@@ -25,13 +26,13 @@ const ownsAutomation = actor => game.users.activeGM?.isSelf ??
 
 export function registerEncumbranceSettings() {
   game.settings.register(MODULE_ID, ARMOR_SETTING, {
-    name: "Armor Minimum Strength Penalties",
-    hint: "For equipped armor, subtract 1 from Pace, Agility rolls, and Agility-linked skill rolls for each die step below the requirement.",
+    name: sbsI18n("swade-better-setting.UI.ArmorMinimumStrengthPenalties_f00b423dce"),
+    hint: sbsI18n("swade-better-setting.UI.Forequippedarmorsubtract1from_b4d8a714c8"),
     scope: "world", config: true, type: Boolean, default: true, onChange: refreshActors
   });
   game.settings.register(MODULE_ID, ENCUMBRANCE_SETTING, {
-    name: "Encumbered Effect Automation",
-    hint: "Use the Encumbered effect for load penalties and Vigor tests. Adds the status when over the weight limit. Turning this off restores SWADE's own encumbrance setting.",
+    name: sbsI18n("swade-better-setting.UI.EncumberedEffectAutomation_df00838110"),
+    hint: sbsI18n("swade-better-setting.UI.UsetheEncumberedeffectforload_0065f5afbe"),
     scope: "world", config: true, type: Boolean, default: true, onChange: refreshActors
   });
 }
@@ -168,14 +169,14 @@ async function checkOverload(actor) {
 }
 
 async function resistOverload(actor) {
-  const title = "Encumbrance: Resist Fatigue";
+  const title = sbsI18n("swade-better-setting.UI.EncumbranceResistFatigue_f166644988");
   const roll = await actor.rollAttribute("vigor", {title, flavour: title, resistFatigue: true});
   if (!roll || roll.successes > 0) return;
   const confirmed = await foundry.applications.api.DialogV2.confirm({
     classes: ["sbs-setting-dialog"], rejectClose: false, modal: false,
-    window: {title: `${actor.name}: Apply Fatigue?`},
-    content: "<p>The Vigor test failed. Apply one level of Fatigue after resolving any Benny rerolls.</p>",
-    yes: {label: "Apply Fatigue"}, no: {label: "Dismiss", default: true}
+    window: {title: sbsI18n("swade-better-setting.UI.ApplyFatigue_03689dfcc4", {p0: (actor.name)})},
+    content: `<p>${sbsI18n("swade-better-setting.UI.TheVigortestfailedApplyone_89d3a6a152")}</p>`,
+    yes: {label: sbsI18n("swade-better-setting.UI.ApplyFatigue_50e68bd065")}, no: {label: sbsI18n("swade-better-setting.UI.Dismiss_48845bff33"), default: true}
   });
   if (!confirmed || !enabled(ENCUMBRANCE_SETTING) || actor.system.status.isIncapacitated) return;
   const {fatigue} = actor.system;
@@ -223,8 +224,8 @@ export function installEncumbrance() {
   Hooks.on("updateActor", (actor, changes) => scheduleActorAndTokens(actor, {
     recalculate: foundry.utils.hasProperty(changes, "system.attributes.strength")
   }));
-  for (const hook of ["createToken", "updateToken"]) Hooks.on(hook, token => schedule(token.actor));
-  for (const hook of ["createItem", "deleteItem"]) {
+  for (const hook of [sbsI18n("swade-better-setting.UI.createToken_eb21103a1f"), sbsI18n("swade-better-setting.UI.updateToken_0a526b9437")]) Hooks.on(hook, token => schedule(token.actor));
+  for (const hook of [sbsI18n("swade-better-setting.UI.createItem_2be87307d5"), sbsI18n("swade-better-setting.UI.deleteItem_0259ed622a")]) {
     Hooks.on(hook, item => scheduleActorAndTokens(item.actor, {recalculate: WEIGHT_ITEMS.has(item.type)}));
   }
   Hooks.on("updateItem", (item, changes) => scheduleActorAndTokens(item.actor, {

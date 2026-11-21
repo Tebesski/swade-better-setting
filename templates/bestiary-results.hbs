@@ -1,19 +1,19 @@
-<section class="sbs-bestiary-results" aria-label="NPC results">
+<section class="sbs-bestiary-results" aria-label="{{localize "swade-better-setting.UI.NPCresults_6705162d74"}}">
   <div class="sbs-bestiary-status">
-    <strong role="status">{{#if loading}}Loading bestiary…{{else if filtering}}Reading filter data…{{else if filteringCR}}Calculating CR for the filter…{{else if sortingCR}}Calculating CR to sort {{count}} NPCs…{{else}}{{count}} {{#if (eq count 1)}}NPC{{else}}NPCs{{/if}}{{/if}}</strong>
+    <strong role="status">{{#if loading}}{{localize "swade-better-setting.UI.Loadingbestiary_4fff8e3f3f"}}{{else if filtering}}{{localize "swade-better-setting.UI.Readingfilterdata_0561fbed79"}}{{else if filteringCR}}{{localize "swade-better-setting.UI.CalculatingCRforthefilter_e3c27771ef"}}{{else if sortingCR}}{{localize "swade-better-setting.UI.CalculatingCRtosort_dcf2d222df"}} {{count}} {{localize "swade-better-setting.UI.NPCs_8e862ca2aa"}}{{else}}{{count}} {{#if (eq count 1)}}{{localize "swade-better-setting.UI.NPC_f2d1dab083"}}{{else}}{{localize "swade-better-setting.UI.NPCs_32dfcbda15"}}{{/if}}{{/if}}</strong>
     <div class="sbs-bestiary-tools">
-      {{#if canBuild}}<button type="button" data-action="build"><i class="fa-solid fa-hammer" inert></i> NPC Builder</button>{{/if}}
-      <button type="button" class="icon fa-solid fa-rotate" data-action="refresh" aria-label="Refresh" data-tooltip="Refresh Bestiary" {{disabled loading}}></button>
+      {{#if canBuild}}<button type="button" data-action="build"><i class="fa-solid fa-hammer" inert></i> {{localize "swade-better-setting.UI.NPCBuilder_3ca078e37c"}}</button>{{/if}}
+      <button type="button" class="icon fa-solid fa-rotate" data-action="refresh" aria-label="{{localize "swade-better-setting.UI.Refresh_0e91610117"}}" data-tooltip="{{localize "swade-better-setting.UI.RefreshBestiary_9484d58bcc"}}" {{disabled loading}}></button>
     </div>
   </div>
-  {{#if failed}}<p class="sbs-bestiary-warning">Could not read: {{failed}}. Use Refresh to retry.</p>{{/if}}
-  <ol class="sbs-bestiary-list unmarked-list" aria-label="Matching NPCs">
+  {{#if failed}}<p class="sbs-bestiary-warning">{{localize "swade-better-setting.UI.Couldnotread_63558e6752"}} {{failed}}{{localize "swade-better-setting.UI.UseRefreshtoretry_68ff1d8222"}}</p>{{/if}}
+  <ol class="sbs-bestiary-list unmarked-list" aria-label="{{localize "swade-better-setting.UI.MatchingNPCs_55d5ab3942"}}">
     {{#each matches}}
       <li data-uuid="{{uuid}}" {{#if @root.canDrag}}draggable="true"{{/if}}>
         <button type="button" class="sbs-bestiary-npc" data-action="openActor" data-uuid="{{uuid}}" aria-label="{{name}}" title="{{source.name}} · {{#if wildcard}}Wild Card{{else}}Extra{{/if}}">
           <img src="{{img}}" loading="lazy" draggable="false" alt="">
           <span>{{name}}</span>
-          {{#if wildcard}}<i class="fa-solid fa-cards" title="Wild Card" inert></i>{{/if}}
+          {{#if wildcard}}<i class="fa-solid fa-cards" title="{{localize "swade-better-setting.UI.WildCard_1af0ffaf1f"}}" inert></i>{{/if}}
         </button>
         <div class="sbs-bestiary-badges">
           <span class="sbs-bestiary-rank" data-rank="{{rankClass}}">{{rank}}</span>
@@ -21,14 +21,14 @@
         </div>
       </li>
     {{else}}
-      {{#unless (or loading filtering filteringCR)}}<li class="sbs-bestiary-empty">No NPCs match your search and filters.</li>{{/unless}}
+      {{#unless (or loading filtering filteringCR)}}<li class="sbs-bestiary-empty">{{localize "swade-better-setting.UI.NoNPCsmatchyoursearchand_c579cdecac"}}</li>{{/unless}}
     {{/each}}
   </ol>
   {{#if hasPages}}
-    <div class="sbs-bestiary-pages" aria-label="Result pages">
-      <button type="button" data-action="previous" {{disabled (not previous)}}><i class="fa-solid fa-chevron-left" inert></i> Previous</button>
-      <span>Page {{page}} of {{pages}}</span>
-      <button type="button" data-action="next" {{disabled (not next)}}>Next <i class="fa-solid fa-chevron-right" inert></i></button>
+    <div class="sbs-bestiary-pages" aria-label="{{localize "swade-better-setting.UI.Resultpages_d6ee7b9515"}}">
+      <button type="button" data-action="previous" {{disabled (not previous)}}><i class="fa-solid fa-chevron-left" inert></i> {{localize "swade-better-setting.UI.Previous_a57b08a480"}}</button>
+      <span>{{localize "swade-better-setting.UI.Page_0a30a815d6"}} {{page}} {{localize "swade-better-setting.UI.of_28391d3bc6"}} {{pages}}</span>
+      <button type="button" data-action="next" {{disabled (not next)}}>{{localize "swade-better-setting.UI.Next_1ff57a29d7"}} <i class="fa-solid fa-chevron-right" inert></i></button>
     </div>
   {{/if}}
 </section>

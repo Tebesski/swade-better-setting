@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {ATTRIBUTES, RANKS, bounded} from "./npc-math.mjs";
 import {makePreset, rankIndex} from "./npc-data.mjs";
 import {validEntryName} from "./npc-casting.mjs";
@@ -9,11 +10,11 @@ import {ChoicePicker} from "./picker.mjs";
 
 const {ApplicationV2, HandlebarsApplicationMixin, DialogV2} = foundry.applications.api;
 const DICE = {4: "d4", 6: "d6", 8: "d8", 10: "d10", 12: "d12"};
-const GROWTH = {"": "Archetype default", rank: "Every rank", half: "Every other rank", fixed: "Fixed"};
-const TYPES = {weapon: "Weapons", armor: "Armor", shield: "Shields", gear: "Gear", consumable: "Consumables",
-  edge: "Edges", hindrance: "Hindrances", ability: "Abilities", action: "Actions", power: "Powers"};
-const MODE = {melee: "Melee", ranged: "Ranged", power: "Damaging power", none: "None"};
-const LOCATIONS = {0: "Stored", 1: "Carried", 2: "Off-Hand", 3: "Readied", 4: "Main Hand", 5: "Two Hands"};
+const GROWTH = {get ""() { return sbsI18n("swade-better-setting.UI.Archetypedefault_189d86b816"); }, get rank() { return sbsI18n("swade-better-setting.UI.Everyrank_e7402f7178"); }, get half() { return sbsI18n("swade-better-setting.UI.Everyotherrank_1f11f8495a"); }, get fixed() { return sbsI18n("swade-better-setting.UI.Fixed_1246fc93bc"); }};
+const TYPES = {get weapon() { return sbsI18n("swade-better-setting.UI.Weapons_aafc7b0e9b"); }, get armor() { return sbsI18n("swade-better-setting.UI.Armor_a592855d05"); }, get shield() { return sbsI18n("swade-better-setting.UI.Shields_36786280d5"); }, get gear() { return sbsI18n("swade-better-setting.UI.Gear_d6eaec65e7"); }, get consumable() { return sbsI18n("swade-better-setting.UI.Consumables_7cb53ac085"); },
+  get edge() { return sbsI18n("swade-better-setting.UI.Edges_658b158af9"); }, get hindrance() { return sbsI18n("swade-better-setting.UI.Hindrances_6276d146ad"); }, get ability() { return sbsI18n("swade-better-setting.UI.Abilities_81932b99d9"); }, action: "Actions", get power() { return sbsI18n("swade-better-setting.UI.Powers_3286cc91e5"); }};
+const MODE = {get melee() { return sbsI18n("swade-better-setting.UI.Melee_2e24eb8ac3"); }, get ranged() { return sbsI18n("swade-better-setting.UI.Ranged_3f0b51a249"); }, get power() { return sbsI18n("swade-better-setting.UI.Damagingpower_be19d8bdd1"); }, get none() { return sbsI18n("swade-better-setting.UI.None_dc937b5989"); }};
+const LOCATIONS = {get 0() { return sbsI18n("swade-better-setting.UI.Stored_91da962689"); }, get 1() { return sbsI18n("swade-better-setting.UI.Carried_4014b8870c"); }, get 2() { return sbsI18n("swade-better-setting.UI.OffHand_a7bac73edb"); }, get 3() { return sbsI18n("swade-better-setting.UI.Readied_20814afd43"); }, get 4() { return sbsI18n("swade-better-setting.UI.MainHand_ed3897f136"); }, get 5() { return sbsI18n("swade-better-setting.UI.TwoHands_e3e5ec9b38"); }};
 const RANK_OPTIONS = Object.fromEntries(RANKS.map(rank => [rank, rank]));
 const id = () => foundry.utils.randomID();
 const dieLabel = die => `d${die.sides}${die.modifier ? `+${die.modifier}` : ""}`;
@@ -22,7 +23,7 @@ const report = error => ui.notifications.error(error.message);
 export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     tag: "form", classes: ["sbs-setting-dialog", "sbs-npc-preset-editor", "sbs-archetype-editor"],
-    window: {title: "Archetype Library", icon: "fa-solid fa-id-badge", resizable: true},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.ArchetypeLibrary_b9c01f8272"); }, icon: "fa-solid fa-id-badge", resizable: true},
     position: {width: 900, height: 640},
     actions: {
       select: function (_event, control) { return this.switchTo(control.dataset.key).catch(report); },
@@ -39,7 +40,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
         this.dirty = true; return this.render();
       },
       addCasting: function () {
-        this.capture(); this.draft.casting.push({name: "", trait: "Spellcasting", points: 10, growth: 0, rule: "inherit"});
+        this.capture(); this.draft.casting.push({name: "", trait: sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1"), points: 10, growth: 0, rule: "inherit"});
         this.dirty = true; return this.render();
       },
       removeCasting: function (_event, control) {
@@ -92,7 +93,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     const read = key => String(values.get(key) ?? "").trim();
     const number = (key, min, max) => bounded(Math.trunc(Number(read(key))) || 0, min, max);
     const d = this.draft;
-    for (const key of ["label", "description", "focus", "focusAttribute", "mode", "movement", "tags"]) d[key] = read(key);
+    for (const key of ["label", "description", "focus", sbsI18n("swade-better-setting.UI.focusAttribute_33984c52c6"), "mode", "movement", "tags"]) d[key] = read(key);
     for (const key of ["hardy", "core", "animal"]) d[key] = values.has(key);
     d.focusDie = number("focusDie", 4, 12);
     d.damageTier = number("damageTier", 0, 2);
@@ -191,7 +192,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async switchTo(key) {
     if (key && key === this.key) return;
-    if (this.dirty && !await DialogV2.confirm({window: {title: "Discard unsaved changes?"}, content: "<p>Switch archetypes and discard the current edits?</p>", rejectClose: false})) return;
+    if (this.dirty && !await DialogV2.confirm({window: {title: sbsI18n("swade-better-setting.UI.Discardunsavedchanges_470e7ee2a5")}, content: `<p>${sbsI18n("swade-better-setting.UI.Switcharchetypesanddiscardthecurrent_3c4c0dd3f0")}</p>`, rejectClose: false})) return;
     this.load(key);
     return this.render();
   }
@@ -199,7 +200,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
   async duplicate() {
     this.capture();
     this.key = undefined;
-    const label = this.draft.label || "Archetype";
+    const label = this.draft.label || sbsI18n("swade-better-setting.UI.Archetype_ecd5f88e3c");
     const names = new Set(Object.values(archetypeLibrary()).map(row => row.label.toLowerCase()));
     let suffix = 1;
     while (names.has(`${label} (${suffix})`.toLowerCase())) suffix++;
@@ -210,8 +211,8 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async remove() {
     const standard = hasStandardArchetype(this.key);
-    if (!await DialogV2.confirm({window: {title: standard ? "Restore built-in archetype?" : "Delete archetype?"},
-      content: `<p>${standard ? "Restore this archetype’s original defaults?" : "Remove this archetype from the world library?"}</p>`, rejectClose: false})) return;
+    if (!await DialogV2.confirm({window: {title: standard ? sbsI18n("swade-better-setting.UI.Restorebuiltinarchetype_c4f855770d") : sbsI18n("swade-better-setting.UI.Deletearchetype_75acbc6563")},
+      content: `<p>${standard ? sbsI18n("swade-better-setting.UI.Restorethisarchetypesoriginaldefaults_c398e1ffda") : sbsI18n("swade-better-setting.UI.Removethisarchetypefromtheworld_3d1bc16c61")}</p>`, rejectClose: false})) return;
     const key = this.key;
     await removeArchetype(key);
     this.load(standard ? key : "soldier");
@@ -236,7 +237,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async pickItem(type, onSelect) {
     await this.picker?.close();
-    const picker = this.picker = new ChoicePicker({choices: [], loading: true, pageSize: 100, window: {title: `Choose ${(TYPES[type] ?? type).toLowerCase()}`},
+    const picker = this.picker = new ChoicePicker({choices: [], loading: true, pageSize: 100, window: {title: sbsI18n("swade-better-setting.UI.Choose_acc8cc694a", {p0: ((TYPES[type] ?? type).toLowerCase())})},
       onPreview: async uuid => (await resolveItem(uuid, type)).sheet.render({force: true}),
       onSelect: (uuid, entry) => onSelect({key: uuid, type, name: entry.name, img: entry.img})});
     await picker.render({force: true});
@@ -249,13 +250,13 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async pickTrait(name) {
     await this.picker?.close();
-    const choices = this.skillNames.map(skill => ({key: skill, name: skill, detail: "Skill"}));
+    const choices = this.skillNames.map(skill => ({key: skill, name: skill, detail: sbsI18n("swade-better-setting.UI.Skill_6df1bb18a5")}));
     if (name !== "focus" && !name.startsWith("skill-name")) for (const key of ATTRIBUTES) {
       const label = game.i18n.localize(CONFIG.SWADE.attributes[key].long);
-      choices.push({key: label, name: label, detail: "Attribute"});
+      choices.push({key: label, name: label, detail: sbsI18n("swade-better-setting.UI.Attribute_1d289028b7")});
     }
     const draft = this.draft;
-    this.picker = new ChoicePicker({choices, window: {title: "Choose a trait"}, onSelect: value => {
+    this.picker = new ChoicePicker({choices, window: {title: sbsI18n("swade-better-setting.UI.Chooseatrait_0650f3338f")}, onSelect: value => {
       if (this.draft !== draft) return;
       const input = this.element.querySelector(`[name="${name}"]`);
       if (input) { input.value = value; input.dispatchEvent(new Event("input", {bubbles: true})); }
@@ -286,16 +287,16 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
     if (this.saving) return;
     this.capture();
     const profile = this.profile();
-    if (!profile.label || !profile.focus) throw new Error("Enter an archetype name and primary skill.");
+    if (!profile.label || !profile.focus) throw new Error(sbsI18n("swade-better-setting.UI.Enteranarchetypenameandprimary_74d07ec8fe"));
     const names = this.draft.skills.filter(row => row.name).map(row => slug(row.name));
-    if (new Set(names).size !== names.length) throw new Error("Each supporting skill can be listed once.");
-    if (profile.attack.damage && !Roll.validate(profile.attack.damage)) throw new Error("Enter a valid SWADE damage formula.");
+    if (new Set(names).size !== names.length) throw new Error(sbsI18n("swade-better-setting.UI.Eachsupportingskillcanbelisted_a94d8eadb1"));
+    if (profile.attack.damage && !Roll.validate(profile.attack.damage)) throw new Error(sbsI18n("swade-better-setting.UI.EnteravalidSWADEdamageformula_bf20ac6326"));
     const castingNames = profile.casting.map(entry => entry.name.toLowerCase());
     if (profile.casting.some(entry => !validEntryName(entry.name) || !entry.trait) || new Set(castingNames).size !== castingNames.length)
-      throw new Error("Give each casting pool a unique valid name and a trait.");
+      throw new Error(sbsI18n("swade-better-setting.UI.Giveeachcastingpoolaunique_29f2193a06"));
     for (const row of profile.loadout) if (rankIndex(row.rank) < 0) row.rank = RANKS[0];
     if (profile.loadout.some(row => row.maxRank && rankIndex(row.maxRank) < rankIndex(row.rank)))
-      throw new Error("The maximum loadout rank must be at least the minimum rank.");
+      throw new Error(sbsI18n("swade-better-setting.UI.Themaximumloadoutrankmustbe_3e3dd2ee1d"));
     this.saving = true;
     try {
       const key = this.key ?? id();
@@ -304,7 +305,7 @@ export class ArchetypeEditor extends HandlebarsApplicationMixin(ApplicationV2) {
       this.dirty = false;
       await this.onSave?.(key, use);
       if (use) return this.close();
-      ui.notifications.info(`Saved ${profile.label}.`);
+      ui.notifications.info(sbsI18n("swade-better-setting.UI.Saved_a29abddcbd", {p0: (profile.label)}));
       return this.render();
     } finally { this.saving = false; }
   }

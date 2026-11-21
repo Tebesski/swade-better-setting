@@ -1,0 +1,14 @@
+<header class="sbs-party-banner">
+  <button type="button" class="sbs-party-banner-art" data-party-portrait aria-label="{{#if editableParty}}Edit party portrait{{else}}Party portrait{{/if}}"
+    {{#if editableParty}}data-action="editImg"{{else}}disabled{{/if}}>
+    {{#if defaultPartyArtwork}}<i class="fa-solid fa-people-group" inert></i>{{else}}<img src="{{actor.img}}" alt="">{{/if}}
+  </button>
+  <div>
+    <label for="{{actor.id}}-party-name">{{localize "swade-better-setting.UI.Party_dfa82f21b3"}}</label>
+    <input id="{{actor.id}}-party-name" name="name" value="{{actor.name}}" {{readonly (not editableParty)}}>
+  </div>
+  <label class="sbs-current-party" data-tooltip="{{localize "swade-better-setting.UI.SelectsthissheetfortheOpen_81d8759b30"}}">
+    <input type="checkbox" data-current-party {{checked currentParty}} {{#unless canSetCurrentParty}}disabled{{/unless}}>
+    {{localize "swade-better-setting.UI.CurrentParty_d8f6cc64d4"}}
+  </label>
+</header>

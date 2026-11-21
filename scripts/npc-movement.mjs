@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {MOVEMENT_MODES, movementLibrary} from "./npc-presets.mjs";
 
@@ -7,7 +8,7 @@ export class MovementTable extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["sbs-setting-dialog", "sbs-npc-table"],
     position: {width: 690, height: 450},
-    window: {title: "Movement Presets", icon: "fa-solid fa-person-running", resizable: true},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.MovementPresets_06c1e4d343"); }, icon: "fa-solid fa-person-running", resizable: true},
     actions: {
       apply: async function (_event, button) {
         await this.builder.applyMovement(button.dataset.key);

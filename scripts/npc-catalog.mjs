@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {EFFECTS} from "./npc-data.mjs";
 import {MODULE_ID, normalizeName, skillData, slug} from "./skills.mjs";
 import {boundedRead} from "./bestiary-catalog.mjs";
@@ -16,7 +17,7 @@ export async function itemChoices(type, {generate = false} = {}) {
   const fields = categorized ? ["system.category"] : generate ? ["system.rank", "system.pp", "system.damage",
     "system.trapping", "system.swid", `flags.${EFFECTS}.tags`] : [];
   const entry = (item, key, detail) => {
-    const label = categorized ? game.i18n.localize(item.system?.category?.trim() || "Uncategorized") : "";
+    const label = categorized ? game.i18n.localize(item.system?.category?.trim() || sbsI18n("swade-better-setting.UI.Uncategorized_8d40d123b2")) : "";
     return {key, name: item.name, img: item.img, detail, label, category: normalizeName(label), system: item.system, flags: item.flags};
   };
   const packs = game.packs.filter(pack => pack.visible && pack.documentName === "Item" && !isBasicSwadePack(pack));
@@ -29,7 +30,7 @@ export async function itemChoices(type, {generate = false} = {}) {
     }
     return index.filter(item => item.type === type).map(item => entry(item, item.uuid ?? pack.getUuid(item._id), pack.title));
   }));
-  const world = game.items.filter(item => item.type === type && item.visible).map(item => entry(item, item.uuid, "World items"));
+  const world = game.items.filter(item => item.type === type && item.visible).map(item => entry(item, item.uuid, sbsI18n("swade-better-setting.UI.Worlditems_523a8ea0e5")));
   return [...world, ...indexed.flat()].sort((a, b) => a.name.localeCompare(b.name) || a.detail.localeCompare(b.detail));
 }
 
@@ -40,7 +41,7 @@ export function itemCategories(rows) {
 
 export async function resolveItem(uuid, type) {
   const item = await foundry.utils.fromUuid(uuid);
-  if (!item?.visible || item.type !== type) throw new Error("This item is no longer available.");
+  if (!item?.visible || item.type !== type) throw new Error(sbsI18n("swade-better-setting.UI.Thisitemisnolongeravailable_197c299e08"));
   return item;
 }
 
@@ -53,7 +54,7 @@ export async function draggedLibraryItem(event) {
 }
 
 export async function tableChoices() {
-  const rows = game.tables.filter(table => table.visible).map(table => ({key: table.uuid, name: table.name, img: table.img, detail: "World tables"}));
+  const rows = game.tables.filter(table => table.visible).map(table => ({key: table.uuid, name: table.name, img: table.img, detail: sbsI18n("swade-better-setting.UI.Worldtables_f25bfc1003")}));
   const packs = game.packs.filter(pack => pack.visible && pack.documentName === "RollTable");
   const indexed = await Promise.all(packs.map(async pack => {
     const index = await boundedRead(() => pack.getIndex()).catch(() => pack.index);

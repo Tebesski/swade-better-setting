@@ -1,0 +1,53 @@
+<section class="{{tabs.exploration.tabCssClass}} sbs-party-content" data-tab="exploration" data-group="primary">
+  <div class="sbs-party-split">
+    <aside>
+      <section class="sbs-party-panel">
+        <h2>{{localize "swade-better-setting.UI.Travel_d2b98fb537"}}</h2>
+        <dl class="sbs-party-totals">
+          <div><dt>{{localize "swade-better-setting.UI.SlowestgroundPace_4d3cb0a7bd"}}</dt><dd>{{slowestPace}}</dd></div>
+        </dl>
+      </section>
+      <fieldset class="sbs-party-panel sbs-party-supplies">
+        <legend>{{localize "swade-better-setting.UI.Supplies_6be75605dc"}}</legend>
+        {{#if editableParty}}
+          {{formGroupSimple 'system.supplyLevels.ammo' localize=true rootId=actor.uuid}}
+          {{formGroupSimple 'system.supplyLevels.fuel' localize=true rootId=actor.uuid}}
+          {{formGroupSimple 'system.supplyLevels.food' localize=true rootId=actor.uuid}}
+          {{formGroupSimple 'system.supplyLevels.supply' localize=true rootId=actor.uuid}}
+        {{else}}
+          <dl class="sbs-party-totals">{{#each supplies}}<div><dt>{{label}}</dt><dd>{{value}}</dd></div>{{/each}}</dl>
+        {{/if}}
+      </fieldset>
+    </aside>
+    <div>
+      <h2>{{localize "swade-better-setting.UI.ExplorationActivities_3aeac27ee8"}}</h2>
+      {{#each visibleMembers}}
+        <article class="sbs-party-activity sbs-party-panel" data-member-uuid="{{uuid}}">
+          <button type="button" class="sbs-party-link" data-party-portrait data-action="openMember"><img src="{{img}}" alt="Open {{name}}"></button>
+          <div>
+            <button type="button" class="sbs-party-link" data-action="openMember">{{name}}</button>
+            <span class="sbs-party-pace">{{localize "swade-better-setting.UI.Pace_9582b504fe"}} {{#if (eq pace null)}}—{{else}}{{pace}}{{/if}}</span>
+            {{#if @root.editableParty}}
+              <input type="text" data-party-activity="{{uuid}}" value="{{activity}}" maxlength="120"
+                aria-label="{{name}}’s activity" placeholder="{{localize "swade-better-setting.UI.egScoutahead_a4a206ebe7"}}">
+            {{else}}
+              <p>{{#if activity}}{{activity}}{{else}}{{localize "swade-better-setting.UI.Noactivityassigned_2312734f97"}}{{/if}}</p>
+            {{/if}}
+            {{#if travelSkills.length}}
+              <div class="sbs-party-skills">
+                {{#each travelSkills}}
+                  {{#if canRoll}}
+                    <button type="button" class="sbs-party-skill" data-action="rollPartySkill"
+                      data-member-uuid="{{uuid}}" data-skill-id="{{id}}">{{name}} <strong>{{die}}</strong></button>
+                  {{else}}<span class="sbs-party-skill">{{name}} <strong>{{die}}</strong></span>{{/if}}
+                {{/each}}
+              </div>
+            {{/if}}
+          </div>
+        </article>
+      {{else}}
+        <p class="hint">{{localize "swade-better-setting.UI.Novisiblepartymembers_66259dd293"}}</p>
+      {{/each}}
+    </div>
+  </div>
+</section>

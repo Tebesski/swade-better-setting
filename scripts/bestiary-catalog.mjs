@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {hasWoundAdjustment, npcFacets} from "./bestiary-data.mjs";
 import {actorRating, EFFECTS, npcRank} from "./npc-data.mjs";
 import {MIN_CR, roundCR} from "./npc-math.mjs";
@@ -6,12 +7,12 @@ import {MODULE_ID} from "./skills.mjs";
 export const ROW_FIELDS = ["system.wildcard", "system.advances.rank", "system.advances.value",
   `flags.${MODULE_ID}.npc.rank`, `flags.${MODULE_ID}.npc.cr`];
 const FLAG_FIELDS = ["flags", "prototypeToken.flags", "items.flags", "effects.flags"].flatMap(path =>
-  ["tags", "excludedTags"].map(key => `${path}.${EFFECTS}.${key}`));
+  ["tags", sbsI18n("swade-better-setting.UI.excludedTags_e68b10a6ab")].map(key => `${path}.${EFFECTS}.${key}`));
 const DETAIL_FIELDS = ["system.additionalStats", "system.wounds.max", "system.stats.size", "system.details.species.name",
   "items.name", "items.type", "items.img", "items.system.actions.additional", "items.system.equipStatus", "items.system.arcane",
   "items.effects", "effects.name", "effects.img", "effects.disabled", "effects.system.changes", "effects.changes", ...FLAG_FIELDS];
 const empty = new Map();
-const noRating = {cr: null, coverage: "Unrated"};
+const noRating = {cr: null, get coverage() { return sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18"); }};
 const yieldToUI = () => new Promise(resolve => setTimeout(resolve, 0));
 
 export async function boundedRead(read, timeout = 8000) {
@@ -19,7 +20,7 @@ export async function boundedRead(read, timeout = 8000) {
   try {
     return await Promise.race([
       Promise.resolve().then(read),
-      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Compendium read timed out.")), timeout); })
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(sbsI18n("swade-better-setting.UI.Compendiumreadtimedout_64efea04f9"))), timeout); })
     ]);
   } finally { clearTimeout(timer); }
 }
@@ -29,7 +30,7 @@ export function catalogRow(record, source) {
   const inspectable = source.pack ? source.inspectable : record.testUserPermission(game.user, "OBSERVER");
   return {source, id: record.id ?? record._id, uuid: record.uuid, name: record.name, img: record.img,
     rank: npcRank(record), wildcard: record.isWildcard ?? !!record.system?.wildcard, inspectable,
-    manual: Number.isFinite(cr) && cr >= MIN_CR ? {cr: roundCR(cr), rawCR: cr, coverage: "Manual"} : null};
+    manual: Number.isFinite(cr) && cr >= MIN_CR ? {cr: roundCR(cr), rawCR: cr, coverage: sbsI18n("swade-better-setting.UI.Manual_b0b9fe24ff")} : null};
 }
 
 export class BestiaryCatalog {

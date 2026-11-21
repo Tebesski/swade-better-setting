@@ -1,0 +1,162 @@
+{{#*inline "balances"}}
+  {{#each balances}}
+    <span class="sbs-party-balance" title="{{name}}">
+      <span data-party-currency="{{id}}">{{#if symbol}}{{symbol}}{{else}}{{name}}{{/if}}</span>
+      <strong>{{#if ../showWealth}}{{wealth}}{{else}}{{amount}}{{/if}}</strong>
+    </span>
+  {{else}}<span class="hint">{{localize "swade-better-setting.UI.Nocurrenciesconfigured_76f16973a2"}}</span>{{/each}}
+{{/inline}}
+{{#*inline "wallet"}}
+  <div class="sbs-party-wallet-lines">
+    <span><i class="fa-solid fa-coins" inert></i> {{localize "swade-better-setting.UI.Currency_3ac1a9ec4f"}}</span>
+    <span>{{#if @root.stashMoney}}{{> balances}}{{else}}{{cash}}{{/if}}</span>
+    <span><i class="fa-solid fa-scale-balanced" inert></i> {{localize "swade-better-setting.UI.Wealth_35466d70b1"}}</span>
+    <span>{{#if @root.stashMoney}}{{> balances showWealth=true}}{{else}}{{wealth}}{{/if}}</span>
+  </div>
+  <footer>{{localize "swade-better-setting.UI.Weight_81d27ef6d5"}} {{weight}}{{#if capacity}} / {{capacity}}{{/if}} {{@root.weightUnit}}</footer>
+{{/inline}}
+<section class="{{tabs.stash.tabCssClass}} sbs-party-content sbs-party-stash" data-tab="stash" data-group="primary">
+  <div class="sbs-party-split sbs-party-stash-layout {{#if (or partyGrid partyGridAvailable)}}has-stash-controls{{/if}}">
+    <aside class="sbs-party-wallets">
+      <section class="sbs-party-wallet">
+        <h2>{{localize "swade-better-setting.UI.PartyTotal_ffee0d946a"}}</h2>
+        {{> wallet partyWallet}}
+      </section>
+      {{#each walletMembers}}
+        <section class="sbs-party-wallet" data-member-uuid="{{uuid}}">
+          <header>
+            <button type="button" class="sbs-party-link" data-action="openMember" data-party-portrait aria-label="Open {{name}}"><img src="{{img}}" alt=""></button>
+            <button type="button" class="sbs-party-link" data-action="openMember">{{name}}</button>
+            {{#if canManage}}
+              <button type="button" class="icon" data-action="partyWallet" data-member-uuid="{{uuid}}" aria-label="Manage {{name}}’s money">
+                <i class="fa-solid fa-wallet" inert></i>
+              </button>
+            {{/if}}
+          </header>
+          {{> wallet}}
+        </section>
+      {{/each}}
+    </aside>
+    <div class="sbs-party-stock">
+      <div class="sbs-party-currency-strip">
+        <strong>{{#if stashMoney}}{{localize "swade-better-setting.UI.Currency_3ac1a9ec4f"}}{{else}}{{settingrules.currencyName}}{{/if}}</strong>
+        {{#if stashMoney}}
+          <div>{{> balances sharedWallet}}</div>
+          {{#if editableParty}}
+            <div class="sbs-party-stock-actions">
+              {{#if canDeposit}}<button type="button" class="icon" data-action="partyWallet" data-mode="deposit"
+                aria-label="{{localize "swade-better-setting.UI.Addcurrency_9af35830b5"}}" data-tooltip="{{localize "swade-better-setting.UI.Addcurrency_9af35830b5"}}"><i class="fa-solid fa-plus" inert></i></button>{{/if}}
+              <button type="button" class="icon" data-action="partyWallet" data-mode="spend"
+                aria-label="{{localize "swade-better-setting.UI.Spendcurrency_67234b2ff4"}}" data-tooltip="{{localize "swade-better-setting.UI.Spendcurrency_67234b2ff4"}}"><i class="fa-solid fa-minus" inert></i></button>
+              <button type="button" class="icon" data-action="partyWallet" data-mode="transfer"
+                aria-label="{{localize "swade-better-setting.UI.Transfercurrency_f76a9cfc32"}}" data-tooltip="{{localize "swade-better-setting.UI.Transfercurrency_f76a9cfc32"}}"><i class="fa-solid fa-share" inert></i></button>
+            </div>
+          {{/if}}
+        {{else}}
+          <input type="number" name="system.currency" data-dtype="Number" step="any" aria-label="{{settingrules.currencyName}}"
+            value="{{system.currency}}" {{readonly (not editableParty)}}>
+        {{/if}}
+      </div>
+      <div class="sbs-party-shared-summary">
+        <span><i class="fa-solid fa-scale-balanced" inert></i> Total wealth
+          {{#if stashMoney}}{{> balances sharedWallet showWealth=true}}{{else}}<strong>{{sharedWallet.wealth}}</strong>{{/if}}</span>
+        <span><i class="fa-solid fa-weight-hanging" inert></i> <strong>{{sharedWallet.weight}} {{weightUnit}}</strong></span>
+      </div>
+      {{#if partyGrid}}
+        <div class="sbs-party-vault-gallery">
+          {{#each shownVaults}}
+            <section class="sbs-party-grid-contents {{#if privateContents}}is-private{{/if}}"
+              {{#if privateContents}}tabindex="0" data-tooltip-text="{{label}}: Private" aria-label="{{label}}: Private"{{else}}data-tooltip-text="{{label}}" aria-label="{{label}}"{{/if}}>
+              <div data-party-grid-contents="{{id}}"></div>
+            </section>
+          {{else}}<p class="hint">{{localize "swade-better-setting.UI.Novaultsaremounted_7f1a94b5d1"}}</p>{{/each}}
+        </div>
+      {{else}}
+      <label class="sbs-party-stock-search">
+        <i class="fa-solid fa-magnifying-glass" inert></i>
+        <input type="search" data-party-stock-search placeholder="{{localize "swade-better-setting.UI.Searchsharedgear_aa45413e9d"}}" aria-label="{{localize "swade-better-setting.UI.Searchsharedgear_22c5a2b1a4"}}" value="{{stashQuery}}">
+      </label>
+      {{#each stashGroups}}
+        <details class="sbs-party-stash-group" data-party-stash-group="{{id}}">
+          <summary class="sbs-party-stock-columns">
+            <strong>{{name}}</strong>
+            <small>{{localize "swade-better-setting.UI.Value_8e37953d23"}}</small><small>{{localize "swade-better-setting.UI.Qty_a9be9c3e9a"}}</small><small>{{localize "swade-better-setting.UI.Weight_81d27ef6d5"}}</small>
+            {{#if (and @root.editableParty canCreate)}}
+              <button type="button" class="icon" data-action="createPartyGear" data-group="{{id}}" data-type="{{type}}"
+                aria-label="Add to {{name}}" data-tooltip="Add to {{name}}"><i class="fa-solid fa-plus" inert></i></button>
+            {{else}}<span></span>{{/if}}
+          </summary>
+          <ul class="plain">
+            {{#each items}}
+              <li class="item sbs-party-stash-row sbs-party-stock-columns" data-party-item-name="{{name}}" data-item-id="{{id}}" data-document-class="Item" data-drag="true">
+                <button type="button" class="sbs-party-link" data-action="openItem"><img src="{{img}}" alt=""><span>{{name}}</span></button>
+                <span>{{value}}</span><span>×{{count}}</span><span>{{weight}} {{@root.weightUnit}}</span>
+                {{#if @root.editableParty}}
+                  <button class="icon" type="button" data-action="deleteItem" aria-label="Delete {{name}}"><i class="fa-solid fa-trash" inert></i></button>
+                {{else}}<span></span>{{/if}}
+              </li>
+            {{else}}<li class="hint">{{localize "swade-better-setting.UI.Empty_c6c094bc00"}}</li>{{/each}}
+          </ul>
+        </details>
+      {{/each}}
+      <p data-party-stash-empty class="hint" hidden>{{localize "swade-better-setting.UI.Nomatchinggearintheshared_b5686c36e3"}}</p>
+      {{/if}}
+    </div>
+    {{#if (or partyGrid partyGridAvailable)}}
+    <aside class="sbs-party-stash-controls">
+      {{#if partyGridAvailable}}
+        <button type="button" data-party-vault-control data-action="togglePartyGrid">
+          {{#if partyGrid}}<i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Listinventory_0a0c592ba6"}}
+          {{else}}<i class="fa-solid fa-table-cells" inert></i> {{localize "swade-better-setting.UI.UseGridInventory_cfe889b37f"}}{{/if}}
+        </button>
+      {{/if}}
+      {{#if partyGrid}}
+        <section class="sbs-party-upgrades">
+          <div class="sbs-party-section-head">
+            <h2>{{localize "swade-better-setting.UI.Upgrades_e02a594160"}}</h2>
+            {{#if manageUpgrades}}
+              <button class="icon" type="button" data-party-vault-control data-action="openPartyRecovery"
+                aria-label="{{localize "swade-better-setting.UI.Unplaceditems_872e5bc3b2"}}" data-tooltip="{{localize "swade-better-setting.UI.Unplaceditems_872e5bc3b2"}}"><i class="fa-solid fa-box-archive" inert></i></button>
+              <button class="icon" type="button" data-party-vault-control data-action="addPartyVault"
+                aria-label="{{localize "swade-better-setting.UI.Addupgradeslot_98e641acdd"}}" data-tooltip="{{localize "swade-better-setting.UI.Addupgradeslot_98e641acdd"}}"><i class="fa-solid fa-plus" inert></i></button>
+            {{/if}}
+          </div>
+          <nav class="sgi-layout sbs-party-vault-slots" aria-label="{{localize "swade-better-setting.UI.Stashcontainers_d4ab6b6fe8"}}">
+            <button type="button" class="sbs-party-vault-target" data-party-vault-control data-action="selectPartyVault"
+              data-vault-id="{{allVaults}}" aria-pressed="{{showAllVaults}}">{{localize "swade-better-setting.UI.PartyStash_57c95f5673"}}</button>
+            {{#each vaults}}
+              <div class="sbs-party-vault-slot" {{#if (or empty canDrop)}}data-party-vault-drop="{{id}}"{{/if}}
+                {{#if privateContents}}data-tooltip-text="{{label}}: Private"{{/if}}>
+                {{#if empty}}
+                  <button type="button" class="sbs-party-vault-target sbs-party-vault-empty" data-party-vault-control
+                    data-action="choosePartyContainer" data-vault-id="{{id}}">
+                    <strong>{{label}}</strong><small>{{localize "swade-better-setting.UI.Chooseordropacontainer_edbaf8fcaa"}}</small>
+                  </button>
+                  <button class="icon" type="button" data-party-vault-control data-action="configurePartySlot" data-vault-id="{{id}}"
+                    aria-label="{{localize "swade-better-setting.UI.Editupgradeslot_8ffd22f466"}}" data-tooltip="{{localize "swade-better-setting.UI.Editupgradeslot_8ffd22f466"}}"><i class="fa-solid fa-pen" inert></i></button>
+                {{else}}
+                  <button type="button" class="sbs-party-vault-target {{#if privateContents}}is-private{{/if}}"
+                    {{#if privateContents}}disabled aria-label="{{label}}: Private"{{else}}
+                    data-party-vault-control data-action="selectPartyVault" data-vault-id="{{id}}" aria-pressed="{{active}}"
+                    {{#if canOpen}}data-party-open-vault data-tooltip="{{localize "swade-better-setting.UI.Rightclicktoopencontainersheet_dd7beed10c"}}"{{/if}}{{/if}}>
+                    {{#if privateContents}}<i class="fa-solid fa-lock" inert></i>{{/if}}
+                    <span>{{label}}</span>
+                  </button>
+                  {{#if @root.manageUpgrades}}
+                    <button class="icon" type="button" data-party-vault-control data-action="editPartyVault" data-vault-id="{{id}}"
+                      aria-label="{{localize "swade-better-setting.UI.Accessownership_3590771e0d"}}" data-tooltip="{{localize "swade-better-setting.UI.Accessownership_3590771e0d"}}"><i class="fa-solid fa-key" inert></i></button>
+                  {{/if}}
+                {{/if}}
+                {{#if @root.manageUpgrades}}
+                  <button class="icon" type="button" data-party-vault-control data-action="removePartyVault" data-vault-id="{{id}}"
+                    aria-label="{{localize "swade-better-setting.UI.Removeupgradeslot_2c25cc40a0"}}" data-tooltip="{{localize "swade-better-setting.UI.Removeupgradeslot_2c25cc40a0"}}"><i class="fa-solid fa-trash" inert></i></button>
+                {{/if}}
+              </div>
+            {{/each}}
+          </nav>
+        </section>
+      {{/if}}
+    </aside>
+    {{/if}}
+  </div>
+</section>

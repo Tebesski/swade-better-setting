@@ -1,6 +1,6 @@
 <section class="sbs-preset-layout">
-  <aside class="sbs-preset-list" aria-label="Saved archetypes">
-    <button type="button" data-action="create"><i class="fa-solid fa-plus" inert></i> New archetype</button>
+  <aside class="sbs-preset-list" aria-label="{{localize "swade-better-setting.UI.Savedarchetypes_d1b5d08f70"}}">
+    <button type="button" data-action="create"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.Newarchetype_26ca9590d0"}}</button>
     {{#each library}}
       <button type="button" data-action="select" data-key="{{key}}" {{#if active}}aria-current="true"{{/if}}>{{name}}</button>
     {{/each}}
@@ -8,27 +8,27 @@
   <div class="sbs-preset-form">
     <datalist id="{{traitList}}">{{#each skillNames}}<option value="{{this}}"></option>{{/each}}</datalist>
     <div class="sbs-preset-heading">
-      <label>Name<input type="text" name="label" value="{{draft.label}}" maxlength="100" required></label>
-      <button type="button" data-action="duplicate"><i class="fa-regular fa-copy" inert></i> Duplicate</button>
-      {{#if key}}<button type="button" data-action="remove">{{#if standard}}Restore defaults{{else}}Delete{{/if}}</button>{{/if}}
+      <label>{{localize "swade-better-setting.UI.Name_dcd1d5223f"}}<input type="text" name="label" value="{{draft.label}}" maxlength="100" required></label>
+      <button type="button" data-action="duplicate"><i class="fa-regular fa-copy" inert></i> {{localize "swade-better-setting.UI.Duplicate_02cdaabfca"}}</button>
+      {{#if key}}<button type="button" data-action="remove">{{#if standard}}{{localize "swade-better-setting.UI.Restoredefaults_602f8e6370"}}{{else}}{{localize "swade-better-setting.UI.Delete_e2d0a54968"}}{{/if}}</button>{{/if}}
     </div>
-    <label>Description<textarea name="description" rows="2" placeholder="What is this archetype good at?">{{draft.description}}</textarea></label>
+    <label>{{localize "swade-better-setting.UI.Description_526e0087cc"}}<textarea name="description" rows="2" placeholder="{{localize "swade-better-setting.UI.Whatisthisarchetypegoodat_018fadcb81"}}">{{draft.description}}</textarea></label>
     <details class="sbs-editor-accordion" data-section="progression" open>
-      <summary>Traits and progression</summary>
+      <summary>{{localize "swade-better-setting.UI.Traitsandprogression_5229a28316"}}</summary>
       <div class="sbs-preset-fields">
-        <label>Primary skill<span class="sbs-inline-picker">
+        <label>{{localize "swade-better-setting.UI.Primaryskill_09b0109988"}}<span class="sbs-inline-picker">
           <input type="text" name="focus" value="{{draft.focus}}" list="{{traitList}}" required>
-          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="focus" aria-label="Choose primary skill"></button>
+          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="focus" aria-label="{{localize "swade-better-setting.UI.Chooseprimaryskill_4b62cb33c2"}}"></button>
         </span></label>
-        <label>Starting die<select name="focusDie">{{selectOptions dice selected=draft.focusDie}}</select></label>
-        <label>Linked attribute<select name="focusAttribute">{{selectOptions attributes selected=draft.focusAttribute blank="Default link"}}</select></label>
-        <label>Preview rank<select name="previewRank">{{selectOptions ranks selected=previewRank}}</select></label>
-        <label class="sbs-preset-check"><input type="checkbox" name="previewWild" {{checked previewWild}}> Preview as Wild Card</label>
-        <label>Weighted die steps per rank<input type="number" name="weightedSteps" min="0" max="5" value="{{draft.weightedSteps}}"></label>
+        <label>{{localize "swade-better-setting.UI.Startingdie_d8404b467c"}}<select name="focusDie">{{selectOptions dice selected=draft.focusDie}}</select></label>
+        <label>{{localize "swade-better-setting.UI.Linkedattribute_85313de796"}}<select name="focusAttribute">{{selectOptions attributes selected=draft.focusAttribute blank="Default link"}}</select></label>
+        <label>{{localize "swade-better-setting.UI.Previewrank_4d5eab7adc"}}<select name="previewRank">{{selectOptions ranks selected=previewRank}}</select></label>
+        <label class="sbs-preset-check"><input type="checkbox" name="previewWild" {{checked previewWild}}> {{localize "swade-better-setting.UI.PreviewasWildCard_499a4829ae"}}</label>
+        <label>{{localize "swade-better-setting.UI.Weighteddiestepsperrank_b1999a7bde"}}<input type="number" name="weightedSteps" min="0" max="5" value="{{draft.weightedSteps}}"></label>
       </div>
-      <p class="hint">Optional weighted steps supplement normal progression. A weight of 0 skips an attribute. Higher weights make it more likely to get a step.</p>
+      <p class="hint">{{localize "swade-better-setting.UI.Optionalweightedstepssupplementnormalprogression_c0a749ea9a"}}</p>
       <table class="sbs-preset-table">
-        <thead><tr><th>Attribute</th><th>Novice die</th><th>Progression</th><th>Weight</th><th data-rank-preview>{{previewRank}}</th></tr></thead>
+        <thead><tr><th>{{localize "swade-better-setting.UI.Attribute_1d289028b7"}}</th><th>{{localize "swade-better-setting.UI.Novicedie_e44764b7e4"}}</th><th>{{localize "swade-better-setting.UI.Progression_f193d07c37"}}</th><th>{{localize "swade-better-setting.UI.Weight_81d27ef6d5"}}</th><th data-rank-preview>{{previewRank}}</th></tr></thead>
         <tbody>{{#each attributeRows}}
           <tr><th scope="row">{{name}}</th>
             <td><select name="attribute-{{key}}" aria-label="{{name}} starting die">{{selectOptions @root.dice selected=sides}}</select></td>
@@ -38,81 +38,81 @@
           </tr>
         {{/each}}</tbody>
       </table>
-      <h4>Supporting skills</h4>
+      <h4>{{localize "swade-better-setting.UI.Supportingskills_0092ecb918"}}</h4>
       {{#each draft.skills}}
         <div class="sbs-preset-skill">
           <span class="sbs-inline-picker">
-            <input type="text" name="skill-name-{{@index}}" list="{{@root.traitList}}" value="{{name}}" placeholder="Skill name" aria-label="Skill name">
-            <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="skill-name-{{@index}}" aria-label="Choose supporting skill"></button>
+            <input type="text" name="skill-name-{{@index}}" list="{{@root.traitList}}" value="{{name}}" placeholder="{{localize "swade-better-setting.UI.Skillname_0fbb6f49b8"}}" aria-label="{{localize "swade-better-setting.UI.Skillname_0fbb6f49b8"}}">
+            <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="skill-name-{{@index}}" aria-label="{{localize "swade-better-setting.UI.Choosesupportingskill_e46b896464"}}"></button>
           </span>
-          <select name="skill-die-{{@index}}" aria-label="Starting die">{{selectOptions @root.dice selected=sides}}</select>
-          <select name="skill-attribute-{{@index}}" aria-label="Linked attribute">{{selectOptions @root.attributes selected=attribute blank="Default link"}}</select>
-          <select name="skill-growth-{{@index}}" aria-label="Skill progression">{{selectOptions @root.growth selected=growth}}</select>
-          <button type="button" class="icon fa-solid fa-xmark" data-action="removeSkill" data-index="{{@index}}" aria-label="Remove skill"></button>
-          <label class="sbs-skill-chance">Chance <input type="number" name="skill-chance-{{@index}}" min="0" max="100" value="{{chance}}" placeholder="100">%</label>
-          <label class="sbs-skill-arcane"><input type="checkbox" name="skill-arcane-{{@index}}" {{checked arcane}}> Requires an Arcane Background</label>
+          <select name="skill-die-{{@index}}" aria-label="{{localize "swade-better-setting.UI.Startingdie_d8404b467c"}}">{{selectOptions @root.dice selected=sides}}</select>
+          <select name="skill-attribute-{{@index}}" aria-label="{{localize "swade-better-setting.UI.Linkedattribute_85313de796"}}">{{selectOptions @root.attributes selected=attribute blank="Default link"}}</select>
+          <select name="skill-growth-{{@index}}" aria-label="{{localize "swade-better-setting.UI.Skillprogression_00e8b4eca7"}}">{{selectOptions @root.growth selected=growth}}</select>
+          <button type="button" class="icon fa-solid fa-xmark" data-action="removeSkill" data-index="{{@index}}" aria-label="{{localize "swade-better-setting.UI.Removeskill_a8597db6f2"}}"></button>
+          <label class="sbs-skill-chance">{{localize "swade-better-setting.UI.Chance_7f5d74a693"}} <input type="number" name="skill-chance-{{@index}}" min="0" max="100" value="{{chance}}" placeholder="100">%</label>
+          <label class="sbs-skill-arcane"><input type="checkbox" name="skill-arcane-{{@index}}" {{checked arcane}}> {{localize "swade-better-setting.UI.RequiresanArcaneBackground_7829b90543"}}</label>
         </div>
       {{/each}}
-      <button type="button" data-action="addSkill"><i class="fa-solid fa-plus" inert></i> Add skill</button>
-      <p class="hint">Skill preview · <span data-skill-preview>{{previewSkills}}</span></p>
+      <button type="button" data-action="addSkill"><i class="fa-solid fa-plus" inert></i> {{localize "swade-better-setting.UI.Addskill_bc4db5d337"}}</button>
+      <p class="hint">{{localize "swade-better-setting.UI.Skillpreview_9d2cb97dec"}} <span data-skill-preview>{{previewSkills}}</span></p>
     </details>
     <details class="sbs-editor-accordion" data-section="combat">
-      <summary>Combat and movement</summary>
+      <summary>{{localize "swade-better-setting.UI.Combatandmovement_122902c507"}}</summary>
       <div class="sbs-preset-fields">
-        <label>Attack type<select name="mode">{{selectOptions modes selected=draft.mode}}</select></label>
-        <label>Attack name<input type="text" name="attack-name" value="{{draft.attack.name}}" placeholder="Use type default"></label>
-        <label>Attack trait<span class="sbs-inline-picker">
-          <input type="text" name="attack-trait" value="{{draft.attack.trait}}" list="{{traitList}}" placeholder="Use type default">
-          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="attack-trait" aria-label="Choose attack trait"></button>
+        <label>{{localize "swade-better-setting.UI.Attacktype_37e8585d49"}}<select name="mode">{{selectOptions modes selected=draft.mode}}</select></label>
+        <label>{{localize "swade-better-setting.UI.Attackname_435bae4bcc"}}<input type="text" name="attack-name" value="{{draft.attack.name}}" placeholder="{{localize "swade-better-setting.UI.Usetypedefault_408031f755"}}"></label>
+        <label>{{localize "swade-better-setting.UI.Attacktrait_3bc2580099"}}<span class="sbs-inline-picker">
+          <input type="text" name="attack-trait" value="{{draft.attack.trait}}" list="{{traitList}}" placeholder="{{localize "swade-better-setting.UI.Usetypedefault_408031f755"}}">
+          <button type="button" class="icon fa-solid fa-list" data-action="pickTrait" data-input="attack-trait" aria-label="{{localize "swade-better-setting.UI.Chooseattacktrait_9b025956a3"}}"></button>
         </span></label>
-        <label>Damage tier<select name="damageTier"><option value="0" {{#if (eq draft.damageTier 0)}}selected{{/if}}>Low</option><option value="1" {{#unless (or (eq draft.damageTier 0) (eq draft.damageTier 2))}}selected{{/unless}}>Standard</option><option value="2" {{#if (eq draft.damageTier 2)}}selected{{/if}}>High</option></select></label>
-        <label>Fixed damage<input type="text" name="attack-damage" value="{{draft.attack.damage}}" placeholder="Scale by rank"></label>
-        <label>AP<input type="number" name="attack-ap" min="0" max="40" value="{{draft.attack.ap}}"></label>
-        <label>Range<input type="text" name="attack-range" value="{{draft.attack.range}}" placeholder="Use type default"></label>
-        <label>RoF<input type="number" name="attack-rof" min="1" max="6" value="{{draft.attack.rof}}"></label>
-        <label>Power cost<input type="number" name="attack-pp" min="0" max="100" value="{{draft.attack.pp}}"></label>
-        <label>Movement preset<select name="movement">{{selectOptions movement selected=draft.movement blank="Archetype pace"}}</select></label>
-        <label>Size<input type="number" name="size" min="-4" max="20" value="{{draft.size}}" placeholder="0"></label>
-        <label>Armor<input type="number" name="armor" min="0" max="40" value="{{draft.armor}}" placeholder="0"></label>
-        <label>Parry bonus<input type="number" name="parry" min="-12" max="24" value="{{draft.parry}}" placeholder="0"></label>
-        <label>Resilience<input type="number" name="resilience" min="0" max="2" value="{{draft.resilience}}" placeholder="0"></label>
-        <label class="sbs-preset-check"><input type="checkbox" name="hardy" {{checked draft.hardy}}> Hardy</label>
-        <label class="sbs-preset-check"><input type="checkbox" name="animal" {{checked draft.animal}}> Animal Smarts</label>
-        <label class="sbs-preset-check"><input type="checkbox" name="core" {{checked draft.core}}> Core skills</label>
+        <label>{{localize "swade-better-setting.UI.Damagetier_a7fc61dd34"}}<select name="damageTier"><option value="0" {{#if (eq draft.damageTier 0)}}selected{{/if}}>{{localize "swade-better-setting.UI.Low_f793de205e"}}</option><option value="1" {{#unless (or (eq draft.damageTier 0) (eq draft.damageTier 2))}}selected{{/unless}}>{{localize "swade-better-setting.UI.Standard_ef6691545d"}}</option><option value="2" {{#if (eq draft.damageTier 2)}}selected{{/if}}>{{localize "swade-better-setting.UI.High_c4ebc6d4a5"}}</option></select></label>
+        <label>{{localize "swade-better-setting.UI.Fixeddamage_d18a903d74"}}<input type="text" name="attack-damage" value="{{draft.attack.damage}}" placeholder="{{localize "swade-better-setting.UI.Scalebyrank_9e01d0451a"}}"></label>
+        <label>{{localize "swade-better-setting.UI.AP_84810bfea2"}}<input type="number" name="attack-ap" min="0" max="40" value="{{draft.attack.ap}}"></label>
+        <label>{{localize "swade-better-setting.UI.Range_5de74a81b1"}}<input type="text" name="attack-range" value="{{draft.attack.range}}" placeholder="{{localize "swade-better-setting.UI.Usetypedefault_408031f755"}}"></label>
+        <label>{{localize "swade-better-setting.UI.RoF_85f8430d31"}}<input type="number" name="attack-rof" min="1" max="6" value="{{draft.attack.rof}}"></label>
+        <label>{{localize "swade-better-setting.UI.Powercost_5418e9efc8"}}<input type="number" name="attack-pp" min="0" max="100" value="{{draft.attack.pp}}"></label>
+        <label>{{localize "swade-better-setting.UI.Movementpreset_8dcaf05f85"}}<select name="movement">{{selectOptions movement selected=draft.movement blank="Archetype pace"}}</select></label>
+        <label>{{localize "swade-better-setting.UI.Size_1af8519073"}}<input type="number" name="size" min="-4" max="20" value="{{draft.size}}" placeholder="0"></label>
+        <label>{{localize "swade-better-setting.UI.Armor_a592855d05"}}<input type="number" name="armor" min="0" max="40" value="{{draft.armor}}" placeholder="0"></label>
+        <label>{{localize "swade-better-setting.UI.Parrybonus_086f2163c3"}}<input type="number" name="parry" min="-12" max="24" value="{{draft.parry}}" placeholder="0"></label>
+        <label>{{localize "swade-better-setting.UI.Resilience_32059a8788"}}<input type="number" name="resilience" min="0" max="2" value="{{draft.resilience}}" placeholder="0"></label>
+        <label class="sbs-preset-check"><input type="checkbox" name="hardy" {{checked draft.hardy}}> {{localize "swade-better-setting.UI.Hardy_f3c19b4122"}}</label>
+        <label class="sbs-preset-check"><input type="checkbox" name="animal" {{checked draft.animal}}> {{localize "swade-better-setting.UI.AnimalSmarts_3bda33e096"}}</label>
+        <label class="sbs-preset-check"><input type="checkbox" name="core" {{checked draft.core}}> {{localize "swade-better-setting.UI.Coreskills_be127e338e"}}</label>
       </div>
-      <label>Better Effects flags<input type="text" name="tags" value="{{draft.tags}}" placeholder="guard, frost"></label>
+      <label>{{localize "swade-better-setting.UI.BetterEffectsflags_3bb5f82be2"}}<input type="text" name="tags" value="{{draft.tags}}" placeholder="{{localize "swade-better-setting.UI.guardfrost_275f058e4e"}}"></label>
     </details>
     {{> "modules/swade-better-setting/templates/npc-forge-casting.hbs" draft.casting}}
     <details class="sbs-editor-accordion" data-section="loadout" data-loadout-drop>
-      <summary>Loadout {{#if draft.loadout.length}}<small>({{draft.loadout.length}})</small>{{/if}}</summary>
-      <p class="hint">Choose or drag in items. Rank and chance apply to each row. Leave Slot blank for independent items. A named slot picks one weighted kit, and items with the same kit name arrive together. Different slots are picked independently.</p>
+      <summary>{{localize "swade-better-setting.UI.Loadout_7455d4640a"}} {{#if draft.loadout.length}}<small>({{draft.loadout.length}})</small>{{/if}}</summary>
+      <p class="hint">{{localize "swade-better-setting.UI.ChooseordraginitemsRank_6d0f1dc239"}}</p>
       <div class="sbs-npc-library-bar">
-        <select name="loadoutType" aria-label="Loadout type">{{selectOptions types selected=loadoutType}}</select>
-        <button type="button" data-action="addItem"><i class="fa-solid fa-list" inert></i> Choose item</button>
+        <select name="loadoutType" aria-label="{{localize "swade-better-setting.UI.Loadouttype_1f5b700e72"}}">{{selectOptions types selected=loadoutType}}</select>
+        <button type="button" data-action="addItem"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Chooseitem_6db04b42d2"}}</button>
       </div>
       {{#each draft.loadout}}
         <details class="sbs-editor-accordion sbs-forge-item" data-section="item-{{id}}" open>
           <summary>{{name}} · {{type}}</summary>
           <div class="sbs-preset-fields">
-            <label>Minimum rank<select name="item-rank-{{@index}}">{{selectOptions @root.ranks selected=rank}}</select></label>
-            <label>Maximum rank<select name="item-max-rank-{{@index}}">{{selectOptions @root.ranks selected=maxRank blank="Any"}}</select></label>
-            <label>Chance %<input type="number" name="item-chance-{{@index}}" min="0" max="100" value="{{chance}}"></label>
-            <label>Slot<input type="text" name="item-slot-{{@index}}" value="{{slot}}" placeholder="e.g. main weapon"></label>
-            <label>Kit<input type="text" name="item-kit-{{@index}}" value="{{kit}}" placeholder="e.g. shield set"></label>
-            <label>Weight<input type="number" name="item-weight-{{@index}}" min="1" max="100" value="{{weight}}"></label>
-            <label>Quantity<input type="number" name="item-quantity-{{@index}}" min="1" max="999" value="{{quantity}}"></label>
+            <label>{{localize "swade-better-setting.UI.Minimumrank_6493d9300a"}}<select name="item-rank-{{@index}}">{{selectOptions @root.ranks selected=rank}}</select></label>
+            <label>{{localize "swade-better-setting.UI.Maximumrank_48494c136a"}}<select name="item-max-rank-{{@index}}">{{selectOptions @root.ranks selected=maxRank blank="Any"}}</select></label>
+            <label>{{localize "swade-better-setting.UI.Chance_e5796f52c5"}}<input type="number" name="item-chance-{{@index}}" min="0" max="100" value="{{chance}}"></label>
+            <label>{{localize "swade-better-setting.UI.Slot_7968978206"}}<input type="text" name="item-slot-{{@index}}" value="{{slot}}" placeholder="{{localize "swade-better-setting.UI.egmainweapon_46343ddd1a"}}"></label>
+            <label>{{localize "swade-better-setting.UI.Kit_875d60ed20"}}<input type="text" name="item-kit-{{@index}}" value="{{kit}}" placeholder="{{localize "swade-better-setting.UI.egshieldset_431b1a75c9"}}"></label>
+            <label>{{localize "swade-better-setting.UI.Weight_81d27ef6d5"}}<input type="number" name="item-weight-{{@index}}" min="1" max="100" value="{{weight}}"></label>
+            <label>{{localize "swade-better-setting.UI.Quantity_822bab8d41"}}<input type="number" name="item-quantity-{{@index}}" min="1" max="999" value="{{quantity}}"></label>
             {{#if (or (eq type "weapon") (eq type "armor") (eq type "shield") (eq type "gear"))}}
-              <label>Location<select name="item-equip-{{@index}}">{{selectOptions @root.locations selected=equip blank="Default"}}</select></label>
+              <label>{{localize "swade-better-setting.UI.Location_15b61974b2"}}<select name="item-equip-{{@index}}">{{selectOptions @root.locations selected=equip blank="Default"}}</select></label>
             {{/if}}
-            {{#if (eq type "power")}}<label>Casting pool<input type="text" name="item-casting-{{@index}}" value="{{casting}}" placeholder="Use power’s Arcane field"></label>{{/if}}
+            {{#if (eq type "power")}}<label>{{localize "swade-better-setting.UI.Castingpool_79993bcdf5"}}<input type="text" name="item-casting-{{@index}}" value="{{casting}}" placeholder="{{localize "swade-better-setting.UI.UsepowersArcanefield_b7a9ed3c13"}}"></label>{{/if}}
             <button type="button" class="icon fa-solid fa-xmark" data-action="removeItem" data-index="{{@index}}" aria-label="Remove {{name}}"></button>
           </div>
           {{#if (eq type "weapon")}}
             <div class="sbs-npc-library-bar">
-              <select name="ammo-type-{{@index}}" aria-label="Ammo type"><option value="gear">Gear ammo</option><option value="consumable">Consumable ammo</option></select>
-              <button type="button" data-action="pickAmmo" data-index="{{@index}}"><i class="fa-solid fa-list" inert></i> Choose ammo</button>
-              {{#if ammo}}<span>{{ammo.name}}</span><label>Quantity <input class="sbs-forge-number" type="number" name="item-ammo-quantity-{{@index}}" min="1" max="999" value="{{ammoQuantity}}"></label>
-                <button type="button" class="icon fa-solid fa-xmark" data-action="clearAmmo" data-index="{{@index}}" aria-label="Remove ammo"></button>{{/if}}
+              <select name="ammo-type-{{@index}}" aria-label="{{localize "swade-better-setting.UI.Ammotype_dc10cff443"}}"><option value="gear">{{localize "swade-better-setting.UI.Gearammo_37319b81bd"}}</option><option value="consumable">{{localize "swade-better-setting.UI.Consumableammo_a007877021"}}</option></select>
+              <button type="button" data-action="pickAmmo" data-index="{{@index}}"><i class="fa-solid fa-list" inert></i> {{localize "swade-better-setting.UI.Chooseammo_5ecee0bda8"}}</button>
+              {{#if ammo}}<span>{{ammo.name}}</span><label>{{localize "swade-better-setting.UI.Quantity_822bab8d41"}} <input class="sbs-forge-number" type="number" name="item-ammo-quantity-{{@index}}" min="1" max="999" value="{{ammoQuantity}}"></label>
+                <button type="button" class="icon fa-solid fa-xmark" data-action="clearAmmo" data-index="{{@index}}" aria-label="{{localize "swade-better-setting.UI.Removeammo_fedf681271"}}"></button>{{/if}}
             </div>
           {{/if}}
         </details>
@@ -120,7 +120,7 @@
     </details>
   </div>
   <footer class="sbs-preset-footer">
-    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> Save archetype</button>
-    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> Save and use</button>{{/if}}
+    <button type="button" data-action="save"><i class="fa-solid fa-floppy-disk" inert></i> {{localize "swade-better-setting.UI.Savearchetype_09585edeb0"}}</button>
+    {{#if canUse}}<button type="button" data-action="use"><i class="fa-solid fa-check" inert></i> {{localize "swade-better-setting.UI.Saveanduse_bf9278b987"}}</button>{{/if}}
   </footer>
 </section>

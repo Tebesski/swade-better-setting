@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {ATTRIBUTES, MIN_CR, RANKS, advancementStrength, bounded, creatureRating, parseDamage, roundCR} from "./npc-math.mjs";
 import {MODULE_ID, normalizeName, slug} from "./skills.mjs";
 import {BETTER_POWERS, compileCasting} from "./npc-casting.mjs";
@@ -6,16 +7,16 @@ import {tokenFootprint} from "./npc-size.mjs";
 export const EFFECTS = "swade-better-effects";
 export const NPC_FLAG = `flags.${MODULE_ID}.npc`;
 export const ROLE_PROFILES = {
-  soldier: {label: "Soldier", focus: "Fighting", mode: "melee", attributes: [1, 0, 0, 1, 1], skills: {Athletics: 1, Notice: 1, Shooting: 0}, armor: 1},
-  brute: {label: "Brute", focus: "Fighting", mode: "melee", attributes: [0, -1, 0, 2, 2], skills: {Athletics: 1, Intimidation: 1, Notice: 0},
+  soldier: {get label() { return sbsI18n("swade-better-setting.UI.Soldier_f826baa05b"); }, focus: "Fighting", mode: "melee", attributes: [1, 0, 0, 1, 1], skills: {Athletics: 1, Notice: 1, Shooting: 0}, armor: 1},
+  brute: {get label() { return sbsI18n("swade-better-setting.UI.Brute_60ae363002"); }, focus: "Fighting", mode: "melee", attributes: [0, -1, 0, 2, 2], skills: {Athletics: 1, Intimidation: 1, Notice: 0},
     skillAttributes: {fighting: "strength"}, damageTier: 2},
-  defender: {label: "Defender", focus: "Fighting", mode: "melee", attributes: [0, 0, 1, 1, 2], skills: {Athletics: 0, Notice: 1}, armor: 2, damageTier: 0, parry: 1},
-  skirmisher: {label: "Skirmisher", focus: "Fighting", mode: "melee", attributes: [2, 0, 0, 0, 0], skills: {Athletics: 2, Stealth: 2, Notice: 1, Thievery: 0}, pace: 8, damageTier: 0},
-  marksman: {label: "Marksman", focus: "Shooting", mode: "ranged", attributes: [2, 0, 0, 0, 0], skills: {Fighting: 0, Notice: 2, Stealth: 1}},
-  caster: {label: "Caster", focus: "Spellcasting", mode: "power", attributes: [0, 2, 1, -1, 0], skills: {Fighting: 0, Occult: 2, Notice: 1}},
-  support: {label: "Support", focus: "Healing", mode: "melee", attributes: [0, 2, 1, 0, 0], skills: {Fighting: 0, Notice: 1, Persuasion: 1, Battle: 1}, damageTier: 0},
-  specialist: {label: "Noncombat specialist", focus: "Persuasion", mode: "none", attributes: [0, 1, 2, -1, 0], skills: {Notice: 1, Research: 1, "Common Knowledge": 0}},
-  beast: {label: "Beast", focus: "Fighting", mode: "melee", attributes: [1, 0, 0, 1, 1], skills: {Athletics: 1, Notice: 2, Stealth: 1, Survival: 1}, pace: 8}
+  defender: {get label() { return sbsI18n("swade-better-setting.UI.Defender_157ddc59b5"); }, focus: "Fighting", mode: "melee", attributes: [0, 0, 1, 1, 2], skills: {Athletics: 0, Notice: 1}, armor: 2, damageTier: 0, parry: 1},
+  skirmisher: {get label() { return sbsI18n("swade-better-setting.UI.Skirmisher_4b5b9b375e"); }, focus: "Fighting", mode: "melee", attributes: [2, 0, 0, 0, 0], skills: {Athletics: 2, Stealth: 2, Notice: 1, Thievery: 0}, pace: 8, damageTier: 0},
+  marksman: {get label() { return sbsI18n("swade-better-setting.UI.Marksman_71876bccf5"); }, focus: "Shooting", mode: "ranged", attributes: [2, 0, 0, 0, 0], skills: {Fighting: 0, Notice: 2, Stealth: 1}},
+  caster: {get label() { return sbsI18n("swade-better-setting.UI.Caster_98a8dd364f"); }, focus: "Spellcasting", mode: "power", attributes: [0, 2, 1, -1, 0], skills: {Fighting: 0, Occult: 2, Notice: 1}},
+  support: {get label() { return sbsI18n("swade-better-setting.UI.Support_be91940b79"); }, focus: "Healing", mode: "melee", attributes: [0, 2, 1, 0, 0], skills: {Fighting: 0, Notice: 1, Persuasion: 1, Battle: 1}, damageTier: 0},
+  specialist: {get label() { return sbsI18n("swade-better-setting.UI.Noncombatspecialist_d3e8acbc12"); }, focus: "Persuasion", mode: "none", attributes: [0, 1, 2, -1, 0], skills: {Notice: 1, Research: 1, "Common Knowledge": 0}},
+  beast: {get label() { return sbsI18n("swade-better-setting.UI.Beast_628bf77a74"); }, focus: "Fighting", mode: "melee", attributes: [1, 0, 0, 1, 1], skills: {Athletics: 1, Notice: 2, Stealth: 1, Survival: 1}, pace: 8}
 };
 
 const increment = (step, ceiling = 6) => {
@@ -29,10 +30,10 @@ const MELEE_DAMAGE = ["1d4", "1d6", "1d6+1", "1d8", "1d8+1", "1d10", "1d12"];
 const OTHER_DAMAGE = ["1d4+1d6", "2d6", "1d6+1d8", "2d8", "1d8+1d10", "2d10", "1d10+1d12"];
 export function damageBenchmarks(rank, mode, size) {
   if (mode === "none") return [];
-  if (mode === "melee" && size === -4) return [{label: "Tiny melee", formula: "1"}];
+  if (mode === "melee" && size === -4) return [{label: sbsI18n("swade-better-setting.UI.Tinymelee_87b29e252d"), formula: "1"}];
   const tier = Math.max(0, rankIndex(rank));
   const formulas = mode === "melee" ? MELEE_DAMAGE : OTHER_DAMAGE;
-  return ["Low", "Standard", "High"].map((label, i) => ({
+  return [sbsI18n("swade-better-setting.UI.Low_f793de205e"), sbsI18n("swade-better-setting.UI.Standard_ef6691545d"), sbsI18n("swade-better-setting.UI.High_c4ebc6d4a5")].map((label, i) => ({
     label, formula: (mode === "melee" ? "@str+" : "") + formulas[tier + i]
   }));
 }
@@ -42,7 +43,7 @@ export function npcRank(actor) {
   const index = rankIndex(explicit ?? advances?.rank);
   if (index >= 0) return RANKS[index];
   if (Number.isFinite(advances?.value)) return RANKS[bounded(Math.floor(advances.value / 4), 0, 4)];
-  return "Unrated";
+  return sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18");
 }
 
 export function makePreset(role, rank, focus, modeOverride, wildcard = false, profile = ROLE_PROFILES[role]) {
@@ -66,9 +67,9 @@ export function makePreset(role, rank, focus, modeOverride, wildcard = false, pr
   const mode = modeOverride ?? profile.mode;
   const custom = !modeOverride || modeOverride === profile.mode ? profile.attack ?? {} : {};
   const damage = mode === "none" ? "" : custom.damage || damageBenchmarks(rank, mode)[profile.damageTier ?? 1]?.formula || "";
-  const attackName = custom.name || (mode === "power" ? "Arcane Strike" : mode === "ranged" ? "Ranged Strike" : role === "beast" ? "Bite" : "Melee Strike");
+  const attackName = custom.name || (mode === "power" ? sbsI18n("swade-better-setting.UI.ArcaneStrike_031620ae73") : mode === "ranged" ? sbsI18n("swade-better-setting.UI.RangedStrike_ed49101a7e") : role === "beast" ? sbsI18n("swade-better-setting.UI.Bite_6e5597953e") : sbsI18n("swade-better-setting.UI.MeleeStrike_ce758e09af"));
   return {attributes, skills, mode, attackName, damage,
-    trait: custom.trait || (mode === "ranged" ? "Shooting" : mode === "power" ? role === "caster" ? focusSkill : "Spellcasting" : "Fighting"),
+    trait: custom.trait || (mode === "ranged" ? sbsI18n("swade-better-setting.UI.Shooting_fc7cbc901b") : mode === "power" ? role === "caster" ? focusSkill : sbsI18n("swade-better-setting.UI.Spellcasting_0ce3a662d1") : sbsI18n("swade-better-setting.UI.Fighting_21e2e5c54b")),
     ap: custom.ap ?? 0, armor: profile.armor ?? 0, parry: profile.parry ?? 0, size: profile.size ?? 0,
     ground: profile.pace ?? 6, run: 6, fly: 0, swim: 0, burrow: 0, runMod: 0, paceBase: "",
     hardy: profile.hardy ?? false, animal: profile.animal ?? (role === "beast"), resilience: profile.resilience ?? 0,
@@ -169,7 +170,7 @@ export function actorCombatProfile(actor) {
     ...activeValues(global.targetAttack), ...activeValues(mode === "melee" ? global.targetAttackMelee : global.targetAttackRanged)
   ])]));
   // Incoming roll-data references belong to the attacker, so only use literal target modifiers.
-  const damageModifier = addDamageMods({dice: [], flat: 0}, activeValues(global.targetDamage), "Incoming damage", parseDamage);
+  const damageModifier = addDamageMods({dice: [], flat: 0}, activeValues(global.targetDamage), sbsI18n("swade-better-setting.UI.Incomingdamage_2ba01b79a5"), parseDamage);
   const addAttack = ({name, mode, traitName, damage, ap, traitMods = [], damageMods = [], raiseDice, options, resource}) => {
     if (!damage) return;
     const source = findAttackTrait(actor, traitName, false);
@@ -187,7 +188,7 @@ export function actorCombatProfile(actor) {
   const effectsAPI = game.modules.get(EFFECTS)?.api;
   const powersAPI = game.modules.get(BETTER_POWERS)?.api;
   const actorRules = effectsAPI?.collectRules?.(actor)?.length ?? 0;
-  if (actorRules) warnings.push("Better Effects roll rules are outside this benchmark.");
+  if (actorRules) warnings.push(sbsI18n("swade-better-setting.UI.BetterEffectsrollrulesareoutside_e6f8be7273"));
   const special = [...actor.itemTypes.ability ?? [], ...actor.itemTypes.action ?? []];
   if (special.length) warnings.push(`Review special abilities and actions for effects outside the benchmark (${special.map(item => item.name).join(", ")}).`);
   for (const item of items) {
@@ -229,7 +230,7 @@ export function actorCombatProfile(actor) {
       damageMods: [system.actions?.dmgMod, ...activeValues(global.damage)], raiseDice, options: {shots, recoil: shots > 1}, resource});
   }
   if (!attacks.length && (actor.type === "character" || actor.itemTypes.skill.some(item => item.system.swid === "fighting"))) {
-    addAttack({name: "Unarmed", mode: "melee", traitName: "Fighting", damage: "@str", ap: sumFlat(activeValues(global.ap)),
+    addAttack({name: sbsI18n("swade-better-setting.UI.Unarmed_de8d2be353"), mode: "melee", traitName: sbsI18n("swade-better-setting.UI.Fighting_21e2e5c54b"), damage: "@str", ap: sumFlat(activeValues(global.ap)),
       traitMods: [...activeValues(global.attack), ...activeValues(global.attackMelee)], damageMods: activeValues(global.damage)});
   }
   const profile = {
@@ -242,7 +243,7 @@ export function actorCombatProfile(actor) {
   profile.spirit.modifier += sys.attributes.spirit.unShakeBonus ?? 0;
   profile.vigor.modifier += sys.attributes.vigor.soakBonus ?? 0;
   if (game.settings.get("swade", "unarmoredHero") && actor.isUnarmored) profile.vigor.modifier += 2;
-  const coverage = !attacks.length ? "Unrated" : warnings.length ? "Partial" : "Modeled";
+  const coverage = !attacks.length ? sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18") : warnings.length ? sbsI18n("swade-better-setting.UI.Partial_a4d50fb854") : sbsI18n("swade-better-setting.UI.Modeled_3d9aa9f480");
   return {profile, warnings, coverage};
 }
 
@@ -266,9 +267,9 @@ export function actorRating(actor) {
   if (overridden || Number.isFinite(advances) && advances >= 0) {
     const cap = game.settings.get("swade", "woundCap") ? 4 : 0;
     return {cr: roundCR(rating), rawCR: rating, strength: advancementStrength(rating, cap),
-      coverage: overridden ? "Manual" : "Advances", warnings: []};
+      coverage: overridden ? sbsI18n("swade-better-setting.UI.Manual_b0b9fe24ff") : sbsI18n("swade-better-setting.UI.Advances_34a1a778f4"), warnings: []};
   }
-  if (!["character", "npc"].includes(actor.type)) return {cr: null, rawCR: null, strength: 0, coverage: "Unrated", warnings: []};
+  if (!["character", "npc"].includes(actor.type)) return {cr: null, rawCR: null, strength: 0, coverage: sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18"), warnings: []};
   return estimateActor(actor);
 }
 
@@ -290,7 +291,7 @@ export function npcSource(draft, items, token, idFactory, api) {
   const flags = {[MODULE_ID]: {npc}, [EFFECTS]: {tags: managedTags(draft.archetypeTags, rank, wildcard, draft.archetypeTag ?? role, draft.tags, api)},
     swade: {hardy: draft.hardy}, ...token.flags};
   if (Object.keys(casting.flags).length) flags[BETTER_POWERS] = {spellcastingEntries: casting.flags};
-  const actorName = name.trim() || "New NPC";
+  const actorName = name.trim() || sbsI18n("swade-better-setting.UI.NewNPC_fa1f3b3abf");
   const attributes = Object.fromEntries(ATTRIBUTES.map(key => [key, {die: draft.attributes[key]}]));
   attributes.smarts.animal = draft.animal;
   if (size === -4) attributes.strength.die = sizeStrength(size, attributes.strength.die);
@@ -326,19 +327,19 @@ export function npcSource(draft, items, token, idFactory, api) {
         : casting.apply(item));
     }
   }
-  if (draft.armor) put("Natural Armor", "armor", {armor: draft.armor, locations: {torso: true, head: true, arms: true, legs: true}, equipStatus: 3, weight: 0});
-  if (draft.parry) source.effects.push({_id: idFactory(), name: "Parry adjustment", img: "systems/swade/assets/icons/active-effect.svg",
+  if (draft.armor) put(sbsI18n("swade-better-setting.UI.NaturalArmor_89b83eca1b"), "armor", {armor: draft.armor, locations: {torso: true, head: true, arms: true, legs: true}, equipStatus: 3, weight: 0});
+  if (draft.parry) source.effects.push({_id: idFactory(), name: sbsI18n("swade-better-setting.UI.Parryadjustment_8c102e8758"), img: "systems/swade/assets/icons/active-effect.svg",
     system: {changes: [{key: "system.stats.parry.value", type: "add", value: String(draft.parry)}]}});
   const {weapon, ranged, shared} = draft.signatureOptions ?? {};
   const tinyMelee = size === -4 && mode === "melee";
   if (["melee", "ranged"].includes(mode) && (tinyMelee || draft.damage)) {
-    put(draft.attackName.trim() || "Strike", "weapon", {damage: tinyMelee ? "1" : draft.damage, ap: draft.ap, equipStatus: 3,
+    put(draft.attackName.trim() || sbsI18n("swade-better-setting.UI.Strike_92c872eb9e"), "weapon", {damage: tinyMelee ? "1" : draft.damage, ap: draft.ap, equipStatus: 3,
       range: mode === "ranged" ? draft.range : "", rangeType: mode === "ranged" ? 1 : 0, weight: 0,
       ...weapon, ...(mode === "ranged" ? {rof: draft.signatureRof ?? 1, ...ranged} : {}), ...shared,
       ...(tinyMelee ? {bonusDamageDice: 0} : {}),
       actions: {...shared?.actions, trait, ...(tinyMelee ? {dmgMod: ""} : {})}}, true);
   } else if (mode === "power" && draft.damage) {
-    put(draft.attackName.trim() || "Arcane Strike", "power", casting.assign({rank, pp: draft.powerCost, duration: "Instant", range: draft.range,
+    put(draft.attackName.trim() || sbsI18n("swade-better-setting.UI.ArcaneStrike_031620ae73"), "power", casting.assign({rank, pp: draft.powerCost, duration: sbsI18n("swade-better-setting.UI.Instant_e2861894f0"), range: draft.range,
       damage: draft.damage, ap: draft.ap, ...shared, actions: {...shared?.actions, trait}}, casting.signature), true);
   }
   return source;

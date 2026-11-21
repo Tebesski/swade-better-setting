@@ -1,23 +1,23 @@
-<aside class="sbs-bestiary-filters" aria-label="Bestiary filters">
+<aside class="sbs-bestiary-filters" aria-label="{{localize "swade-better-setting.UI.Bestiaryfilters_4e38b8cc5e"}}">
   <div class="sbs-bestiary-search">
-    <input type="search" data-query value="{{query}}" placeholder="Search NPCs (e.g. human-*)" aria-label="Search NPCs" autocomplete="off">
-    <div class="sbs-bestiary-wildcards" role="group" aria-label="Wild Card status">
+    <input type="search" data-query value="{{query}}" placeholder="{{localize "swade-better-setting.UI.SearchNPCseghuman_86e05378de"}}" aria-label="{{localize "swade-better-setting.UI.SearchNPCs_c0a2b26584"}}" autocomplete="off">
+    <div class="sbs-bestiary-wildcards" role="group" aria-label="{{localize "swade-better-setting.UI.WildCardstatus_6347135445"}}">
       {{#each wildcards}}
         <label><input type="checkbox" data-wildcard="{{key}}" {{checked checked}} {{disabled disabled}}> <span>{{name}}</span></label>
       {{/each}}
     </div>
     <div class="sbs-bestiary-order">
-      <label>Order by <select data-sort aria-label="Order by">{{selectOptions sortOptions selected=sort}}</select></label>
+      <label>{{localize "swade-better-setting.UI.Orderby_8a37a5f07a"}} <select data-sort aria-label="{{localize "swade-better-setting.UI.Orderby_8a37a5f07a"}}">{{selectOptions sortOptions selected=sort}}</select></label>
       <button type="button" class="icon fa-solid {{#if ascending}}fa-arrow-up-wide-short{{else}}fa-arrow-down-wide-short{{/if}}" data-action="sortDirection"
         aria-label="{{#if ascending}}Sort descending{{else}}Sort ascending{{/if}}" data-tooltip="{{#if ascending}}Ascending{{else}}Descending{{/if}}"></button>
     </div>
-    <button type="button" data-action="clearFilters">Clear All Filters</button>
+    <button type="button" data-action="clearFilters">{{localize "swade-better-setting.UI.ClearAllFilters_209d178dae"}}</button>
   </div>
 
   <details class="sbs-bestiary-filter" data-filter="source">
-    <summary><i class="fa-solid fa-chevron-right" inert></i> Sources</summary>
-    <input type="search" data-source-query value="{{sourceQuery}}" placeholder="Filter sources…" aria-label="Filter sources" autocomplete="off">
-    <p class="hint">Leave all sources unchecked to include every available NPC.</p>
+    <summary><i class="fa-solid fa-chevron-right" inert></i> {{localize "swade-better-setting.UI.Sources_caf85b0888"}}</summary>
+    <input type="search" data-source-query value="{{sourceQuery}}" placeholder="{{localize "swade-better-setting.UI.Filtersources_1e6e261e45"}}" aria-label="{{localize "swade-better-setting.UI.Filtersources_389bbc3d58"}}" autocomplete="off">
+    <p class="hint">{{localize "swade-better-setting.UI.Leaveallsourcesuncheckedtoinclude_774a9e18d1"}}</p>
     <div class="sbs-bestiary-checks">
       {{#each sources}}
         <label data-source-name="{{name}}">
@@ -29,36 +29,36 @@
   </details>
 
   <details class="sbs-bestiary-filter" data-filter="rank">
-    <summary><i class="fa-solid fa-chevron-right" inert></i> Rank</summary>
+    <summary><i class="fa-solid fa-chevron-right" inert></i> {{localize "swade-better-setting.UI.Rank_a4130d7d2c"}}</summary>
     <div class="sbs-bestiary-checks">
       {{#each ranks}}
         <label><input type="checkbox" data-inline-group="rank" data-key="{{key}}" data-label="{{name}}" {{checked checked}} {{disabled @root.loading}}>
           <span>{{name}}</span></label>
       {{/each}}
     </div>
-    <section class="sbs-bestiary-facet" aria-label="Creature Rating">
-      <strong>CR</strong>
+    <section class="sbs-bestiary-facet" aria-label="{{localize "swade-better-setting.UI.CreatureRating_3c8803106b"}}">
+      <strong>{{localize "swade-better-setting.UI.CR_c13539d156"}}</strong>
       <div class="sbs-bestiary-range-fields sbs-bestiary-cr-range">
-        <label>From <input type="text" data-cr-bound="min" value="{{crFrom}}" placeholder="Any" aria-label="Minimum CR" {{disabled loading}}></label>
-        <label>To <input type="text" data-cr-bound="max" value="{{crTo}}" placeholder="Any" aria-label="Maximum CR" {{disabled loading}}></label>
+        <label>{{localize "swade-better-setting.UI.From_2181976934"}} <input type="text" data-cr-bound="min" value="{{crFrom}}" placeholder="{{localize "swade-better-setting.UI.Any_2b505597da"}}" aria-label="{{localize "swade-better-setting.UI.MinimumCR_77cc50ce4f"}}" {{disabled loading}}></label>
+        <label>{{localize "swade-better-setting.UI.To_f4b06ef6d3"}} <input type="text" data-cr-bound="max" value="{{crTo}}" placeholder="{{localize "swade-better-setting.UI.Any_2b505597da"}}" aria-label="{{localize "swade-better-setting.UI.MaximumCR_ba8d21e634"}}" {{disabled loading}}></label>
       </div>
     </section>
   </details>
 
   <details class="sbs-bestiary-filter" data-filter="details">
-    <summary><i class="fa-solid fa-chevron-right" inert></i> NPC Details</summary>
-    <section class="sbs-bestiary-facet" aria-label="Max Wounds">
-      <strong>Max Wounds</strong>
+    <summary><i class="fa-solid fa-chevron-right" inert></i> {{localize "swade-better-setting.UI.NPCDetails_dc8c593767"}}</summary>
+    <section class="sbs-bestiary-facet" aria-label="{{localize "swade-better-setting.UI.MaxWounds_dd84898cab"}}">
+      <strong>{{localize "swade-better-setting.UI.MaxWounds_dd84898cab"}}</strong>
       <div class="sbs-bestiary-range-slider" style="--wound-lower: {{woundLower}}%; --wound-upper: {{woundUpper}}%" data-overlap="{{eq woundRange.min woundRange.max}}">
         <input type="range" data-wound-bound="min" min="0" max="3" step="1" value="{{woundRange.min}}"
-          aria-label="Minimum Max Wounds slider" aria-valuetext="{{lookup woundOptions woundRange.min}}" {{disabled loading}}>
+          aria-label="{{localize "swade-better-setting.UI.MinimumMaxWoundsslider_9a8bd67f04"}}" aria-valuetext="{{lookup woundOptions woundRange.min}}" {{disabled loading}}>
         <input type="range" data-wound-bound="max" min="0" max="3" step="1" value="{{woundRange.max}}"
-          aria-label="Maximum Max Wounds slider" aria-valuetext="{{lookup woundOptions woundRange.max}}" {{disabled loading}}>
+          aria-label="{{localize "swade-better-setting.UI.MaximumMaxWoundsslider_da35a5b378"}}" aria-valuetext="{{lookup woundOptions woundRange.max}}" {{disabled loading}}>
         <span data-wound-overlap aria-hidden="true"></span>
       </div>
       <div class="sbs-bestiary-range-fields">
-        <label>From <select data-wound-bound="min" aria-label="Minimum Max Wounds" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.min}}</select></label>
-        <label>To <select data-wound-bound="max" aria-label="Maximum Max Wounds" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.max}}</select></label>
+        <label>{{localize "swade-better-setting.UI.From_2181976934"}} <select data-wound-bound="min" aria-label="{{localize "swade-better-setting.UI.MinimumMaxWounds_5f7a00291e"}}" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.min}}</select></label>
+        <label>{{localize "swade-better-setting.UI.To_f4b06ef6d3"}} <select data-wound-bound="max" aria-label="{{localize "swade-better-setting.UI.MaximumMaxWounds_e6e61157b6"}}" {{disabled loading}}>{{selectOptions woundOptions selected=woundRange.max}}</select></label>
       </div>
     </section>
 
@@ -68,14 +68,14 @@
         {{#if group.suggest}}
           <div class="sbs-bestiary-suggest">
             <input type="text" data-facet-input="{{group.key}}" list="{{@root.partId}}-suggest-{{group.key}}"
-              placeholder="Type to search…" aria-label="{{group.label}} input" autocomplete="off" {{disabled @root.loading}}>
+              placeholder="{{localize "swade-better-setting.UI.Typetosearch_1e825b4f95"}}" aria-label="{{group.label}} input" autocomplete="off" {{disabled @root.loading}}>
             <datalist id="{{@root.partId}}-suggest-{{group.key}}"></datalist>
             <button type="button" class="icon fa-solid fa-list" data-action="filter" data-group="{{group.key}}"
               aria-label="Select {{group.label}}" data-tooltip="Select {{group.label}}" {{disabled @root.loading}}></button>
           </div>
         {{else}}
           <button type="button" class="sbs-bestiary-select" data-action="filter" data-group="{{group.key}}" aria-label="Select {{group.label}}" {{disabled @root.loading}}>
-            <i class="fa-solid {{group.icon}}" inert></i> Select…
+            <i class="fa-solid {{group.icon}}" inert></i> {{localize "swade-better-setting.UI.Select_731fe041ce"}}
           </button>
         {{/if}}
         {{#if group.count}}
@@ -87,8 +87,8 @@
             {{/each}}
           </div>
           <div class="sbs-bestiary-conjunction" role="group" aria-label="Match {{group.label}}">
-            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="all" {{checked (not group.matchAny)}}> All selected</label>
-            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="any" {{checked group.matchAny}}> Any selected</label>
+            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="all" {{checked (not group.matchAny)}}> {{localize "swade-better-setting.UI.Allselected_b339f58d00"}}</label>
+            <label><input type="radio" name="{{@root.partId}}-match-{{group.key}}" data-match-group="{{group.key}}" value="any" {{checked group.matchAny}}> {{localize "swade-better-setting.UI.Anyselected_3a3bec2152"}}</label>
           </div>
         {{/if}}
       </section>

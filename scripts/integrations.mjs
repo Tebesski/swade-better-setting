@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {MODULE_ID, PACK_ID, normalizeName, skillData, withCoreSkills} from "./skills.mjs";
 import {getPack, isPrimaryGM, librarySkills, storeSkill} from "./library.mjs";
 import {createSkill} from "./creation.mjs";
@@ -6,19 +7,19 @@ const actorSkillPickers = new Map();
 
 export function openLibrary() {
   return new SkillPicker({mode: "manage", onCreate: game.user.isGM && !getPack()?.locked ? () => createSkill() : undefined,
-    window: {title: "Better Setting — Skills"}}).render({force: true});
+    window: {title: sbsI18n("swade-better-setting.UI.BetterSettingSkills_94dd9dc19b")}}).render({force: true});
 }
 
 export function openActorSkills(actor) {
   const existing = actorSkillPickers.get(actor.uuid);
   if (existing?.rendered) { existing.bringToFront(); return existing.render({force: true}); }
   const picker = new SkillPicker({actor, onCreate: () => createSkill({actor}), onSelect: async (_value, entry) => {
-    if (!actor.isOwner) throw new Error("You do not have permission to add skills to this actor.");
+    if (!actor.isOwner) throw new Error(sbsI18n("swade-better-setting.UI.Youdonothavepermissionto_a08e9eb79d"));
     const skill = (await librarySkills()).find(item => item.id === entry.key);
-    if (!skill) throw new Error("This skill is no longer in the compendium.");
+    if (!skill) throw new Error(sbsI18n("swade-better-setting.UI.Thisskillisnolongerin_9fa36e6965"));
     if (actor.items.some(item => item.type === "skill" && (normalizeName(item.name) === normalizeName(skill.name) ||
       (skill.system.swid && item.system.swid === skill.system.swid)))) {
-      ui.notifications.info(`${skill.name} is already on this actor.`);
+      ui.notifications.info(sbsI18n("swade-better-setting.UI.isalreadyonthisactor_df4ce374b3", {p0: (skill.name)}));
       return;
     }
     await CONFIG.Item.documentClass.create(skillData(skill), {parent: actor, renderSheet: true});
@@ -105,8 +106,8 @@ export function installSheetHooks(openCompendium) {
           const manage = document.createElement("button");
           manage.type = "button";
           manage.className = "header-control icon fa-solid fa-list sbs-pack-manage";
-          manage.title = "Manage skills";
-          manage.setAttribute("aria-label", "Manage skills");
+          manage.title = sbsI18n("swade-better-setting.UI.Manageskills_f3600715a1");
+          manage.setAttribute("aria-label", sbsI18n("swade-better-setting.UI.Manageskills_f3600715a1"));
           manage.addEventListener("click", () => { openLibrary().catch(report); });
           root.querySelector('.window-header [data-action="close"]')?.before(manage);
         }
@@ -114,7 +115,7 @@ export function installSheetHooks(openCompendium) {
           const create = document.createElement("button");
           create.type = "button";
           create.className = "header-control sbs-pack-create";
-          create.innerHTML = '<i class="fa-solid fa-plus" inert></i> Create new skill';
+          create.innerHTML = `<i class="fa-solid fa-plus" inert></i> ${sbsI18n("swade-better-setting.UI.Createnewskill_7d7d4a1ad7")}`;
           create.addEventListener("click", () => { createSkill().catch(report); });
           root.querySelector('.window-header [data-action="close"]')?.before(create);
         }
@@ -135,7 +136,7 @@ export function installSheetHooks(openCompendium) {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sbs-open-library";
-    button.innerHTML = '<i class="fa-solid fa-book-open" inert></i> Better SWADE Compendium';
+    button.innerHTML = `<i class="fa-solid fa-book-open" inert></i> ${sbsI18n("swade-better-setting.UI.BetterSWADECompendium_157f0debd8")}`;
     button.addEventListener("click", () => openCompendium().catch(report));
     html.querySelector(".header-actions")?.append(button);
   });
@@ -216,7 +217,7 @@ function installSkillContextMenu() {
     await original(...args);
     if (!getContextSkill(this.target) || this.menuItems.some(entry => entry.classes === "sbs-add-to-compendium")) return;
     this.menuItems.push({
-      label: "Add to Compendium",
+      label: sbsI18n("swade-better-setting.UI.AddtoCompendium_5b2fc2c0fc"),
       icon: "fa-solid fa-book-medical",
       classes: "sbs-add-to-compendium",
       visible: target => {
@@ -234,11 +235,11 @@ function installSkillContextMenu() {
 async function addSkillToCompendium(skill) {
   if (!skill) return;
   const pack = getPack();
-  if (!pack?.visible || pack.locked) throw new Error("A GM must unlock the Better Setting skill compendium to add this skill.");
+  if (!pack?.visible || pack.locked) throw new Error(sbsI18n("swade-better-setting.UI.AGMmustunlocktheBetter_529492ae84"));
   if (isPrimaryGM()) {
     await storeSkill(skill);
     if (skill.getFlag(MODULE_ID, "pendingLibrary")) await skill.unsetFlag(MODULE_ID, "pendingLibrary");
-    ui.notifications.info(`“${skill.name}” added to the Skills Compendium.`);
+    ui.notifications.info(sbsI18n("swade-better-setting.UI.addedtotheSkillsCompendium_8222ff92f0", {p0: (skill.name)}));
   } else {
     await skill.setFlag(MODULE_ID, "pendingLibrary", true);
     ui.notifications.info(game.users.activeGM
@@ -260,16 +261,16 @@ function injectPicker(input, mode, text = false) {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "sbs-trait-picker";
-  button.title = text ? "Skills Compendium" : "Choose a trait";
+  button.title = text ? sbsI18n("swade-better-setting.UI.SkillsCompendium_966b0b86c9") : sbsI18n("swade-better-setting.UI.Chooseatrait_0650f3338f");
   button.setAttribute("aria-label", button.title);
-  button.innerHTML = `<i class="fa-solid fa-list" inert></i>${text ? " Skills Compendium" : ""}`;
+  button.innerHTML = `<i class="fa-solid fa-list" inert></i>${text ? sbsI18n("swade-better-setting.UI.SkillsCompendium_7606cbac7f") : ""}`;
   input.after(button);
   button.addEventListener("click", event => {
     event.preventDefault();
     event.stopPropagation();
-    new SkillPicker({mode, window: {title: mode === "traits" ? "Choose a trait" : "Skills Compendium"},
+    new SkillPicker({mode, window: {title: mode === "traits" ? sbsI18n("swade-better-setting.UI.Chooseatrait_0650f3338f") : sbsI18n("swade-better-setting.UI.SkillsCompendium_966b0b86c9")},
       onSelect: value => {
-        if (!input.isConnected) throw new Error("The original editor was closed. Open its trait picker again.");
+        if (!input.isConnected) throw new Error(sbsI18n("swade-better-setting.UI.TheoriginaleditorwasclosedOpen_21a8b440bb"));
         input.value = value;
         input.dispatchEvent(new Event("input", {bubbles: true}));
         input.dispatchEvent(new Event("change", {bubbles: true}));

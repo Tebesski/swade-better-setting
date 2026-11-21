@@ -1,73 +1,73 @@
-<section class="sbs-npc-identity" aria-label="NPC identity and defenses">
-  <button class="sbs-npc-art" type="button" data-action="art" aria-label="Choose token art. Shift-click opens Foundry’s File Picker.">
+<section class="sbs-npc-identity" aria-label="{{localize "swade-better-setting.UI.NPCidentityanddefenses_8f07432271"}}">
+  <button class="sbs-npc-art" type="button" data-action="art" aria-label="{{localize "swade-better-setting.UI.ChoosetokenartShiftclickopens_c2eaac2ec0"}}">
     <img src="{{art}}" alt="">
   </button>
 
   <div class="sbs-npc-overview">
     <div class="sbs-npc-headline">
-      <label class="sbs-npc-name">NPC name<input type="text" data-path="name" value="{{draft.name}}" placeholder="Name your NPC" maxlength="120" autocomplete="off"></label>
+      <label class="sbs-npc-name">{{localize "swade-better-setting.UI.NPCname_fda687d018"}}<input type="text" data-path="name" value="{{draft.name}}" placeholder="{{localize "swade-better-setting.UI.NameyourNPC_332cbe2532"}}" maxlength="120" autocomplete="off"></label>
       <div class="sbs-npc-rank-group sbs-npc-divided">
-        <label>Rank<select data-path="rank" aria-label="Rank">{{selectOptions ranks selected=draft.rank}}</select></label>
-        <label class="sbs-npc-check"><input type="checkbox" data-path="wildcard" {{checked draft.wildcard}}> Wild Card</label>
+        <label>{{localize "swade-better-setting.UI.Rank_a4130d7d2c"}}<select data-path="rank" aria-label="{{localize "swade-better-setting.UI.Rank_a4130d7d2c"}}">{{selectOptions ranks selected=draft.rank}}</select></label>
+        <label class="sbs-npc-check"><input type="checkbox" data-path="wildcard" {{checked draft.wildcard}}> {{localize "swade-better-setting.UI.WildCard_1af0ffaf1f"}}</label>
       </div>
-      <label class="sbs-npc-cr sbs-npc-divided"><span>CR <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
-        aria-label="CR measures equivalent Wild Card PC advances. CR 4 matches a reference Seasoned PC. Clear a custom value to restore the estimate."
-        data-tooltip="CR measures equivalent Wild Card PC advances. CR 4 matches a reference Seasoned PC. Clear a custom value to restore the estimate."></i></span>
-        <input type="text" data-cr value="{{cr}}" aria-label="Creature Rating"></label>
+      <label class="sbs-npc-cr sbs-npc-divided"><span>{{localize "swade-better-setting.UI.CR_c13539d156"}} <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+        aria-label="{{localize "swade-better-setting.UI.CRmeasuresequivalentWildCardPC_033b9514ca"}}"
+        data-tooltip="{{localize "swade-better-setting.UI.CRmeasuresequivalentWildCardPC_033b9514ca"}}"></i></span>
+        <input type="text" data-cr value="{{cr}}" aria-label="{{localize "swade-better-setting.UI.CreatureRating_3c8803106b"}}"></label>
     </div>
 
     <div class="sbs-npc-defense-line">
       <div class="sbs-npc-defenses">
         <label>
-          <span><i class="fa-solid fa-swords" inert></i> Parry</span>
-          <input type="number" data-defense="parry" value="{{defenses.parry}}" step="1" aria-label="Parry">
+          <span><i class="fa-solid fa-swords" inert></i> {{localize "swade-better-setting.UI.Parry_e5567f841f"}}</span>
+          <input type="number" data-defense="parry" value="{{defenses.parry}}" step="1" aria-label="{{localize "swade-better-setting.UI.Parry_e5567f841f"}}">
         </label>
         <div class="sbs-npc-protection sbs-npc-divided">
           <label>
-            <span><i class="fa-solid fa-heart" inert></i> Toughness</span>
-            <input type="number" data-defense="toughness" value="{{defenses.toughness}}" step="1" aria-label="Toughness">
+            <span><i class="fa-solid fa-heart" inert></i> {{localize "swade-better-setting.UI.Toughness_19cd2c1eec"}}</span>
+            <input type="number" data-defense="toughness" value="{{defenses.toughness}}" step="1" aria-label="{{localize "swade-better-setting.UI.Toughness_19cd2c1eec"}}">
           </label>
           <label>
-            <span><i class="fa-solid fa-shield" inert></i> Armour</span>
-            <input type="number" data-defense="armor" value="{{defenses.armor}}" min="0" step="1" aria-label="Armour">
+            <span><i class="fa-solid fa-shield" inert></i> {{localize "swade-better-setting.UI.Armour_642ebd131f"}}</span>
+            <input type="number" data-defense="armor" value="{{defenses.armor}}" min="0" step="1" aria-label="{{localize "swade-better-setting.UI.Armour_642ebd131f"}}">
           </label>
         </div>
       </div>
       <div class="sbs-npc-stamina sbs-npc-divided">
-        <div class="sbs-npc-wounds"><span>Wounds</span><output aria-label="Wounds">{{wounds}}</output></div>
-        <label><span>Resilience <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
-          aria-label="Adds one or two Wounds to the NPC’s capacity, including Wild Cards." data-tooltip="Adds one or two Wounds to the NPC’s capacity, including Wild Cards."></i></span>
-          <select data-path="resilience" data-number aria-label="Resilience">
-          <option value="0" {{#if (eq draft.resilience 0)}}selected{{/if}}>Standard</option>
-          <option value="1" {{#if (eq draft.resilience 1)}}selected{{/if}}>Resilient +1</option>
-          <option value="2" {{#if (eq draft.resilience 2)}}selected{{/if}}>Very Resilient +2</option>
+        <div class="sbs-npc-wounds"><span>{{localize "swade-better-setting.UI.Wounds_16a5581737"}}</span><output aria-label="{{localize "swade-better-setting.UI.Wounds_16a5581737"}}">{{wounds}}</output></div>
+        <label><span>{{localize "swade-better-setting.UI.Resilience_32059a8788"}} <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
+          aria-label="{{localize "swade-better-setting.UI.AddsoneortwoWoundsto_43e7d4488c"}}" data-tooltip="{{localize "swade-better-setting.UI.AddsoneortwoWoundsto_43e7d4488c"}}"></i></span>
+          <select data-path="resilience" data-number aria-label="{{localize "swade-better-setting.UI.Resilience_32059a8788"}}">
+          <option value="0" {{#if (eq draft.resilience 0)}}selected{{/if}}>{{localize "swade-better-setting.UI.Standard_ef6691545d"}}</option>
+          <option value="1" {{#if (eq draft.resilience 1)}}selected{{/if}}>{{localize "swade-better-setting.UI.Resilient1_7d3d76e7ce"}}</option>
+          <option value="2" {{#if (eq draft.resilience 2)}}selected{{/if}}>{{localize "swade-better-setting.UI.VeryResilient2_796c193aa9"}}</option>
         </select></label>
       </div>
       <div class="sbs-npc-with-picker sbs-npc-size sbs-npc-divided">
-        <label for="{{partId}}-size">Size</label>
+        <label for="{{partId}}-size">{{localize "swade-better-setting.UI.Size_1af8519073"}}</label>
         <input id="{{partId}}-size" type="number" data-path="size" min="-4" max="20" value="{{draft.size}}">
-        <button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" aria-label="Open Size Table"></button>
+        <button type="button" class="icon fa-solid fa-table-list" data-action="pickSize" aria-label="{{localize "swade-better-setting.UI.OpenSizeTable_e8cb9fb5d1"}}"></button>
       </div>
     </div>
 
     <div class="sbs-npc-with-picker">
-      <label for="{{partId}}-flags">Better Effects flags</label>
-      <input id="{{partId}}-flags" type="text" data-path="tags" value="{{draft.tags}}" placeholder="undead, fire, guardian" autocomplete="off">
-      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" aria-label="Choose a flag"></button>
+      <label for="{{partId}}-flags">{{localize "swade-better-setting.UI.BetterEffectsflags_3bb5f82be2"}}</label>
+      <input id="{{partId}}-flags" type="text" data-path="tags" value="{{draft.tags}}" placeholder="{{localize "swade-better-setting.UI.undeadfireguardian_6ffa392747"}}" autocomplete="off">
+      <button type="button" class="icon fa-solid fa-list" data-action="pickFlag" aria-label="{{localize "swade-better-setting.UI.Chooseaflag_77e47f59e0"}}"></button>
     </div>
     <div class="sbs-npc-fields">
-      <label>Disposition<select data-path="disposition" data-number aria-label="Disposition">{{selectOptions disposition selected=draft.disposition}}</select></label>
+      <label>{{localize "swade-better-setting.UI.Disposition_8881fc89a1"}}<select data-path="disposition" data-number aria-label="{{localize "swade-better-setting.UI.Disposition_8881fc89a1"}}">{{selectOptions disposition selected=draft.disposition}}</select></label>
       <div class="sbs-npc-with-picker sbs-npc-preset-choice">
-        <label for="{{partId}}-archetype">Archetype</label>
+        <label for="{{partId}}-archetype">{{localize "swade-better-setting.UI.Archetype_ecd5f88e3c"}}</label>
         <select id="{{partId}}-archetype" data-path="role">{{selectOptions archetypes selected=draft.role}}</select>
-        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="archetypes" aria-label="Edit archetypes"></button>{{/if}}
+        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="archetypes" aria-label="{{localize "swade-better-setting.UI.Editarchetypes_0d88fa0aab"}}"></button>{{/if}}
       </div>
       <div class="sbs-npc-with-picker sbs-npc-preset-choice">
-        <label for="{{partId}}-ancestry">Ancestry</label>
+        <label for="{{partId}}-ancestry">{{localize "swade-better-setting.UI.Ancestry_65a0468287"}}</label>
         <select id="{{partId}}-ancestry" data-path="ancestry" {{#if ancestryLoading}}disabled{{/if}}>{{selectOptions ancestryOptions selected=draft.ancestry blank="None"}}</select>
-        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="ancestries" aria-label="Build or edit ancestries"></button>{{/if}}
+        {{#if canManagePresets}}<button type="button" class="icon fa-solid fa-pen-to-square" data-action="ancestries" aria-label="{{localize "swade-better-setting.UI.Buildoreditancestries_0621442fb4"}}"></button>{{/if}}
       </div>
-      {{#if draft.wildcard}}<label>Personal Bennies<input type="number" data-path="bennies" min="0" max="10" value="{{draft.bennies}}"></label>{{/if}}
+      {{#if draft.wildcard}}<label>{{localize "swade-better-setting.UI.PersonalBennies_d18834398e"}}<input type="number" data-path="bennies" min="0" max="10" value="{{draft.bennies}}"></label>{{/if}}
     </div>
   </div>
 </section>

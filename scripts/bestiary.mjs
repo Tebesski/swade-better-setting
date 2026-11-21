@@ -1,3 +1,4 @@
+import {t as sbsI18n} from "./i18n.mjs";
 import {inWoundRange, npcNameSearch} from "./bestiary-data.mjs";
 import {BestiaryCatalog, ROW_FIELDS, catalogRow} from "./bestiary-catalog.mjs";
 import {wrapMethod} from "./integrations.mjs";
@@ -10,24 +11,24 @@ const WORLD = "world";
 const BESTIARY_DRAG = "application/x-swade-better-setting-npc";
 const PAGE_SIZE = 50;
 const GROUPS = [
-  ["flag", "Better Effects flags", "fa-tags"], ["skill", "Skills", "fa-list"],
-  ["edge", "Edges", "fa-bolt"], ["hindrance", "Hindrances", "fa-link"],
-  ["ability", "Special abilities", "fa-star"], ["action", "Actions", "fa-hand-fist"],
-  ["stat", "Additional stats", "fa-chart-simple"], ["effect", "Effects", "fa-wand-sparkles"]
+  ["flag", sbsI18n("swade-better-setting.UI.BetterEffectsflags_3bb5f82be2"), "fa-tags"], ["skill", sbsI18n("swade-better-setting.UI.Skills_66d0f523a3"), "fa-list"],
+  ["edge", sbsI18n("swade-better-setting.UI.Edges_658b158af9"), "fa-bolt"], ["hindrance", sbsI18n("swade-better-setting.UI.Hindrances_6276d146ad"), "fa-link"],
+  ["ability", sbsI18n("swade-better-setting.UI.Specialabilities_75ba244384"), "fa-star"], ["action", sbsI18n("swade-better-setting.UI.Actions_ff8059dc67"), "fa-hand-fist"],
+  ["stat", sbsI18n("swade-better-setting.UI.Additionalstats_7bf73c74b0"), "fa-chart-simple"], ["effect", sbsI18n("swade-better-setting.UI.Effects_358511c8c0"), "fa-wand-sparkles"]
 ];
 const SUGGEST = new Set(["flag", "skill", "edge", "hindrance"]);
-const WILDCARDS = [{key: "wildcard", name: "Wild Cards"}, {key: "extra", name: "Extras"}];
+const WILDCARDS = [{key: "wildcard", get name() { return sbsI18n("swade-better-setting.UI.WildCards_ef67c449b8"); }}, {key: "extra", get name() { return sbsI18n("swade-better-setting.UI.Extras_3038523738"); }}];
 const WOUNDS = {0: "0", 1: "1", 2: "2", 3: "3+"};
-const RANK_CHOICES = [...RANKS, "Unrated"].map(rank => ({key: rank, name: rank}));
-const SORT_OPTIONS = {name: "Name", cr: "CR", rank: "Rank"};
+const RANK_CHOICES = [...RANKS, sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18")].map(rank => ({key: rank, name: rank}));
+const SORT_OPTIONS = {get name() { return sbsI18n("swade-better-setting.UI.Name_dcd1d5223f"); }, cr: "CR", get rank() { return sbsI18n("swade-better-setting.UI.Rank_a4130d7d2c"); }};
 const byName = (a, b) => a.name.localeCompare(b.name, game.i18n.lang);
 const worldNPCs = () => game.actors.filter(actor => actor.type === "npc" && actor.visible);
 const rankOrder = rank => RANKS.indexOf(rank) + 1 || RANKS.length + 1;
 
 function ratingLabel(rating) {
-  if (!rating) return {value: "CR …", title: "Calculating Creature Rating"};
-  if (rating.cr === null) return {value: "CR —", title: "No automatic Creature Rating"};
-  return {value: `CR ${formatCR(rating.cr)}`, title: `Creature Rating · ${rating.coverage}`};
+  if (!rating) return {value: "CR …", title: sbsI18n("swade-better-setting.UI.CalculatingCreatureRating_b95dd92122")};
+  if (rating.cr === null) return {value: "CR —", title: sbsI18n("swade-better-setting.UI.NoautomaticCreatureRating_27440a6c70")};
+  return {value: `CR ${formatCR(rating.cr)}`, title: sbsI18n("swade-better-setting.UI.CreatureRating_b3a0a8c1bc", {p0: (rating.coverage)})};
 }
 
 function facetKey(group, value) {
@@ -82,7 +83,7 @@ function dragOverlappingWounds(event) {
 class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     classes: ["sbs-bestiary"],
-    window: {title: "Browse Bestiary", icon: "fa-solid fa-paw", resizable: true},
+    window: {get title() { return sbsI18n("swade-better-setting.UI.BrowseBestiary_78c48885e7"); }, icon: "fa-solid fa-paw", resizable: true},
     actions: {
       filter: async function (_event, target) { await this.openFilter(target.dataset.group).catch(report); },
       removeFilter: function (_event, target) {
@@ -148,7 +149,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
       await this.render();
       const packs = game.packs.filter(pack => pack.visible && pack.documentName === "Actor")
         .map(pack => ({key: pack.collection, name: pack.title, pack, inspectable: pack.testUserPermission(game.user, "OBSERVER")})).sort(byName);
-      this.sources = [{key: WORLD, name: "World actors"}, ...packs];
+      this.sources = [{key: WORLD, name: sbsI18n("swade-better-setting.UI.Worldactors_40ba9480c7")}, ...packs];
       for (let i = 0; i < packs.length && this.element?.isConnected; i += 4) {
         await Promise.all(packs.slice(i, i + 4).map(async source => {
           const index = await this.catalog.index(source, ROW_FIELDS);
@@ -247,7 +248,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
     const choices = (entries = available) => [...entries.values()]
       .filter(choice => !this.filters.get(group)?.has(choice.key)).sort(byName);
     const picker = this.picker = new ChoicePicker({choices: choices(), loading: rows.some(row => !catalog.facets(row)), pageSize: 100,
-      classes: ["sbs-bestiary-picker"], position: {height: 560}, window: {title: `Filter by ${name}`},
+      classes: ["sbs-bestiary-picker"], position: {height: 560}, window: {title: sbsI18n("swade-better-setting.UI.Filterby_0fd5437ae9", {p0: (name)})},
       onSelect: (_key, choice) => this.addFilter(group, choice)});
     await picker.render({force: true});
     // Foundry temporarily clears .rendered while either window updates. Its root
@@ -460,7 +461,7 @@ class BestiaryBrowser extends HandlebarsApplicationMixin(ApplicationV2) {
           const bound = input.dataset.crBound;
           const value = parseCR(input.value);
           if (value === undefined) {
-            ui.notifications.warn("Enter a Creature Rating between -2 and 9999, such as 1/2.");
+            ui.notifications.warn(sbsI18n("swade-better-setting.UI.EnteraCreatureRatingbetween2_f2f3095b31"));
             input.value = this.crRange[bound] === null ? "" : formatCR(this.crRange[bound]);
             return;
           }
@@ -547,7 +548,7 @@ export async function openBestiary() {
 
 async function resolveNPC(uuid) {
   const actor = await foundry.utils.fromUuid(uuid);
-  if (actor?.documentName !== "Actor" || actor.type !== "npc" || !actor.visible) throw new Error("This NPC is no longer available.");
+  if (actor?.documentName !== "Actor" || actor.type !== "npc" || !actor.visible) throw new Error(sbsI18n("swade-better-setting.UI.ThisNPCisnolongeravailable_04d212433a"));
   return actor;
 }
 
@@ -589,7 +590,7 @@ export function installBestiary() {
     const button = document.createElement("button");
     button.type = "button";
     button.className = "sbs-open-bestiary";
-    button.innerHTML = '<i class="fa-solid fa-paw" inert></i> Browse Bestiary';
+    button.innerHTML = `<i class="fa-solid fa-paw" inert></i> ${sbsI18n("swade-better-setting.UI.BrowseBestiary_78c48885e7")}`;
     button.addEventListener("click", () => openBestiary().catch(report));
     footer.append(button);
   });

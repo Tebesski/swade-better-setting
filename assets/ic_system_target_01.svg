@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" fill="none">
+  <!-- 外リング: 外径58 内径48 -->
+  <path fill-rule="evenodd" d="
+    M64 6
+    A58 58 0 1 1 64 122
+    A58 58 0 1 1 64 6
+    Z
+    M64 16
+    A48 48 0 1 0 64 112
+    A48 48 0 1 0 64 16
+    Z
+  " fill="white"/>
+  <!-- 中リング: 外径38 内径28 -->
+  <path fill-rule="evenodd" d="
+    M64 26
+    A38 38 0 1 1 64 102
+    A38 38 0 1 1 64 26
+    Z
+    M64 36
+    A28 28 0 1 0 64 92
+    A28 28 0 1 0 64 36
+    Z
+  " fill="white"/>
+  <!-- 内リング: 外径18 内径10 -->
+  <path fill-rule="evenodd" d="
+    M64 46
+    A18 18 0 1 1 64 82
+    A18 18 0 1 1 64 46
+    Z
+    M64 54
+    A10 10 0 1 0 64 74
+    A10 10 0 1 0 64 54
+    Z
+  " fill="white"/>
+  <!-- 中央点 -->
+  <circle cx="64" cy="64" r="5" fill="white"/>
+</svg>
