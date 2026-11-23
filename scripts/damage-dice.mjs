@@ -46,7 +46,7 @@ function renderDice({formula, dice}) {
   return result + formula.slice(cursor);
 }
 
-export const damageState = base => ({base: diceFormula(base), bonuses: [], allUpgrades: [], adjustments: []});
+export const damageState = base => ({base: diceFormula(String(base ?? "").trim() ? base : "0"), bonuses: [], allUpgrades: [], adjustments: []});
 const combineDamage = (base, bonuses) => bonuses.reduce((formula, bonus) => `(${formula}) + (${bonus})`, base);
 const renderDamage = state => combineDamage(renderDice(state.base), state.bonuses.map(renderDice));
 

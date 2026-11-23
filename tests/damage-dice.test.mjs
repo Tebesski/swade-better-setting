@@ -18,6 +18,17 @@ test("unchecked upgrades cap at d12 while checked overflow accumulates per die",
   assert.equal(project("2d12", upgrade(1, true)).base, "2d12+2");
 });
 
+test("added damage supplies a valid formula when a power has no base damage", () => {
+  for (const base of ["", "  ", undefined, null]) {
+    const plan = project(base, addDice("1d6x+2"));
+    assert.equal(plan.base, "0");
+    assert.deepEqual(plan.bonuses, ["1d6x+2"]);
+    assert.equal(plan.formula, "(0) + (1d6x+2)");
+    assert.equal(plan.adjustments.length, 1);
+  }
+  assert.equal(project("", upgrade(1)).adjustments.length, 0);
+});
+
 test("overflow preserves the die modifiers, flavors, and surrounding arithmetic", () => {
   assert.equal(project("2d10x [Fire d4] - 1d12r<2 + @d6 + 1D20", upgrade(2, true)).base,
     "2d12x [Fire d4]+2 - (1d12r<2+2) + @d6 + 1D20");

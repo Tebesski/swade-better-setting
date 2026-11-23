@@ -102,16 +102,28 @@ export function installRollLayout() {
     const list = root.querySelector("ul.modifiers");
     if (!list) return;
     list.classList.add("sbs-scroll-modifiers");
-    const binding = {frame: null};
+    const binding = {frame: null, rows: new Set()};
     const measure = () => {
       binding.frame = null;
       if (!list.isConnected) return;
       updateTargetTooltips(root);
       const bounds = root.getBoundingClientRect();
+      for (const menu of root.querySelectorAll(".presets > .dropdown:not(.collapsed)")) {
+        const selections = menu.querySelector(".selections");
+        if (!selections) continue;
+        const bottom = Math.min(window.innerHeight - 12, bounds.bottom - 12);
+        const available = Math.max(40, bottom - selections.getBoundingClientRect().top - 12);
+        const cap = Math.min(300, available) + "px";
+        if (selections.style.maxHeight !== cap) selections.style.maxHeight = cap;
+        selections.style.paddingBottom = "6px";
+      }
       const top = Math.max(8, Math.min(bounds.top, window.innerHeight - bounds.height - 8));
       if (Math.abs(top - bounds.top) > 1) app.setPosition({top});
       const rows = [...list.querySelectorAll(":scope > .modifier-entry")].filter(row => !row.hidden);
-      for (const row of rows.slice(0, 4)) binding.resize.observe(row);
+      const observed = new Set(rows.slice(0, 4));
+      for (const row of binding.rows) if (!observed.has(row)) binding.resize.unobserve(row);
+      for (const row of observed) if (!binding.rows.has(row)) binding.resize.observe(row);
+      binding.rows = observed;
       list.style.removeProperty("--sbs-modifier-row-height");
       if (rows.length > 4) {
         const rowHeight = Math.max(...rows.map(row => row.offsetHeight));
@@ -132,6 +144,7 @@ export function installRollLayout() {
     binding.resize = new ResizeObserver(schedule);
     binding.resize.observe(list);
     binding.resize.observe(root);
+    for (const menu of root.querySelectorAll(".presets > .dropdown")) binding.resize.observe(menu);
     for (const section of root.querySelectorAll(".sbs-roll-targets")) binding.resize.observe(section);
     binding.mutation = new MutationObserver(schedule);
     binding.mutation.observe(list, {childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["hidden"]});
@@ -143,8 +156,15 @@ export function installRollLayout() {
     measure();
     schedule();
   });
+  let targetFrame = null;
   const refresh = () => {
-    for (const app of dialogs) if (app.rendered) rollTargets(app.element);
+    if (!dialogs.size || targetFrame !== null) return;
+    // Multi-target selection emits one hook per token. Rebuild badges once per
+    // frame, including a single overflow measurement after the batch.
+    targetFrame = requestAnimationFrame(() => {
+      targetFrame = null;
+      for (const app of dialogs) if (app.rendered) rollTargets(app.element);
+    });
   };
   for (const hook of [sbsI18n("swade-better-setting.UI.targetToken_0acd860981"), sbsI18n("swade-better-setting.UI.controlToken_93dbf3f69c"), sbsI18n("swade-better-setting.UI.updateToken_0a526b9437"), sbsI18n("swade-better-setting.UI.deleteToken_816f3e587e"), sbsI18n("swade-better-setting.UI.canvasTearDown_c4285d6f05")]) Hooks.on(hook, refresh);
 }

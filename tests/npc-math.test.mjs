@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {test} from "node:test";
 import {STANDARD, aceAtLeast, advancementStrength, attackPressure, attackRating, combatEstimate, creatureRating, damageOutcomes, encounterThreat, formatCR, parseCR, parseDamage, recoveryOdds, referencePC, strike, traitAtLeast, volleyOdds, woundPenalty} from "../scripts/npc-math.mjs";
 import {BETTER_POWERS, addCastingEntry, compileCasting} from "../scripts/npc-casting.mjs";
-import {damageBenchmarks, makePreset, managedTags, npcRank, npcSource, sizeStrength} from "../scripts/npc-data.mjs";
+import {actorTrait, damageBenchmarks, makePreset, managedTags, npcRank, npcSource, sizeStrength} from "../scripts/npc-data.mjs";
 import {setMagazineField} from "../scripts/npc-attack.mjs";
 import {powerCandidates} from "../scripts/npc-powers.mjs";
 
@@ -14,6 +14,7 @@ test("aces use the full tail and Wild Cards keep the higher die with critical fa
   close(aceAtLeast(6, 12), 1 / 36);
   close(aceAtLeast(6, 14), 5 / 216);
   close(traitAtLeast({sides: 6}, 4), .5);
+  close(traitAtLeast({sides: 6, modifier: 9}, 4), 5 / 6);
   close(traitAtLeast({sides: 6, wild: 6}, 4), .75);
   close(traitAtLeast({sides: 6, wild: 6, modifier: 9}, 4), 35 / 36);
   close(traitAtLeast({sides: 4, wild: 6, modifier: -2}, 4), 31 / 96);
@@ -102,6 +103,13 @@ test("rank presets preserve specialization and source data retains native defens
   const actor = npcSource(draft, [], {prototypeToken: {}}, () => "id");
   assert.equal(npcRank(actor), "Heroic");
   assert.equal(actor.system.wounds.max, 2);
+  for (const [wildcard, resilience, size, expected] of [
+    [false, 0, 0, 0], [false, 1, 0, 1], [false, 2, 0, 2], [false, 2, 8, 4],
+    [true, 0, 0, 3], [true, 1, 0, 3], [true, 2, 0, 3], [true, 2, 4, 4], [true, 2, 12, 6]
+  ]) {
+    const built = npcSource({...draft, wildcard, resilience, size}, [], {prototypeToken: {}}, () => "id");
+    assert.equal(built.system.wounds.max, expected);
+  }
   assert.equal(actor.system.attributes.smarts.animal, true);
   assert.equal(actor.prototypeToken.width, 2);
   assert.equal(actor.flags["swade-better-setting"].npc.cr, 0);
@@ -119,7 +127,18 @@ test("size changes Strength suggestions and Tiny natural damage follows the crea
 
 test("attack benchmarks progress with rank and keep native melee Strength and Tiny damage", () => {
   assert.deepEqual(damageBenchmarks("Novice", "ranged").map(row => row.formula), ["1d4+1d6", "2d6", "1d6+1d8"]);
-  assert.deepEqual(damageBenchmarks("Legendary", "melee").map(row => row.formula), ["@str+1d8+1", "@str+1d10", "@str+1d12"]);
+  assert.deepEqual(damageBenchmarks("Legendary", "melee").map(row => row.formula), ["@str+1d10+1", "@str+1d12+1", "@str+1d12+2"]);
+  for (const mode of ["melee", "power", "ranged"]) {
+    let previousLow = 0;
+    for (const rank of ["Novice", "Seasoned", "Veteran", "Heroic", "Legendary"]) {
+      const means = damageBenchmarks(rank, mode).map(({formula}) => {
+        const {dice, flat} = parseDamage(formula.replace("@str", "1d6"));
+        return dice.reduce((sum, sides) => sum + sides * (sides + 1) / (2 * (sides - 1)), flat);
+      });
+      assert.ok(previousLow < means[0] && means[0] < means[1] && means[1] < means[2]);
+      previousLow = means[0];
+    }
+  }
   assert.deepEqual(damageBenchmarks("Veteran", "melee", -4).map(row => row.formula), ["1"]);
   assert.deepEqual(damageBenchmarks("Novice", "none"), []);
   assert.equal(makePreset("marksman", "Heroic").damage, damageBenchmarks("Heroic", "ranged")[1].formula);
@@ -321,7 +340,7 @@ test("compiled casting assigns the native arcane name, trait, and pool separatel
   assert.deepEqual(actor.items[0].system.actions, {trait: "Faith", dmgMod: "1"});
   assert.equal(actor.items[2].system.arcane, "");
   assert.equal(actor.items.find(item => item.name === draft.attackName).system.arcane, "Magic");
-  assert.equal(actor.system.wounds.max, 5);
+  assert.equal(actor.system.wounds.max, 3);
   assert.deepEqual(actor.flags["swade-better-setting"].npc.defenses, {scale: -2});
   assert.equal(actor.effects[0].name, "Ward");
   assert.equal(items[0].system.arcane, "Old");
@@ -365,4 +384,38 @@ test("four-exchange defense matches hand calculations for second Shaken, Hardy, 
   assert.equal(woundPenalty({ignored: 1}, 4), 3);
   assert.equal(woundPenalty({ignored: 2, woundsOrFatigueIgnored: 1}, 5), 2);
   assert.equal(woundPenalty({ignored: 2}, 1), 0);
+});
+
+test("actor dice above d12 use flat bonuses and player reference Bennies follow the core rules", () => {
+  const source = {die: {sides: 16, modifier: -1}, "wild-die": {sides: 8}};
+  const actor = {isWildcard: true, system: {attributes: {strength: source}, stats: {globalMods: {}}}};
+  assert.deepEqual(actorTrait(actor, source), {sides: 12, modifier: 1, wild: 8});
+  assert.equal(referencePC(0).bennies, 3);
+  assert.equal(encounterThreat(1, 0, {partyPresent: true}).partyWin, 0);
+  assert.equal(encounterThreat(1, 0).partyWin, null);
+});
+
+test("activation must succeed before a power can hit and determines PP expenditure", () => {
+  const spell = {...STANDARD.attacks[1], mode: "power", trait: {sides: 6}, resource: {key: "pp", cost: 2, capacity: 3}};
+  close(strike(spell, {...STANDARD, scale: 4}).hit, .5);
+  const foe = {...STANDARD, scale: -4, attacks: []};
+  const first = attackRating(spell, foe).pressure;
+  // Every cast activates on 4, only lands on 8. One failure leaves enough PP for another try.
+  const result = combatEstimate({...STANDARD, attacks: [spell]}, {opponent: foe});
+  close(result.output, first * 1.5);
+  close(result.survival, 1);
+  close(result.turns, 4);
+});
+
+test("Heavy Armor blocks conventional damage at any AP, while incoming RoF resolves individual hits", () => {
+  const bullet = {...STANDARD.attacks[1], ap: 99, damage: {dice: [], flat: 10}, raiseDice: []};
+  const tank = {...STANDARD, heavyArmor: true};
+  close(strike(bullet, tank).outcomes[0], 1);
+  assert.ok(strike({...bullet, heavyWeapon: true}, tank).outcomes[0] < 1);
+  const opponent = {...STANDARD, attacks: [bullet]};
+  const defender = {...STANDARD, bennies: 0};
+  const one = combatEstimate(defender, {opponent});
+  const burst = combatEstimate(defender, {opponent: {...opponent, attacks: [{...bullet, shots: 3}]}});
+  assert.ok(burst.survival < one.survival);
+  close(combatEstimate(tank, {opponent}).survival, 1);
 });

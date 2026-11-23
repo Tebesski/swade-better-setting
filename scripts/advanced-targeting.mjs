@@ -93,7 +93,9 @@ export function withAdvancedTargeting({actor, item, action = "formula", traitAct
   if (!game.settings.get(MODULE_ID, "advancedTargeting")
     || game.user.targets.size) return execute();
   const range = requestRange(actor, item, action);
-  if (!range && !traitAction && item?.type !== "weapon") return execute();
+  const rangeText = String(actionRange(item, action)).trim().toLocaleLowerCase();
+  const touch = rangeText === "touch" || rangeText === game.i18n.localize("SWADE.Range.Touch").trim().toLocaleLowerCase();
+  if (!range && !touch && !traitAction && item?.type !== "weapon") return execute();
   const source = sourceToken(actor);
   if (!source) return execute();
   session?.cancel();

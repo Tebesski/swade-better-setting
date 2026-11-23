@@ -1,0 +1,81 @@
+// Run only against the disposable maneuver-qa clone on port 30042.
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {chromium} from 'playwright';
+const fixture=JSON.parse(await readFile(process.env.INLINE_DAMAGE_FIXTURE ?? new URL('./fixtures/launch-modifier-damage.json',import.meta.url),'utf8'));
+const browser=await chromium.launch({headless:true,executablePath:process.env.LOCALAPPDATA+'/ms-playwright/chromium_headless_shell-1255/chrome-headless-shell-win64/chrome-headless-shell.exe',args:['--enable-unsafe-swiftshader']});
+const page=await browser.newPage({viewport:{width:1500,height:1080}});page.setDefaultTimeout(15000);
+const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.log('PAGEERROR',e.message)});
+page.on('console',m=>{if(m.type()==='error')console.log('CONSOLE',m.text().slice(0,350))});
+try {
+ await page.goto('http://localhost:30042');
+ await page.locator('select[name=userId]').selectOption({label:'Gamemaster'});await page.getByRole('button',{name:'Join Game Session',exact:true}).click();
+ await page.waitForFunction(()=>globalThis.game?.ready,null,{timeout:60000});
+ assert.equal(await page.evaluate(()=>game.world.id),'maneuver-qa');
+ console.log('MODULES',await page.evaluate(()=>game.modules.contents.filter(m=>m.active).map(m=>m.id)));
+ await page.addStyleTag({content:'#notifications{pointer-events:none!important}'});
+ await page.evaluate(async()=>{const needed=['swade-better-setting','swade-better-effects','swade-better-powers','swade-better-templates','swade-hud','swade-tools','swade-targeted-damage'];const current=game.settings.get('core','moduleConfiguration');await game.settings.set('core','moduleConfiguration',Object.fromEntries(needed.map(id=>[id,true])));await game.settings.set('swade','systemMigrationVersion','6.0.4');});
+ await page.reload();await page.waitForFunction(()=>globalThis.game?.ready,null,{timeout:60000});
+
+ errors.length=0;
+ const ids=await page.evaluate(async fixture=>{
+  globalThis.cqa={};
+  const {makeContext}=await import('/modules/swade-better-effects/scripts/roll-context.mjs');
+  const {updateCast}=await import('/modules/swade-better-powers/scripts/cast-results.mjs');
+  fixture.system.damage='2d4';
+  cqa.actor=await Actor.create({name:'Cast Controls QA',type:'character',items:[{name:'Bending',type:'skill',system:{attribute:'spirit',die:{sides:8}}},fixture]});
+  cqa.power=cqa.actor.items.find(i=>i.type==='power');cqa.defender=await Actor.create({name:'Shake Off QA',type:'character'});
+  cqa.scene=await Scene.create({name:'Cast Controls QA',width:1200,height:800,active:true,tokens:[{name:'Caster',actorId:cqa.actor.id,actorLink:true,x:100,y:100},{name:'Defender',actorId:cqa.defender.id,actorLink:true,x:400,y:100}]});
+  await cqa.scene.view();while(!canvas.ready)await new Promise(r=>setTimeout(r,100));
+  cqa.target=cqa.scene.tokens.contents[1];canvas.tokens.setTargets([cqa.target.id],{mode:'replace'});
+  const roll=await new CONFIG.Dice.SwadeRoll('2',{}, {rollType:'trait'}).evaluate();
+  const cast={id:foundry.utils.randomID(),itemUuid:cqa.power.uuid,actorUuid:cqa.actor.uuid,targetNumber:4};updateCast(cast,cqa.power,new Map(),false);
+  const context=makeContext(cqa.actor,cqa.power,['power'],{kind:'trait',skill:cqa.actor.items.getName('Bending')});
+  const content=await foundry.applications.handlebars.renderTemplate('systems/swade/templates/chat/dice/roll-message.hbs',{content:await roll.render(),modifiers:[{label:'Casting penalty',value:-1}]});
+  cqa.message=await ChatMessage.create({content,speaker:ChatMessage.getSpeaker({actor:cqa.actor,token:cqa.scene.tokens.contents[0]}),rolls:[roll],flags:{'swade-better-effects':{context},'swade-better-powers':{powerCast:cast}}});
+  return {message:cqa.message.id};
+ },fixture);
+ await page.evaluate(async()=>{await ui.sidebar.changeTab('chat','primary');await ui.sidebar.expand()});
+ const card=page.locator(`#chat .chat-message[data-message-id="${ids.message}"]`).first();
+ const damage=card.locator('[data-action=target-damage]');await damage.waitFor();
+ assert.equal(await damage.getAttribute('aria-disabled'),'false');
+ assert.equal(await card.locator('[data-action=shake-off]').getAttribute('aria-disabled'),'false');
+ const count=await page.evaluate(()=>game.messages.size);await damage.click();await card.locator('[data-action=resolve-target-damage]').waitFor();
+ assert.equal(await page.evaluate(()=>game.messages.size),count);
+ const casting=card.locator('.sbp-cast-options-button');await casting.waitFor();
+ assert.ok(await casting.evaluate(button=>Math.abs(button.getBoundingClientRect().width-button.parentElement.getBoundingClientRect().width)<3));
+ assert.equal(await casting.evaluate(button=>button.nextElementSibling?.matches('details.modifiers')),true);
+ await casting.click();
+ const form=page.locator('.sbp-cast-options-form');await form.waitFor();
+ await form.locator('[name=modifier][value=damaging]').check();
+ await page.locator('.sbp-dialog').getByRole('button',{name:'Apply',exact:true}).click();
+ await page.waitForFunction(()=>cqa.message.getFlag('swade-better-powers','powerCast').modifierOptions.damaging==='pm1');
+ const projected=await page.evaluate(()=>game.modules.get('swade-better-powers').api.getPowerDamageOptions(cqa.message,{preview:true}).formula);
+ assert.match(projected,/2d4/);console.log('PROJECTED',projected);
+ await card.locator('.sbp-cast-options-button').evaluate(el=>el.click());await form.waitFor();await form.locator('[name=modifier][value=damaging]').uncheck();await page.locator('.sbp-dialog').getByRole('button',{name:'Apply',exact:true}).click();
+ await page.waitForFunction(()=>!cqa.message.getFlag('swade-better-powers','powerCast').modifierOptions.damaging);
+ assert.equal(await card.locator('.sbp-cast-options-button').evaluate(button=>button.nextElementSibling?.matches('details.modifiers')),true);
+ await card.locator('[data-action=shake-off]').evaluate(el=>el.click());
+ const dialog=page.locator('.roll-dialog');await dialog.waitFor();console.log('SHAKE TITLE',await dialog.locator('.window-title').innerText());
+ assert.match(await dialog.locator('.window-title').innerText(),/Shake Off/);
+ await dialog.locator('button[type=submit]').first().click();await dialog.waitFor({state:'hidden'});
+ await page.waitForFunction(()=>!!cqa.message.getFlag('swade-better-effects',`targetResults.${cqa.target.id}.shakeOff`));
+ assert.equal(await page.evaluate(()=>game.messages.size),count);
+ 
+ await card.locator('[data-action=shake-off]').evaluate(el=>el.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true})));
+ await page.locator('.sbe-target-reroll').getByRole('button',{name:'Free',exact:true}).click();await dialog.waitFor();
+ await dialog.locator('button[type=submit]').first().click();await dialog.waitFor({state:'hidden'});
+ await page.waitForFunction(()=>cqa.message.getFlag('swade-better-effects',`targetResults.${cqa.target.id}.shakeOff`)?.strong===true);
+ const strong=await page.evaluate(()=>cqa.message.getFlag('swade-better-effects',`targetResults.${cqa.target.id}.shakeOff`));assert.ok(strong.modifiers.some(mod=>Number(mod.value)===-2));
+ await card.screenshot({path:'C:/Temp/cast-controls-fixed.png'});
+ const id=ids.message;
+ await page.evaluate(async()=>{await game.settings.set('core','moduleConfiguration',{...game.settings.get('core','moduleConfiguration'),'swade-better-templates':false})});
+ await page.reload();await page.waitForFunction(()=>globalThis.game?.ready,null,{timeout:60000});
+ const noTemplates=page.locator(`.chat-message[data-message-id="${id}"]`).first();await noTemplates.locator('.sbp-cast-options-button').waitFor();
+ await noTemplates.locator('.sbp-cast-options-button').evaluate(el=>el.click());await form.waitFor();
+ assert.equal(await form.locator('[name=modifier][value=damaging]').count(),1);await page.locator('.sbp-dialog [data-action=close]').click();
+ console.log('PASS Strong Shake Off -2 and Casting Options without Better Templates');
+ 
+ console.log('PASS base damage on failed casts, default Shake Off, full-width Casting Options above Modifiers, dynamic modifier selection and removal');
+ assert.deepEqual(errors,[]);
+}finally{await browser.close()}

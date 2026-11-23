@@ -3,6 +3,7 @@ import {MODULE_ID, PACK_ID, PACK_NAME, normalizeName, seedSkills, skillData} fro
 
 let initialization;
 let writes = Promise.resolve();
+const skillReads = new WeakMap();
 export const isPrimaryGM = () => game.users.activeGM?.id === game.user.id;
 export const getPack = () => game.packs.get(PACK_ID);
 
@@ -40,7 +41,25 @@ export async function librarySkills() {
   await initializeLibrary();
   const pack = getPack();
   if (!pack) throw new Error(sbsI18n("swade-better-setting.UI.AGMmustjoinonceto_1154b937b4"));
-  return (await pack.getDocuments()).filter(item => item.type === "skill").sort((a, b) => a.name.localeCompare(b.name));
+  // Reuse Foundry's live document cache, not fresh database copies on every
+  // picker refresh. Only fetch missing entries, sharing concurrent reads.
+  let pending = skillReads.get(pack);
+  if (!pending) {
+    pending = (async () => {
+      const index = await pack.getIndex();
+      const ids = index.filter(entry => entry.type === "skill").map(entry => entry._id);
+      const missing = ids.filter(id => !pack.has(id) && !pack.invalidDocumentIds?.has(id));
+      if (missing.length) await pack.getDocuments({_id__in: missing});
+      return ids;
+    })();
+    skillReads.set(pack, pending);
+  }
+  try {
+    const ids = await pending;
+    return ids.map(id => pack.get(id)).filter(item => item?.type === "skill").sort((a, b) => a.name.localeCompare(b.name));
+  } finally {
+    if (skillReads.get(pack) === pending) skillReads.delete(pack);
+  }
 }
 
 export function storeSkill(document) {

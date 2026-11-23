@@ -1,5 +1,23 @@
 {
   "swade-better-setting": {
+    "CR": {
+      "ExtraResilience": "Extra resilience",
+      "HeavyArmor": "Heavy Armor blocks the reference opponents’ ordinary attacks. Check whether this party has Heavy Weapons.",
+      "PartyAverage": "Average party CR: {value}",
+      "EnemyAverage": "Average encounter CR: {value}",
+      "WinEstimate": "Party win estimate: {value} (strength-based heuristic)",
+      "ForecastWins": "Party wins {wins} of {trials} simulated fights ({value}). Assumes reachable targets, focused attacks and shuffled initiative groups. Uses current Wounds, Shaken, Fatigue, personal Bennies and Power Points.",
+      "ForecastPartial": "Some abilities fall outside the simulation. Review control powers, area effects and conditional abilities in this matchup.",
+      "ForecastUnresolved": "{unresolved} of {trials} fights had no winner within 100 rounds.",
+      "Inconclusive": "Inconclusive",
+      "ForecastManual": "The CR budget honors the GM’s manual rating.",
+      "ForecastLarge": "Using the CR budget for a roster larger than 32 active combatants.",
+      "ForecastMissing": "Using the CR budget because an active combatant lacks a modeled attack or supported actor type.",
+      "ForecastPending": "Calculating the combatants’ head-to-head forecast…",
+      "ForecastUnavailable": "The combat simulation was unavailable. Showing the CR budget.",
+      "UnevenNumbers": "Active combatants: {party} friendly, {enemies} opposing. Focused attacks can favor the larger side more than the estimate shows.",
+      "UnratedFallback": "{count} unrated combatant(s) counted at CR {cr}. Review their abilities before using this estimate."
+    },
     "UI": {
       "BetterSettingActions_5cab68eac9": "Better Setting — Actions",
       "UnlockBetterSettingActionstoinstall_fc7e7af676": "Unlock Better Setting — Actions to install the missing basic actions.",
@@ -549,7 +567,7 @@
       "NameyourNPC_332cbe2532": "Name your NPC",
       "CRmeasuresequivalentWildCardPC_033b9514ca": "CR measures equivalent Wild Card PC advances. CR 4 matches a reference Seasoned PC.",
       "Armour_642ebd131f": "Armour",
-      "AddsoneortwoWoundsto_43e7d4488c": "Adds one or two Wounds to the NPC’s capacity, including Wild Cards.",
+      "AddsoneortwoWoundsto_43e7d4488c": "Resilient Extras can take one Wound. Very Resilient Extras can take two. Large or greater Size adds its usual Wounds.",
       "OpenSizeTable_e8cb9fb5d1": "Open Size Table",
       "undeadfireguardian_6ffa392747": "undead, fire, guardian",
       "Chooseaflag_77e47f59e0": "Choose a flag",
@@ -941,6 +959,13 @@
       "IconClub": "Club",
       "IconBottle": "Bottle",
       "IconHammer": "Hammer"
+    },
+    "Illumination": {
+      "Title": "Illumination Penalties",
+      "Enable": "Enable",
+      "dim": "Dim",
+      "dark": "Dark",
+      "pitch": "Pitch Dark"
     }
   }
 }

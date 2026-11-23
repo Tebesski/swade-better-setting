@@ -29,7 +29,7 @@ export function aceAtLeast(sides, target) {
   return (sides - (target - 1) % sides) / sides ** (full + 1);
 }
 
-export function traitAtLeast({sides, modifier = 0, wild = 0, extraCritChance = 1 / 6}, target) {
+export function traitAtLeast({sides, modifier = 0, wild = 0, extraCritChance = 1}, target) {
   if (sides === 1) return 0; // Tiny Strength is a fixed score and is not rolled.
   const threshold = target - modifier;
   const primary = aceAtLeast(sides, threshold);
@@ -116,17 +116,17 @@ export function damageOutcomes({dice, flat}, toughness, maxWounds) {
   return result;
 }
 
-function attackTrait(attack, target, penalty) {
+export function attackTrait(attack, target, penalty) {
   const defense = target.attackModifiers?.[attack.mode] ?? 0;
   return {...attack.trait, modifier: (attack.trait.modifier ?? 0) + penalty + target.scale - attack.scale + defense};
 }
 
-function hitDamage(attack, target, woundCap, soak) {
-  if (attack.tinyMelee && (target.scale >= -2 || target.toughness > 1)) {
+export function hitDamage(attack, target, woundCap, soak) {
+  if ((target.heavyArmor && !attack.heavyWeapon) || (attack.tinyMelee && (target.scale >= -2 || target.toughness > 1))) {
     const miss = Float64Array.of(1, 0);
     return {normal: miss, raised: miss};
   }
-  const toughness = target.toughness - Math.min(target.armor, attack.ap ?? 0);
+  const toughness = target.toughness - bounded(attack.ap ?? 0, 0, Math.max(0, target.armor));
   const damage = {dice: [...attack.damage.dice, ...(target.damageModifier?.dice ?? [])], flat: attack.damage.flat + (target.damageModifier?.flat ?? 0)};
   const raisedDamage = {...damage, dice: [...damage.dice, ...(attack.tinyMelee ? [] : attack.raiseDice ?? [6])]};
   const threshold = target.wounds + 1;
@@ -138,15 +138,25 @@ function hitDamage(attack, target, woundCap, soak) {
   return {normal: damageOutcomes(damage, toughness, max), raised: damageOutcomes(raisedDamage, toughness, max)};
 }
 
-export function strike(attack, target, penalty = 0, woundCap = 0, {soak = false} = {}) {
-  if (!attack?.damage) return {hit: 0, raise: 0, outcomes: Float64Array.of(1, 0)};
+export function hitChances(attack, target, penalty) {
   const trait = attackTrait(attack, target, penalty);
   const tn = attack.mode === "melee" ? target.parry : 4;
-  const hit = traitAtLeast(trait, tn), raise = traitAtLeast(trait, tn + 4);
+  // One arcane roll decides both activation and accuracy. A target-side bonus
+  // can improve a hit, but cannot turn a failed activation into a cast.
+  const activation = attack.mode === "power" ? traitAtLeast({...attack.trait,
+    modifier: (attack.trait.modifier ?? 0) + penalty}, 4) : 1;
+  const hit = Math.min(activation, traitAtLeast(trait, tn));
+  const raise = Math.min(activation, traitAtLeast(trait, tn + 4));
+  return {activation, hit, raise};
+}
+
+export function strike(attack, target, penalty = 0, woundCap = 0, {soak = false} = {}) {
+  if (!attack?.damage) return {hit: 0, raise: 0, outcomes: Float64Array.of(1, 0)};
+  const {hit, raise, activation} = hitChances(attack, target, penalty);
   const {normal, raised} = hitDamage(attack, target, woundCap, soak);
   const outcomes = normal.map((chance, i) => chance * (hit - raise) + raised[i] * raise);
   outcomes[0] += 1 - hit;
-  return {hit, raise, outcomes};
+  return {hit, raise, outcomes, activation};
 }
 
 export const STANDARD = {
@@ -155,7 +165,8 @@ export const STANDARD = {
   attacks: ["melee", "ranged"].map(mode => ({mode, scale: 0, trait: {sides: 6, wild: 6}, damage: {dice: [6, 6], flat: 0}}))
 };
 
-export const woundPenalty = (profile, wounds) => Math.max(0, bounded(wounds - (profile.ignored ?? 0), 0, 3) - (profile.woundsOrFatigueIgnored ?? 0));
+export const woundPenalty = (profile, wounds, fatigue = 0) =>
+  Math.max(0, bounded(wounds - (profile.ignored ?? 0), 0, 3) + fatigue - (profile.woundsOrFatigueIgnored ?? 0));
 
 function soakOdds(profile, wounds, priorWounds) {
   const vigor = {...profile.vigor, modifier: (profile.vigor.modifier ?? 0) - woundPenalty(profile, priorWounds)};
@@ -168,7 +179,7 @@ export function recoveryOdds(profile, wounds = 0) {
   return traitAtLeast({...profile.spirit, modifier: (profile.spirit.modifier ?? 0) - woundPenalty(profile, wounds)}, 4);
 }
 
-const woundsFromHit = (bin, shaken, hardy) => bin === 1 && shaken && !hardy ? 1 : Math.max(0, bin - 1);
+export const woundsFromHit = (bin, shaken, hardy) => bin === 1 && shaken && !hardy ? 1 : Math.max(0, bin - 1);
 const mergeProbability = (map, key, probability) => map.set(key, (map.get(key) ?? 0) + probability);
 
 function applyHit(states, outcomes, target) {
@@ -213,7 +224,7 @@ function dieKinds(sides, modifier, tn) {
     .concat({kind: one, one: 1, chance: 1 / sides}).filter(kind => kind.chance > 0);
 }
 
-export function volleyOdds({sides, modifier = 0, wild = 0, extraCritChance = 1 / 6}, tn, shots) {
+export function volleyOdds({sides, modifier = 0, wild = 0, extraCritChance = 1}, tn, shots) {
   if (sides === 1) return [{hits: 0, raises: 0, chance: 1}]; // Fixed Tiny Strength is not rolled.
   const outcomes = dieKinds(sides, modifier, tn);
   let pool = new Map([["0,0,0", 1]]);
@@ -248,10 +259,10 @@ export function volleyOdds({sides, modifier = 0, wild = 0, extraCritChance = 1 /
 
 export function attackRating(attack, target, penalty = 0, woundCap = 0) {
   if (!(attack.shots > 1)) {
-    const {hit, raise, outcomes} = strike(attack, target, penalty, woundCap);
+    const {hit, raise, outcomes, activation} = strike(attack, target, penalty, woundCap);
     const states = applyHit(new Map([[0, 1]]), outcomes, target);
     const {pressure, wound} = impact(states, target);
-    return {hit, raise, wound, pressure};
+    return {hit, raise, wound, pressure, activation};
   }
   const trait = attackTrait(attack, target, penalty - (attack.recoil ? 2 : 0));
   const volleys = volleyOdds(trait, 4, attack.shots);
@@ -296,17 +307,17 @@ function turnOptions(profile, opponent, woundCap) {
         }
         ratings.set(ratingKey, rating);
       }
-      const {pressure, hit} = ratings.get(ratingKey);
-      if (pressure > best.pressure || (pressure === best.pressure && cost < best.cost)) best = {pressure, hit, cost, pool};
+      const {pressure, hit, activation} = ratings.get(ratingKey);
+      if (pressure > best.pressure || (pressure === best.pressure && cost < best.cost)) best = {pressure, hit, activation, cost, pool};
     }
-    const {pressure, hit, cost, pool} = best;
+    const {pressure, hit, activation = hit, cost, pool} = best;
     let budgets = [[budget, 1]];
     if (pool !== undefined) {
       const next = remaining.slice();
       next[pool] -= cost;
       const success = next.join(",");
       next[pool] = remaining[pool] - Math.min(1, cost);
-      budgets = [[success, hit], [next.join(","), 1 - hit]];
+      budgets = [[success, activation], [next.join(","), 1 - activation]];
     }
     const result = {pressure, budgets};
     cache.set(key, result);
@@ -316,13 +327,60 @@ function turnOptions(profile, opponent, woundCap) {
 }
 
 export function combatEstimate(profile, {woundCap = 0, opponent = STANDARD} = {}) {
-  const incoming = opponent.attacks.map(attack => strike(attack, profile, 0, woundCap, {soak: true}).outcomes);
   const turnsByBudget = turnOptions(profile, opponent, woundCap);
-  const soaks = new Map();
-  const maxBennies = bounded(profile.bennies, 0, ROUNDS);
-  let states = new Map([[turnsByBudget.initial, new Map([[maxBennies * 2, 1]])]]);
-  let turns = 0, output = 0;
+  const maxHitsPerRound = Math.max(1, ...opponent.attacks.map(attack => attack.shots ?? 1));
+  const maxBennies = bounded(profile.bennies, 0, ROUNDS * maxHitsPerRound);
   const key = (wounds, bennies, shaken) => (wounds * (maxBennies + 1) + bennies) * 2 + Number(shaken);
+  const woundsOf = state => Math.floor(state / (2 * (maxBennies + 1)));
+  const benniesOf = state => Math.floor(state / 2) % (maxBennies + 1);
+  const incoming = opponent.attacks.flatMap(attack => {
+    const weight = 1 / opponent.attacks.length;
+    if (!(attack.shots > 1)) return [{weight, hits: [strike(attack, profile, 0, woundCap, {soak: true}).outcomes]}];
+    const trait = attackTrait(attack, profile, attack.recoil ? -2 : 0);
+    const {normal, raised} = hitDamage(attack, profile, woundCap, true);
+    return volleyOdds(trait, 4, attack.shots).map(({hits, raises, chance}) => ({
+      weight: weight * chance, hits: [...Array(hits).fill(normal), ...Array(raises).fill(raised)]
+    }));
+  });
+  const soaks = new Map(), incomingStates = new Map();
+  function receive(state, outcomes, mass, next) {
+    const shaken = Boolean(state % 2), wounds = woundsOf(state), bennies = benniesOf(state);
+    for (let bin = 0; bin < outcomes.length; bin++) {
+      const chance = mass * outcomes[bin];
+      if (!chance) continue;
+      const suffered = woundsFromHit(bin, shaken, profile.hardy);
+      if (!suffered || !bennies) {
+        if (wounds + suffered <= profile.wounds) mergeProbability(next, key(wounds + suffered, bennies, shaken || bin > 0), chance);
+        continue;
+      }
+      const soakKey = suffered * (profile.wounds + 1) + wounds;
+      if (!soaks.has(soakKey)) soaks.set(soakKey, soakOdds(profile, suffered, wounds));
+      const odds = soaks.get(soakKey);
+      for (let soaked = Math.max(0, suffered + wounds - profile.wounds); soaked <= suffered; soaked++) {
+        mergeProbability(next, key(wounds + suffered - soaked, bennies - 1, soaked < suffered), chance * odds[soaked]);
+      }
+    }
+  }
+  // Damage and Soak depend on the defender's health, not on its remaining PP
+  // or which round it is. Reuse the same transition across those branches.
+  function afterAttack(state) {
+    if (incomingStates.has(state)) return incomingStates.get(state);
+    const next = new Map();
+    if (!incoming.length) next.set(state, 1);
+    for (const {weight, hits} of incoming) {
+      let branch = new Map([[state, weight]]);
+      for (const hit of hits) {
+        const results = new Map();
+        for (const [prior, mass] of branch) receive(prior, hit, mass, results);
+        branch = results;
+      }
+      for (const [end, mass] of branch) mergeProbability(next, end, mass);
+    }
+    incomingStates.set(state, next);
+    return next;
+  }
+  let states = new Map([[turnsByBudget.initial, new Map([[key(0, maxBennies, false), 1]])]]);
+  let turns = 0, output = 0;
   for (let round = 0; round < ROUNDS; round++) {
     const next = new Map();
     const addState = (budget, state, chance) => {
@@ -343,20 +401,8 @@ export function combatEstimate(profile, {woundCap = 0, opponent = STANDARD} = {}
       }
     };
     for (const [budget, group] of states) for (const [state, chance] of group) {
-      const shaken = state % 2 === 1;
-      const pair = (state - Number(shaken)) / 2;
-      const wounds = Math.floor(pair / (maxBennies + 1)), bennies = pair % (maxBennies + 1);
-      for (const outcomes of incoming) for (let bin = 0; bin < outcomes.length; bin++) {
-        const probability = chance * outcomes[bin] / incoming.length;
-        if (!probability) continue;
-        const suffered = woundsFromHit(bin, shaken, profile.hardy);
-        if (suffered && bennies) {
-          const soakKey = suffered * (profile.wounds + 1) + wounds;
-          if (!soaks.has(soakKey)) soaks.set(soakKey, soakOdds(profile, suffered, wounds));
-          soaks.get(soakKey).forEach((p, soaked) => {
-            add(budget, wounds + suffered - soaked, bennies - 1, soaked < suffered, probability * p);
-          });
-        } else add(budget, wounds + suffered, bennies, shaken || bin > 0, probability);
+      for (const [end, probability] of afterAttack(state)) {
+        add(budget, woundsOf(end), benniesOf(end), Boolean(end % 2), chance * probability);
       }
     }
     states = next;
@@ -372,7 +418,7 @@ export function referencePC(rank) {
   const spirit = {sides: [6, 6, 8, 8, 10][rank], wild: 6};
   const armor = [1, 1, 2, 2, 3][rank];
   const damage = [[6, 6], [6, 8], [8, 8], [8, 10], [10, 10]][rank];
-  return {...STANDARD, parry: 2 + skill.sides / 2, toughness: 2 + vigor.sides / 2 + armor,
+  return {...STANDARD, bennies: 3, parry: 2 + skill.sides / 2, toughness: 2 + vigor.sides / 2 + armor,
     armor, vigor, spirit, attacks: STANDARD.attacks.map(attack => ({...attack, trait: skill,
       damage: {dice: damage, flat: 0}, ap: rank === 4 ? 1 : 0}))};
 }
@@ -415,11 +461,16 @@ export function creatureRating(profile, woundCap = 0) {
   return {...estimate, cr: roundCR(rawCR), rawCR, strength};
 }
 
-export function encounterThreat(enemies, party) {
+export function encounterThreat(enemies, party, {partyPresent = false} = {}) {
   if (!(enemies > 0)) return {label: sbsI18n("swade-better-setting.UI.None_dc937b5989"), threat: 0, partyWin: party > 0 ? 1 : null};
-  if (!(party > 0)) return {label: sbsI18n("swade-better-setting.UI.Addthepartytoinitiative_4097bf09e0"), threat: null};
+  if (!(party > 0)) return partyPresent
+    ? {label: sbsI18n("swade-better-setting.UI.Extreme_8fca425ffb"), threat: 1, partyWin: 0}
+    : {label: sbsI18n("swade-better-setting.UI.Addthepartytoinitiative_4097bf09e0"), threat: null, partyWin: null};
   const ratio = enemies / party;
   const threat = 1 / (1 + (1 / ratio) ** 2);
-  const label = threat < .2 ? sbsI18n("swade-better-setting.UI.Low_f793de205e") : threat < .4 ? sbsI18n("swade-better-setting.UI.Moderate_5c42afc7a2") : threat < .6 ? sbsI18n("swade-better-setting.UI.High_c4ebc6d4a5") : threat < .8 ? sbsI18n("swade-better-setting.UI.Severe_aa93f64a30") : sbsI18n("swade-better-setting.UI.Extreme_8fca425ffb");
-  return {label, threat, partyWin: 1 - threat};
+  return {label: threatLabel(threat), threat, partyWin: 1 - threat};
+}
+
+export function threatLabel(threat) {
+  return threat < .2 ? sbsI18n("swade-better-setting.UI.Low_f793de205e") : threat < .4 ? sbsI18n("swade-better-setting.UI.Moderate_5c42afc7a2") : threat < .6 ? sbsI18n("swade-better-setting.UI.High_c4ebc6d4a5") : threat < .8 ? sbsI18n("swade-better-setting.UI.Severe_aa93f64a30") : sbsI18n("swade-better-setting.UI.Extreme_8fca425ffb");
 }

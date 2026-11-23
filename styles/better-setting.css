@@ -12,6 +12,9 @@
 
 /* Keep the open modifier menu above the HUD forecast, while allowing specialized menus to set their own layer. */
 :where(.application.swade.roll-dialog .presets > .dropdown:not(.collapsed)) { z-index: 1; }
+.application.swade.roll-dialog .presets > .dropdown { transition: none; }
+.sbs-illumination-settings > .form-group[hidden] { display: none !important; }
+.sbs-illumination-settings > summary { cursor: pointer; font-weight: bold; margin-block: 8px; }
 
 .sbs-picker .window-content { padding: 12px; }
 .sbs-improvised-builder [hidden] { display: none !important; }

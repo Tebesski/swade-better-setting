@@ -1,0 +1,45 @@
+{
+  "name": "Launch (Fire)",
+  "type": "power",
+  "img": "icons/magic/sonic/explosion-impact-shock-wave.webp",
+  "system": {
+    "rank": "Novice",
+    "pp": 2,
+    "range": "@spi",
+    "damage": "",
+    "arcane": "Firebending",
+    "description": "<p>A regression power whose damage comes entirely from a selected modifier.</p>",
+    "actions": {
+      "trait": "Bending"
+    }
+  },
+  "flags": {
+    "swade-better-powers": {
+      "powerModifiers": [
+        {
+          "id": "damaging",
+          "name": "Damaging",
+          "description": "",
+          "options": [
+            {
+              "id": "pm1",
+              "label": "",
+              "cost": 2,
+              "changes": [
+                {
+                  "id": "tsJKRJb3zaL8lHRB",
+                  "type": "addDamageDice",
+                  "enabled": true,
+                  "label": "",
+                  "system": {
+                    "formula": "2d4x"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

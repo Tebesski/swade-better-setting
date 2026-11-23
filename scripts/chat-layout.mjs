@@ -2,6 +2,8 @@ import {t as sbsI18n} from "./i18n.mjs";
 import {usesTargetRows} from "./chat-target-data.mjs";
 
 const observers = new Map();
+const rootObservers = new WeakMap();
+const wiredRoots = new WeakSet();
 const descriptions = new WeakMap();
 
 function after(anchor, node) {
@@ -58,6 +60,20 @@ function layout(message, root) {
     ?? content.querySelector("[data-item-uuid]")?.dataset.itemUuid;
   const item = (itemUuid ? foundry.utils.fromUuidSync(itemUuid) : null) ?? actor?.items.get(message.flags?.["swade-tools"]?.itemroll);
   const context = message.flags?.["swade-better-effects"]?.context ?? {};
+  const weaponDamage = item?.type === "weapon" && (context.rollType === "damage"
+    || message.flags?.["swade-tools"]?.rolltype === "damage");
+  root.classList.toggle("sbs-weapon-damage-card", weaponDamage);
+  if (weaponDamage) {
+    // Tools puts an item card and raw damage formula in the speaker's flavor.
+    // Keep the item header in the content, and retain unrelated warning text.
+    const flavor = header?.querySelector(".flavor-text");
+    flavor?.querySelectorAll(".swadetools-pseudocard").forEach(node => node.remove());
+    const prefix = game.i18n.localize("SWADE.Dmg") + ":";
+    flavor?.querySelectorAll(":scope > div").forEach(node => {
+      if (node.textContent.trim().startsWith(prefix)) node.remove();
+    });
+    if (flavor && !flavor.textContent.trim() && !flavor.children.length) flavor.remove();
+  }
   let rows = content.querySelector(".sbe-target-responses");
   if (!usesTargetRows({item, context})) { rows?.remove(); rows = null; }
   root.classList.toggle("sbs-has-target-rows", !!rows);
@@ -105,7 +121,7 @@ function layout(message, root) {
   } else if (flags && content.firstElementChild !== flags) {
     content.prepend(flags);
   }
-  if (rows && card.lastElementChild !== rows) card.append(rows);
+  if (rows && rows.parentElement !== card) card.append(rows);
   const roll = content.querySelector(".swade-roll-message");
   const modifiers = [...content.querySelectorAll("details.modifiers")];
   if (roll && modifiers.length) {
@@ -116,19 +132,56 @@ function layout(message, root) {
     }
     if (roll.lastElementChild !== main) roll.append(main);
   }
+  const castingOptions = content.querySelector(".sbp-cast-options-button");
+  const modifierAccordion = content.querySelector(".sbs-roll-modifier-accordion, details.modifiers");
+  if (castingOptions && modifierAccordion && modifierAccordion.previousElementSibling !== castingOptions) modifierAccordion.before(castingOptions);
+  const targetFlags = content.querySelector(".sbe-chat-target-flags");
+  if (targetFlags) {
+    const damage = context.rollType === "damage" || message.flags?.["swade-tools"]?.rolltype === "damage"
+      || message.significantRoll?.options?.rollType === "damage";
+    const anchor = damage ? content.querySelector("button.calculate-wounds") ?? content.querySelector(".swadetools-target-title")
+      : content.querySelector(".swadetools-target-title");
+    if (anchor && anchor.previousElementSibling !== targetFlags) anchor.before(targetFlags);
+  }
+  // Notes may finish enriching after the other modules have rendered their controls.
+  // Keep every note source visible at the bottom of the actual message content.
+  const notes = [...root.querySelectorAll(".sbe-roll-notes")];
+  const tail = [...content.children].slice(-notes.length);
+  if (notes.length && !notes.every((node, index) => tail[index] === node)) content.append(...notes);
 }
 
 export function installChatLayout() {
   Hooks.on("renderChatMessageHTML", (message, root) => {
-    observers.get(message.id)?.disconnect();
+    const copies = observers.get(message.id) ?? new Set();
+    const previous = rootObservers.get(root);
+    previous?.release();
+    if (previous) copies.delete(previous.ref);
     layout(message, root);
     if (!root.classList.contains("sbs-chat-card")) return;
     // Other modules enrich their cards asynchronously. Move existing nodes so
     // native roll, damage, effect and template handlers remain attached.
-    const observer = new MutationObserver(() => layout(message, root));
-    observer.observe(root, {childList: true, subtree: true});
-    observers.set(message.id, observer);
-    root.addEventListener("click", event => {
+    const binding = {frame: null};
+    const observe = () => binding.observer.observe(root, {childList: true, subtree: true});
+    binding.observer = new MutationObserver(() => {
+      if (binding.frame !== null) return;
+      binding.frame = requestAnimationFrame(() => {
+        binding.frame = null;
+        // Layout moves existing nodes. Do not observe our own changes and run
+        // the entire layout again in response to them.
+        binding.observer.disconnect();
+        try { layout(message, root); } finally { observe(); }
+      });
+    });
+    binding.release = () => {
+      binding.observer.disconnect();
+      if (binding.frame !== null) cancelAnimationFrame(binding.frame);
+      binding.frame = null;
+    };
+    observe();
+    rootObservers.set(root, binding);
+    binding.ref = new WeakRef(binding);
+    copies.add(binding.ref); observers.set(message.id, copies);
+    if (!wiredRoots.has(root)) root.addEventListener("click", event => {
       const portrait = event.target.closest(".sbe-target-row img");
       if (!portrait) return;
       event.preventDefault(); event.stopImmediatePropagation();
@@ -136,12 +189,12 @@ export function installChatLayout() {
       if (!canvas.ready || token?.parent.id !== canvas.scene.id || !token.object?.visible) return ui.notifications.warn(sbsI18n("swade-better-setting.UI.Thistargetisnotvisibleon_0a78971b2e"));
       void canvas.animatePan({x: token.object.center.x, y: token.object.center.y});
     }, {capture: true});
-    // Removed history entries must not retain observers or document references.
-    for (const [id, old] of observers) {
-      if (id !== message.id && !document.querySelector(`.chat-message[data-message-id="${CSS.escape(id)}"]`)) {
-        old.disconnect(); observers.delete(id);
-      }
-    }
+    wiredRoots.add(root);
+    // History cards are initially detached while Foundry builds the batch.
+    // Do not disconnect them based on isConnected: later hooks still enrich them.
+    // Weak references let discarded cards and their observers be collected.
+    // Prune only this message's copies: scanning all history per card is quadratic.
+    for (const ref of copies) if (!ref.deref()) copies.delete(ref);
   });
-  Hooks.on("deleteChatMessage", message => { observers.get(message.id)?.disconnect(); observers.delete(message.id); });
+  Hooks.on("deleteChatMessage", message => { for (const ref of observers.get(message.id) ?? []) ref.deref()?.release(); observers.delete(message.id); });
 }

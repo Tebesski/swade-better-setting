@@ -26,7 +26,7 @@ const increment = (step, ceiling = 6) => {
 
 export function rankIndex(value) { return RANKS.findIndex(rank => normalizeName(rank) === normalizeName(value)); }
 
-const MELEE_DAMAGE = ["1d4", "1d6", "1d6+1", "1d8", "1d8+1", "1d10", "1d12"];
+const MELEE_DAMAGE = ["1d4", "1d6", "1d8", "1d8+1", "1d10+1", "1d12+1", "1d12+2"];
 const OTHER_DAMAGE = ["1d4+1d6", "2d6", "1d6+1d8", "2d8", "1d8+1d10", "2d10", "1d10+1d12"];
 export function damageBenchmarks(rank, mode, size) {
   if (mode === "none") return [];
@@ -105,7 +105,8 @@ export function attackTags(value, api) {
 function diceOf(document, wildcard) {
   const die = document?.die;
   if (!die?.sides) return {sides: 4, modifier: -2, wild: wildcard ? 6 : 0};
-  return {sides: die.sides, modifier: die.modifier ?? 0, wild: wildcard ? document["wild-die"]?.sides || 6 : 0};
+  return {sides: Math.min(12, die.sides), modifier: (die.modifier ?? 0) + Math.max(0, (die.sides - 12) / 2),
+    wild: wildcard ? document["wild-die"]?.sides || 6 : 0};
 }
 
 const SHORT_ATTRS = {agi: "agility", sma: "smarts", spi: "spirit", str: "strength", vig: "vigor"};
@@ -130,7 +131,7 @@ const sumFlat = mods => mods.reduce((sum, value) => sum + (Number.isFinite(Numbe
 
 export function actorTrait(actor, source) {
   const die = diceOf(source, actor.isWildcard);
-  // The installed SWADE roll reports a single natural 1 as a critical failure for Extras.
+  // A lone natural 1 fails for Extras even when the critical-failure confirmation does not.
   if (!die.wild) die.extraCritChance = 1;
   const attribute = source?.attribute || ATTRIBUTES.find(key => actor.system.attributes[key] === source);
   const mods = actor.system.stats.globalMods ?? {};
@@ -155,6 +156,7 @@ export function actorCombatProfile(actor) {
   const scale = sys.stats.scale ?? 0;
   const global = sys.stats.globalMods ?? {};
   const warnings = [];
+  if (actor.hasHeavyArmor) warnings.push(sbsI18n("swade-better-setting.CR.HeavyArmor"));
   const attacks = [];
   const addDamageMods = (result, mods, label, resolve = bonus => damageFor(actor, bonus)) => {
     for (const bonus of mods.filter(Boolean)) {
@@ -214,7 +216,7 @@ export function actorCombatProfile(actor) {
       const cost = Math.max(0, Number(system.ppModifiers?.cost ?? system.pp) || 0);
       const noPP = powersAPI?.usesNoPowerPoints?.(item) ?? game.settings.get("swade", "noPowerPoints");
       if (noPP) mods.push(-Math.ceil(cost / 2));
-      else if (cost) {
+      else if (cost && !system.innate) {
         const key = system.arcane || "general";
         const capacity = Number(sys.powerPoints[key]?.max) || 0;
         if (capacity < cost) {
@@ -227,7 +229,8 @@ export function actorCombatProfile(actor) {
     const raiseDice = Array.from({length: bounded(system.bonusDamageDice ?? 1, 0, 12)}, () => bounded(system.bonusDamageDie || 6, 2, 100));
     const ap = (Number(system.ap) || 0) + sumFlat(activeValues(global.ap));
     addAttack({name: item.name, mode, traitName: trait, damage: system.damage, ap, traitMods: mods,
-      damageMods: [system.actions?.dmgMod, ...activeValues(global.damage)], raiseDice, options: {shots, recoil: shots > 1}, resource});
+      damageMods: [system.actions?.dmgMod, ...activeValues(global.damage)], raiseDice,
+      options: {shots, recoil: shots > 1, heavyWeapon: !!system.isHeavyWeapon}, resource});
   }
   if (!attacks.length && (actor.type === "character" || actor.itemTypes.skill.some(item => item.system.swid === "fighting"))) {
     addAttack({name: sbsI18n("swade-better-setting.UI.Unarmed_de8d2be353"), mode: "melee", traitName: sbsI18n("swade-better-setting.UI.Fighting_21e2e5c54b"), damage: "@str", ap: sumFlat(activeValues(global.ap)),
@@ -235,16 +238,16 @@ export function actorCombatProfile(actor) {
   }
   const profile = {
     parry: sys.stats.parry.value, toughness: sys.stats.toughness.value,
-    armor: sys.stats.toughness.armor, scale, wounds: sys.wounds.max,
+    armor: sys.stats.toughness.armor, heavyArmor: !!actor.hasHeavyArmor, scale, wounds: sys.wounds.max,
     bennies: wildcard ? sys.bennies.max : 0, hardy: !!actor.getFlag("swade", "hardy"), ignored: sys.wounds.ignored ?? 0,
     woundsOrFatigueIgnored: sys.woundsOrFatigue?.ignored ?? 0, attackModifiers, damageModifier,
     spirit: actorTrait(actor, sys.attributes.spirit), vigor: actorTrait(actor, sys.attributes.vigor), attacks
   };
   profile.spirit.modifier += sys.attributes.spirit.unShakeBonus ?? 0;
   profile.vigor.modifier += sys.attributes.vigor.soakBonus ?? 0;
-  if (game.settings.get("swade", "unarmoredHero") && actor.isUnarmored) profile.vigor.modifier += 2;
+  if (wildcard && game.settings.get("swade", "unarmoredHero") && actor.isUnarmored) profile.vigor.modifier += 2;
   const coverage = !attacks.length ? sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18") : warnings.length ? sbsI18n("swade-better-setting.UI.Partial_a4d50fb854") : sbsI18n("swade-better-setting.UI.Modeled_3d9aa9f480");
-  return {profile, warnings, coverage};
+  return {profile, warnings, coverage, rated: attacks.length > 0};
 }
 
 const cache = new WeakMap();
@@ -253,7 +256,7 @@ export function estimateActor(actor) {
   const woundCap = game.settings.get("swade", "woundCap") ? 4 : 0;
   const key = JSON.stringify([data.profile, woundCap]);
   const last = cache.get(actor);
-  if (last?.key === key) return {...last, warnings: data.warnings, coverage: data.coverage};
+  if (last?.key === key) return {...last, ...data};
   const result = {...data, ...creatureRating(data.profile, woundCap), woundCap, key};
   cache.set(actor, result);
   return result;
@@ -267,15 +270,15 @@ export function actorRating(actor) {
   if (overridden || Number.isFinite(advances) && advances >= 0) {
     const cap = game.settings.get("swade", "woundCap") ? 4 : 0;
     return {cr: roundCR(rating), rawCR: rating, strength: advancementStrength(rating, cap),
-      coverage: overridden ? sbsI18n("swade-better-setting.UI.Manual_b0b9fe24ff") : sbsI18n("swade-better-setting.UI.Advances_34a1a778f4"), warnings: []};
+      coverage: overridden ? sbsI18n("swade-better-setting.UI.Manual_b0b9fe24ff") : sbsI18n("swade-better-setting.UI.Advances_34a1a778f4"), warnings: [], rated: true, manual: overridden};
   }
-  if (!["character", "npc"].includes(actor.type)) return {cr: null, rawCR: null, strength: 0, coverage: sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18"), warnings: []};
+  if (!["character", "npc"].includes(actor.type)) return {cr: null, rawCR: null, strength: 0, coverage: sbsI18n("swade-better-setting.UI.Unrated_c29bb93b18"), warnings: [], rated: false};
   return estimateActor(actor);
 }
 
 export function actorCR(actor, {raw = false} = {}) {
   const estimate = actorRating(actor);
-  return raw ? estimate.rawCR : estimate.cr;
+  return estimate.rated ? (raw ? estimate.rawCR : estimate.cr) : null;
 }
 
 export const EFFECT_TEMPLATE = `${EFFECTS}.effect`;
@@ -283,7 +286,8 @@ export const EFFECT_TEMPLATE = `${EFFECTS}.effect`;
 export function npcSource(draft, items, token, idFactory, api) {
   const {name, rank, role, wildcard, size, mode, trait} = draft;
   const casting = compileCasting(draft, items, idFactory);
-  const wounds = (wildcard ? 3 : 0) + (draft.resilience ?? 0) + (draft.ancestrySizeWounds === false ? 0 : sizeWounds(size));
+  const baseWounds = wildcard ? 3 : bounded(Math.trunc(Number(draft.resilience) || 0), 0, 2);
+  const wounds = baseWounds + (draft.ancestrySizeWounds === false ? 0 : sizeWounds(size));
   const bennies = wildcard ? draft.bennies : 0;
   const npc = {rank, role, coreSkills: draft.core, cr: draft.cr};
   if (draft.archetypeTag) npc.archetypeTag = draft.archetypeTag;

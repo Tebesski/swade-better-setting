@@ -170,7 +170,7 @@ export class BestiaryCatalog {
   async loadRatings(rows, active, update) {
     await this.loadActors(rows.filter(row => !this.rating(row)), active, (row, actor) => {
       const estimate = actor && actorRating(actor);
-      const rating = estimate && estimate.coverage !== "Unrated"
+      const rating = estimate?.rated
         ? {cr: estimate.cr, rawCR: estimate.rawCR, coverage: estimate.coverage} : noRating;
       this.ratings.set(row.uuid, rating);
       update(row, rating);

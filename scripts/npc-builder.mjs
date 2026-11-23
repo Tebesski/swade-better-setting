@@ -507,7 +507,9 @@ class NPCBuilder extends HandlebarsApplicationMixin(ApplicationV2) {
       art: this.token.prototypeToken.texture?.src || actor.prototypeToken.texture.src || actor.img,
       power: draft.mode === "power", ranged: draft.mode === "ranged", hasAttack: draft.mode !== "none",
       castingEntries, castingRules: CASTING_RULES, hasBetterPowers, entryChoices, attackRows, signatureDetails,
-      cr: draft.cr === null && estimate.coverage === "Unrated" ? "" : formatCR(draft.cr ?? estimate.cr), damageError: this.damageError,
+      cr: draft.cr === null && !estimate.rated ? "" : formatCR(draft.cr ?? estimate.cr),
+      crHint: [sbsI18n("swade-better-setting.UI.CRmeasuresequivalentWildCardPC_033b9514ca"),
+        estimate.coverage, ...estimate.warnings].join("\n"), damageError: this.damageError,
       initiative: INITIATIVE.map(option => ({...option, checked: draft.initiative[option.key]})),
       tinyMelee: draft.size === -4 && draft.mode === "melee",
       defenses: {parry, toughness, armor}, wounds};

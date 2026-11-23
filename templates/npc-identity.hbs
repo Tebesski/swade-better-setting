@@ -12,7 +12,7 @@
       </div>
       <label class="sbs-npc-cr sbs-npc-divided"><span>{{localize "swade-better-setting.UI.CR_c13539d156"}} <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
         aria-label="{{localize "swade-better-setting.UI.CRmeasuresequivalentWildCardPC_033b9514ca"}}"
-        data-tooltip="{{localize "swade-better-setting.UI.CRmeasuresequivalentWildCardPC_033b9514ca"}}"></i></span>
+        data-tooltip-text="{{crHint}}"></i></span>
         <input type="text" data-cr value="{{cr}}" aria-label="{{localize "swade-better-setting.UI.CreatureRating_3c8803106b"}}"></label>
     </div>
 
@@ -35,6 +35,7 @@
       </div>
       <div class="sbs-npc-stamina sbs-npc-divided">
         <div class="sbs-npc-wounds"><span>{{localize "swade-better-setting.UI.Wounds_16a5581737"}}</span><output aria-label="{{localize "swade-better-setting.UI.Wounds_16a5581737"}}">{{wounds}}</output></div>
+        {{#unless draft.wildcard}}
         <label><span>{{localize "swade-better-setting.UI.Resilience_32059a8788"}} <i class="fa-solid fa-circle-info sbs-npc-info" tabindex="0"
           aria-label="{{localize "swade-better-setting.UI.AddsoneortwoWoundsto_43e7d4488c"}}" data-tooltip="{{localize "swade-better-setting.UI.AddsoneortwoWoundsto_43e7d4488c"}}"></i></span>
           <select data-path="resilience" data-number aria-label="{{localize "swade-better-setting.UI.Resilience_32059a8788"}}">
@@ -42,6 +43,7 @@
           <option value="1" {{#if (eq draft.resilience 1)}}selected{{/if}}>{{localize "swade-better-setting.UI.Resilient1_7d3d76e7ce"}}</option>
           <option value="2" {{#if (eq draft.resilience 2)}}selected{{/if}}>{{localize "swade-better-setting.UI.VeryResilient2_796c193aa9"}}</option>
         </select></label>
+        {{/unless}}
       </div>
       <div class="sbs-npc-with-picker sbs-npc-size sbs-npc-divided">
         <label for="{{partId}}-size">{{localize "swade-better-setting.UI.Size_1af8519073"}}</label>

@@ -1,19 +1,34 @@
 import {t as sbsI18n} from "./i18n.mjs";
 import {openNPCBuilder} from "./npc-builder.mjs";
-import {EFFECTS, NPC_FLAG, actorRating, managedTags, npcRank, rankIndex} from "./npc-data.mjs";
-import {MIN_CR, RANKS, advancementStrength, encounterThreat, formatCR, parseCR} from "./npc-math.mjs";
+import {EFFECTS, NPC_FLAG, actorCombatProfile, actorRating, managedTags, npcRank, rankIndex} from "./npc-data.mjs";
+import {MIN_CR, RANKS, advancementStrength, encounterThreat, formatCR, parseCR, threatLabel} from "./npc-math.mjs";
+import {MAX_FORECAST_COMBATANTS} from "./encounter-forecast.mjs";
+import {cancelEncounterForecast, requestEncounterForecast} from "./encounter-job.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {wrapMethod} from "./integrations.mjs";
 
-function refreshThreat(app, root) {
+function encounterSnapshot(actor, rating) {
+  const {profile, warnings} = rating.profile ? rating : actorCombatProfile(actor);
+  if (!profile.attacks.length) return null;
+  const system = actor.system;
+  const pools = {};
+  for (const {resource} of profile.attacks) {
+    if (resource) pools[resource.key] = system.powerPoints?.[resource.key.slice(3)]?.value ?? resource.capacity;
+  }
+  return {profile, wounds: system.wounds.value, shaken: system.status?.isShaken,
+    fatigue: Math.max(0, (system.fatigue?.value ?? 0) - (system.fatigue?.ignored ?? 0)),
+    bennies: actor.isWildcard ? system.bennies.value : 0, pools, partial: warnings.length > 0};
+}
+
+function refreshThreat(app, root, ratings = new Map()) {
   if (!game.user.isGM || !root) return;
   root.querySelector(".sbs-encounter-threat")?.remove();
   const combat = app.viewed;
   const tracker = root.querySelector(".combat-tracker");
   if (!combat || !tracker || combat.type === "dramaticTask") return;
   const {HOSTILE, FRIENDLY, SECRET} = CONST.TOKEN_DISPOSITIONS;
-  const party = {strength: 0, cr: 0, count: 0};
-  const enemies = {strength: 0, cr: 0, count: 0};
+  const party = {strength: 0, cr: 0, count: 0, active: []};
+  const enemies = {strength: 0, cr: 0, count: 0, active: []};
   let unrated = 0;
   const scores = new Map();
   for (const combatant of combat.combatants) {
@@ -22,39 +37,53 @@ function refreshThreat(app, root) {
     const disposition = combatant.token?.disposition ?? actor.prototypeToken?.disposition;
     const side = disposition === FRIENDLY ? party : disposition === HOSTILE || disposition === SECRET ? enemies : null;
     if (!side) continue;
-    const rating = actorRating(actor);
+    // Linked tokens share an actor. Rate that actor once, while counting every
+    // combatant separately in the encounter totals.
+    if (!ratings.has(actor)) ratings.set(actor, actorRating(actor));
+    const rating = ratings.get(actor);
     scores.set(combatant.id, rating);
-    const fallback = rating.coverage === "Unrated";
+    const fallback = rating.rated === false;
     if (fallback) unrated++;
     side.cr += fallback ? MIN_CR : rating.cr;
     side.count++;
     if (!combatant.isDefeated && !combatant.isIncapacitated && !actor.system.status?.isIncapacitated) {
+      side.active.push(combatant);
       side.strength += fallback ? advancementStrength(MIN_CR) : rating.strength;
     }
   }
-  const {label, threat, partyWin} = encounterThreat(enemies.strength, party.strength);
+  const budget = encounterThreat(enemies.strength, party.strength, {partyPresent: party.count > 0});
   const panel = document.createElement("section");
   panel.className = "sbs-encounter-threat";
   const heading = document.createElement("strong");
-  heading.textContent = sbsI18n("swade-better-setting.UI.ThreatLevel_4f38feb60a", {p0: (label)});
   const scale = document.createElement("div");
   scale.className = "sbs-threat-scale";
   scale.tabIndex = 0;
   const average = side => side.count ? formatCR(Number((side.cr / side.count).toFixed(1))) : "—";
-  const win = partyWin == null ? "—" : `${Math.round(partyWin * 100)}%`;
-  const details = [`Average party CR: ${average(party)}`, `Average encounter CR: ${average(enemies)}`, `Estimated party win chance: ${win}`];
-  if (unrated) details.push(`Unrated combatants count as CR ${formatCR(MIN_CR)} in this encounter.`);
-  scale.dataset.tooltip = details.join(`<br>`);
-  scale.setAttribute("aria-label", details.join(". "));
-  if (threat !== null) {
+  const details = [sbsI18n("swade-better-setting.CR.PartyAverage", {value: average(party)}),
+    sbsI18n("swade-better-setting.CR.EnemyAverage", {value: average(enemies)})];
+  if (unrated) details.push(sbsI18n("swade-better-setting.CR.UnratedFallback", {count: unrated, cr: formatCR(MIN_CR)}));
+  function display(label, threat, notes) {
+    heading.textContent = sbsI18n("swade-better-setting.UI.ThreatLevel_4f38feb60a", {p0: label});
+    const lines = [...details, ...notes];
+    scale.dataset.tooltip = lines.join("<br>");
+    scale.setAttribute("aria-label", lines.join("\n"));
+    scale.replaceChildren();
+    if (threat === null) return;
     const pointer = document.createElement("i");
     pointer.className = "sbs-threat-pointer";
     pointer.style.setProperty("--threat", `${threat * 100}%`);
     pointer.setAttribute("aria-hidden", "true");
     scale.append(pointer);
   }
+  const budgetNotes = [sbsI18n("swade-better-setting.CR.WinEstimate", {
+    value: budget.partyWin == null ? "—" : `${Math.round(budget.partyWin * 100)}%`
+  })];
+  if (party.active.length && enemies.active.length && party.active.length !== enemies.active.length) {
+    budgetNotes.push(sbsI18n("swade-better-setting.CR.UnevenNumbers", {party: party.active.length, enemies: enemies.active.length}));
+  }
   panel.append(heading, scale);
   tracker.before(panel);
+  showEncounterForecast({combat, party, enemies, ratings, panel, budget, budgetNotes, display});
   for (const row of tracker.querySelectorAll("[data-combatant-id].combatant")) {
     row.querySelector(".sbs-combatant-cr")?.remove();
     const rating = scores.get(row.dataset.combatantId);
@@ -62,9 +91,49 @@ function refreshThreat(app, root) {
     if (!rating || !name) continue;
     const badge = document.createElement("small");
     badge.className = "sbs-combatant-cr";
-    badge.textContent = rating.coverage === "Unrated" ? rating.coverage : `CR ${formatCR(rating.cr)}`;
+    badge.textContent = rating.rated === false ? rating.coverage : `CR ${formatCR(rating.cr)}`;
     badge.dataset.tooltip = foundry.utils.escapeHTML([rating.coverage, ...rating.warnings].join("\n"));
     name.append(badge);
+  }
+}
+
+function showEncounterForecast({combat, party, enemies, ratings, panel, budget, budgetNotes, display}) {
+  const active = [...party.active, ...enemies.active].map(combatant => combatant.actor);
+  let reason;
+  if (active.some(actor => ratings.get(actor).manual)) reason = "swade-better-setting.CR.ForecastManual";
+  else if (active.length > MAX_FORECAST_COMBATANTS) reason = "swade-better-setting.CR.ForecastLarge";
+  else if (active.some(actor => !["character", "npc"].includes(actor.type) || !ratings.get(actor).rated)) reason = "swade-better-setting.CR.ForecastMissing";
+  let sides;
+  if (party.active.length && enemies.active.length && !reason) {
+    const actors = new Map([...new Set(active)].map(actor => [actor, encounterSnapshot(actor, ratings.get(actor))]));
+    sides = [party, enemies].map(side => side.active.map(({actor, group}) => {
+      const entry = actors.get(actor);
+      return entry && {...entry, group: group?.id ?? null};
+    }));
+    if (sides.some(side => side.includes(null))) reason = "swade-better-setting.CR.ForecastMissing";
+  }
+  if (!sides || reason) {
+    cancelEncounterForecast(combat);
+    if (reason && party.active.length && enemies.active.length) budgetNotes.push(sbsI18n(reason));
+    display(budget.label, budget.threat, budgetNotes);
+  } else {
+    display(budget.label, budget.threat, [...budgetNotes, sbsI18n("swade-better-setting.CR.ForecastPending")]);
+    const cap = game.settings.get("swade", "woundCap") ? 4 : 0;
+    requestEncounterForecast(combat, sides, cap).then(result => {
+      if (!panel.parentElement) return;
+      if (!result) return display(budget.label, budget.threat, [...budgetNotes, sbsI18n("swade-better-setting.CR.ForecastUnavailable")]);
+      const {wins, unresolved, trials} = result;
+      const fraction = wins / trials;
+      const value = new Intl.NumberFormat(game.i18n?.lang, {style: "percent",
+        maximumFractionDigits: fraction > 0 && fraction < .01 || fraction > .99 && fraction < 1 ? 2 : 0}).format(fraction);
+      const notes = [sbsI18n("swade-better-setting.CR.ForecastWins", {value, wins, trials})];
+      if (sides.some(side => side.some(actor => actor.partial))) notes.push(sbsI18n("swade-better-setting.CR.ForecastPartial"));
+      if (unresolved) notes.push(sbsI18n("swade-better-setting.CR.ForecastUnresolved", {unresolved, trials}));
+      const low = (trials - wins - unresolved) / trials, high = (trials - wins) / trials;
+      if (threatLabel(low) !== threatLabel(high)) return display(sbsI18n("swade-better-setting.CR.Inconclusive"), null, notes);
+      const threat = (low + high) / 2;
+      display(threatLabel(threat), threat, notes);
+    });
   }
 }
 
@@ -113,7 +182,7 @@ function actorCRControl(app, root) {
   cr.setAttribute("aria-label", sbsI18n("swade-better-setting.UI.CreatureRating_3c8803106b"));
   const updateRating = () => {
     const rating = actorRating(actor);
-    cr.value = rating.coverage === "Unrated" && editable ? "" : formatCR(rating.coverage === "Unrated" ? null : rating.cr);
+    cr.value = rating.rated ? formatCR(rating.cr) : editable ? "" : "—";
   };
   updateRating();
   if (editable) {
@@ -175,15 +244,19 @@ export function installNPCTools() {
   });
   Hooks.on("renderCharacterSheet", actorCRControl);
   Hooks.on("renderSwadeNPCSheet", actorCRControl);
-  Hooks.on("renderCombatTracker", refreshThreat);
+  Hooks.on("renderCombatTracker", (app, root) => refreshThreat(app, root));
+  Hooks.on("deleteCombat", cancelEncounterForecast);
   let refreshPending = false;
   const refresh = () => {
     if (!game.user.isGM || refreshPending) return;
     refreshPending = true;
     queueMicrotask(() => {
       refreshPending = false;
+      // Share only within this refresh; effects, equipment and actor edits must
+      // always be reflected in the next refresh, without stale rating caches.
+      const ratings = new Map();
       for (const app of [ui.combat, ui.combat?.popout]) {
-        if (app?.element?.isConnected) refreshThreat(app, app.element);
+        if (app?.element?.isConnected) refreshThreat(app, app.element, ratings);
       }
     });
   };

@@ -1,4 +1,5 @@
 import {t as sbsI18n} from "./i18n.mjs";
+import {registerIllumination, installIllumination} from "./illumination.mjs";
 import {MODULE_ID} from "./skills.mjs";
 import {initializeLibrary, processPendingSkill, processPendingSkills} from "./library.mjs";
 import {initializeActionLibrary, libraryActions} from "./action-library.mjs";
@@ -51,6 +52,7 @@ Hooks.once("init", () => {
     registerAdvancedTargeting();
   }
   registerThemes();
+  registerIllumination();
   registerEncumbranceSettings();
   registerNPCPresets(ROLE_PROFILES);
   game.settings.register(MODULE_ID, "libraryInitialized", {scope: "world", config: false, type: Boolean, default: false});
@@ -64,6 +66,8 @@ Hooks.once("init", () => {
 });
 
 Hooks.once("setup", () => {
+  // Chat history renders before ready, so its layout hooks must already exist.
+  installChatLayout();
   initializeDraftSheet();
   installEncumbrance();
   installCoreSkills();
@@ -79,8 +83,8 @@ Hooks.once("setup", () => {
 
 Hooks.once("ready", async () => {
   installRollLayout();
+  installIllumination();
   installImprovisedWeapons();
-  installChatLayout();
   installAdvancedTargeting();
   installPartySheet();
   initializeActionLibrary().catch(error => {
