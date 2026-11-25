@@ -6,7 +6,8 @@ const THEMES = {
   setting: [sbsI18n("swade-better-setting.UI.BetterSettingtheme_66017dc02b"), sbsI18n("swade-better-setting.UI.StylestheBestiaryNPCBuilderand_ac4672d8a2")],
   templates: [sbsI18n("swade-better-setting.UI.BetterTemplatestheme_0d307f04f5"), sbsI18n("swade-better-setting.UI.Stylesthetemplatecompendiumeditorand_a00063c82f")],
   powers: [sbsI18n("swade-better-setting.UI.BetterPowerstheme_940e6ff2e2"), sbsI18n("swade-better-setting.UI.Stylesspellcastingpanelspowermodifiersand_f85907f2a2")],
-  effects: [sbsI18n("swade-better-setting.UI.BetterEffectstheme_555455ffb7"), sbsI18n("swade-better-setting.UI.StylesAEGIS_2247563f06")]
+  effects: [sbsI18n("swade-better-setting.UI.BetterEffectstheme_555455ffb7"), sbsI18n("swade-better-setting.UI.StylesAEGIS_2247563f06")],
+  "subsystems-chase": [sbsI18n("swade-better-setting.UI.SubsystemsChasetheme_8601babdd3"), sbsI18n("swade-better-setting.UI.StylestheChaseboardmanagerand_aa89ad95ca")]
 };
 const CHOICES = {get default() { return sbsI18n("swade-better-setting.UI.Default_21b111cbfe"); }, get white() { return sbsI18n("swade-better-setting.UI.WhitePorcelain_28e7a86c3f"); }};
 
@@ -21,9 +22,6 @@ function applyTheme(component) {
 
 export function registerThemes() {
   const themes = {...THEMES};
-  if (game.modules.get("swade-better-subsystems")?.active) {
-    themes["subsystems-chase"] = [sbsI18n("swade-better-setting.UI.SubsystemsChasetheme_8601babdd3"), sbsI18n("swade-better-setting.UI.StylestheChaseboardmanagerand_aa89ad95ca")];
-  }
   for (const [component, [name, hint]] of Object.entries(themes)) {
     const key = `theme-${component}`;
     game.settings.register(MODULE_ID, key, {
@@ -41,6 +39,7 @@ export function registerThemes() {
       fields.className = "sbs-theme-options";
       content.append(fields);
       for (const [component, [name, hint]] of Object.entries(themes)) {
+        if (component === "subsystems-chase" && !game.modules.get("swade-better-subsystems")?.active) continue;
         const row = document.createElement("label");
         const caption = document.createElement("span");
         caption.textContent = name;

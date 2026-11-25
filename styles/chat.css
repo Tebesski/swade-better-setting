@@ -55,6 +55,11 @@
 .sbs-chat-card .sbs-roll-modifier-accordion .modifier-list { margin-block: 5px; padding-inline-start: 24px; }
 .sbs-chat-card.sbs-has-target-rows .swade-roll-message > .targets { display: none; }
 .sbs-chat-card.sbs-has-target-rows :is(.swadetools-wrapper, .swadetools-target-title) { display: none; }
+.sbs-chat-card.sbs-has-target-rows .swadetools-targetwrap { display: none; }
+.sbs-attack-outcome { display: flex; align-items: center; justify-content: center; text-align: center; gap: 5px; font-weight: 700; margin-block: 5px; }
+.sbs-attack-outcome[data-outcome="failure"] { color: #a42922; }
+.sbs-attack-outcome[data-outcome="success"] { color: #185c3a; }
+.sbs-attack-outcome[data-outcome="raise"] { color: #326bab; }
 .sbs-chat-card.sbe-inline-damage-card.sbs-has-target-rows .damage-rolls { display: none; }
 .sbs-chat-card.sbe-inline-damage-card.sbs-has-target-rows button.calculate-wounds { display: none; }
 .sbe-target-damage-result { font-weight: 700; }

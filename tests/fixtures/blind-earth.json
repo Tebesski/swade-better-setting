@@ -1,0 +1,221 @@
+{
+  "name": "Blind (Earth)",
+  "type": "power",
+  "img": "https://assets.forge-vtt.com/bazaar/core/icons/magic/perception/eye-slit-orange.webp",
+  "folder": null,
+  "system": {
+    "swid": "blind",
+    "source": "Avatar",
+    "description": "<p>Those affected by this Technique suffer blurred vision or near-complete blindness with a raise.</p><p>Success means the victim suffers a −2 penalty to all actions involving sight, or −4 with a raise.</p><p>The victim automatically tries to shake off the effect with a Vigor roll as a free action at the end of his following turns. Success removes 2 points of penalties, and a raise removes the effect entirely.</p>",
+    "rank": "Novice",
+    "pp": 2,
+    "range": "",
+    "duration": "Instant",
+    "trapping": "Bright flash of light, dust in eyes, salty water",
+    "arcane": "Earthbending",
+    "actions": {
+      "trait": "Bending",
+      "traitMod": "",
+      "dmgMod": "",
+      "additional": {}
+    },
+    "innate": false,
+    "damage": "",
+    "templates": {
+      "medium": true,
+      "large": true,
+      "scone": false,
+      "cone": false,
+      "stream": false,
+      "small": false
+    },
+    "notes": "",
+    "additionalStats": {},
+    "choiceSets": [],
+    "bonusDamageDie": 6,
+    "bonusDamageDice": 1,
+    "activities": [],
+    "favorite": false,
+    "ap": 0,
+    "modifiers": []
+  },
+  "flags": {
+    "swade-pro-bending": {
+      "key": "blind",
+      "contentRevision": 2,
+      "technique": true,
+      "element": "universal",
+      "mode": "targets",
+      "sourcePenalty": "-2",
+      "areaOptions": true
+    },
+    "swade-better-effects": {
+      "tags": [
+        "bending-technique",
+        "offensive-technique"
+      ]
+    },
+    "swade-better-powers": {
+      "powerModifiers": [
+        {
+          "id": "area-effect",
+          "name": "Area Effect",
+          "description": "<p>The power affects everyone in a Medium Blast Template for +2 points, or a Large Blast Template for +3.</p>",
+          "options": [
+            {
+              "id": "pm1",
+              "cost": 2,
+              "label": "-1"
+            },
+            {
+              "id": "pm3",
+              "cost": 6,
+              "label": "-3"
+            }
+          ]
+        },
+        {
+          "id": "strong",
+          "name": "Strong",
+          "description": "<p>The Vigour roll to shake off the effect is made at ‐2.</p>",
+          "options": [
+            {
+              "id": "pm2",
+              "cost": 4,
+              "label": ""
+            }
+          ]
+        }
+      ],
+      "applyEffects": {
+        "base": [
+          "Compendium.swade-pro-bending.effects.Item.trRAMuusLXQp4QBZ"
+        ],
+        "modes": {
+          "modifiers": {
+            "strong": {
+              "pm2": "add"
+            }
+          }
+        },
+        "raised": [
+          "Compendium.swade-pro-bending.effects.Item.01MityrniFRUo0RE"
+        ],
+        "modifiers": {
+          "strong": {
+            "pm2": [
+              "Item.trRAMuusLXQp4QBZ"
+            ]
+          }
+        }
+      }
+    },
+    "swade-better-templates": {
+      "templates": {
+        "smallRing": false,
+        "mediumRing": false,
+        "largeRing": false
+      },
+      "automation": {
+        "version": 1,
+        "enabled": true,
+        "label": "",
+        "placementRange": {
+          "enabled": false,
+          "max": 0
+        },
+        "shapes": [
+          "medium",
+          "large"
+        ],
+        "selectTokensOnPlacement": true,
+        "expiration": {
+          "enabled": true,
+          "currentTurnEnd": false,
+          "removeOnPlacement": true,
+          "amount": 5,
+          "unit": "rounds"
+        },
+        "attachable": false,
+        "separateRegions": {
+          "enabled": false,
+          "audio": false,
+          "tiles": false,
+          "lights": false,
+          "walls": false
+        },
+        "wallRestriction": {
+          "enabled": false,
+          "type": "move",
+          "priority": 0
+        },
+        "advanced": {
+          "hideFromPlayers": false,
+          "enabled": false,
+          "gridBased": true,
+          "color": "#a728cc",
+          "visibility": 0,
+          "highlightMode": "shapes",
+          "displayMeasurements": true
+        },
+        "behaviors": [],
+        "raises": [],
+        "modifiers": [
+          {
+            "id": "area-effect",
+            "name": "Area Effect",
+            "description": "<p>The power affects everyone in a Medium Blast Template for +2 points, or a Large Blast Template for +3.</p>",
+            "options": [
+              {
+                "id": "pm1",
+                "label": "-1",
+                "cost": 2,
+                "changes": []
+              },
+              {
+                "id": "pm3",
+                "label": "-3",
+                "cost": 6,
+                "changes": []
+              }
+            ]
+          },
+          {
+            "id": "strong",
+            "name": "Strong",
+            "description": "<p>The Vigour roll to shake off the effect is made at ‐2.</p>",
+            "options": [
+              {
+                "id": "pm2",
+                "label": "",
+                "cost": 4,
+                "changes": []
+              }
+            ]
+          }
+        ]
+      }
+    }
+  },
+  "effects": [],
+  "_stats": {
+    "coreVersion": "14.369",
+    "systemId": "swade",
+    "systemVersion": "6.0.4",
+    "createdTime": 1795454911044,
+    "modifiedTime": 1795454911044,
+    "lastModifiedBy": "hdq5XBT8gy6TDJ4R",
+    "compendiumSource": "Compendium.swade-pro-bending.techniques.Item.7f8eb10ce285de79",
+    "duplicateSource": null,
+    "exportSource": {
+      "worldId": "champions-of-pro-bending",
+      "uuid": "Item.Bbsz6shf2uFfQ0Jc",
+      "coreVersion": "14.369",
+      "systemId": "swade",
+      "systemVersion": "6.0.4"
+    }
+  },
+  "ownership": {
+    "default": 0
+  }
+}

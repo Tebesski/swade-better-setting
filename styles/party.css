@@ -10,6 +10,12 @@
 .sbs-party-pin .sbs-party-entry .entry-name { font-weight: 700; }
 .sbs-party-pin .sbs-create-party { width: calc(100% - 12px); margin-inline: 6px; }
 .directory-list .sbs-party-storage-entry { display: none !important; }
+.sbs-party-folder > .folder-header .sbs-open-party-sheet {
+  flex: none; width: 1.25em; height: var(--sidebar-folder-height, 24px);
+  margin: 0 10px 0 0; padding: 0; border: 0; border-radius: 0;
+  background: transparent; color: inherit; font-size: inherit;
+  box-shadow: none; transition: none; transform: none;
+}
 
 .application.sbs-party-sheet {
   --party-panel: var(--sbs-surface, #1c202b);

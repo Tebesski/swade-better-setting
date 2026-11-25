@@ -2,6 +2,7 @@
 @import url("./party.css");
 @import url("./advanced-targeting.css");
 @import url("./chat.css");
+@import url("./scene-controls.css");
 
 /* Apply SWADE's inventory icon styles without adding layout boxes to the row. */
 .swade .sbs-native-chat-icon, .swade .sbs-native-chat-icon > .inventory { display: contents; }

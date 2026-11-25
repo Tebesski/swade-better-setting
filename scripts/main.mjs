@@ -10,6 +10,7 @@ import {installBestiary, openBestiary} from "./bestiary.mjs";
 import {openNPCBuilder} from "./npc-builder.mjs";
 import {installNPCTools} from "./npc-tools.mjs";
 import {registerThemes} from "./themes.mjs";
+import {installDefeatedAppearance, installStatusCompatibility} from "./status-compatibility.mjs";
 import {installPartySheet, registerPartyShortcut} from "./party-sheet.mjs";
 import {registerPartyVaults} from "./party-vaults.mjs";
 import {installAdvancedTargeting, registerAdvancedTargeting, withAdvancedTargeting} from "./advanced-targeting.mjs";
@@ -55,6 +56,12 @@ Hooks.once("init", () => {
   registerIllumination();
   registerEncumbranceSettings();
   registerNPCPresets(ROLE_PROFILES);
+  game.settings.register(MODULE_ID, "compactSceneControls", {
+    name: "swade-better-setting.UI.CompactSceneControls",
+    hint: "swade-better-setting.UI.CompactSceneControlsHint",
+    scope: "client", config: true, type: Boolean, default: true,
+    onChange: applySceneControlsLayout
+  });
   game.settings.register(MODULE_ID, "libraryInitialized", {scope: "world", config: false, type: Boolean, default: false});
   class BetterCompendiumMenu extends foundry.applications.api.ApplicationV2 {
     render() { return openCompendium(); }
@@ -65,7 +72,17 @@ Hooks.once("init", () => {
   });
 });
 
+function applySceneControlsLayout(enabled) {
+  document.body.classList.toggle("sbs-compact-scene-controls", enabled);
+  // Recalculate Foundry's wrapping width using the restored native menu height.
+  if (!enabled && ui.controls?.element?.querySelector("#scene-controls-tools")?.clientHeight) {
+    ui.controls.setPosition({});
+  }
+}
+
 Hooks.once("setup", () => {
+  if (game.system.id === "swade") installDefeatedAppearance();
+  applySceneControlsLayout(game.settings.get(MODULE_ID, "compactSceneControls"));
   // Chat history renders before ready, so its layout hooks must already exist.
   installChatLayout();
   initializeDraftSheet();
@@ -82,6 +99,7 @@ Hooks.once("setup", () => {
 });
 
 Hooks.once("ready", async () => {
+  installStatusCompatibility().catch(error => console.error(`${MODULE_ID} | Shaken compatibility`, error));
   installRollLayout();
   installIllumination();
   installImprovisedWeapons();

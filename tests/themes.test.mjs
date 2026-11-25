@@ -26,11 +26,16 @@ test("a player's setting notification keeps the local user's saved theme", t => 
   t.after(() => { for (const key of Object.keys(environment)) delete globalThis[key]; });
 
   registerThemes();
+  // The saved setting must exist even if Subsystems is discovered later.
+  assert.ok(configs.has("theme-subsystems-chase"));
+  saved.set("theme-subsystems-chase", "white");
   ready();
   const theme = configs.get("theme-swade");
   assert.equal(theme.scope, "user");
   assert.ok(body.classes.has("sbs-white-swade"));
   assert.ok(detachedBody.classes.has("sbs-white-swade"));
+  assert.ok(body.classes.has("sbs-white-subsystems-chase"));
+  assert.ok(detachedBody.classes.has("sbs-white-subsystems-chase"));
 
   theme.onChange("default", {}, "another-user");
   assert.ok(body.classes.has("sbs-white-swade"));

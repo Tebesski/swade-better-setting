@@ -1,0 +1,55 @@
+/* Keep two compact columns above the other controls in the left sidebar. */
+.sbs-compact-scene-controls #ui-left #ui-left-column-1:has(> #scene-controls) {
+  --sbs-scene-control-gap: 4px;
+  --sbs-scene-control-row: calc(var(--control-size) + var(--sbs-scene-control-gap));
+  width: calc(2 * var(--sbs-scene-control-row) + var(--sbs-scene-control-gap));
+  min-height: 0;
+}
+
+.sbs-compact-scene-controls #ui-left #scene-controls {
+  min-height: 0;
+  gap: var(--sbs-scene-control-gap);
+  overflow: hidden;
+}
+
+.sbs-compact-scene-controls #scene-controls > :is(#scene-controls-layers, #scene-controls-controls, #scene-controls-tools) {
+  box-sizing: border-box;
+  flex: 0 0 var(--sbs-scene-control-row);
+  width: var(--sbs-scene-control-row);
+  min-height: 0;
+  height: auto;
+  max-height: 100%;
+  /* Leave room for whole rows at rest, including on scaled interfaces. */
+  max-height: min(100%, max(var(--sbs-scene-control-row), round(down, 100%, var(--sbs-scene-control-row))));
+  align-self: flex-start;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--sbs-scene-control-gap);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: none;
+  overscroll-behavior-y: contain;
+  padding: calc(var(--sbs-scene-control-gap) / 2);
+  scroll-padding-block: calc(var(--sbs-scene-control-gap) / 2);
+  scroll-snap-type: y proximity;
+  pointer-events: auto;
+}
+
+.sbs-compact-scene-controls #scene-controls > :is(#scene-controls-layers, #scene-controls-controls, #scene-controls-tools) > li {
+  flex: 0 0 var(--control-size);
+  width: var(--control-size);
+  height: var(--control-size);
+  display: flex;
+  align-items: center;
+  margin: 0;
+  padding: 0;
+  scroll-snap-align: start;
+}
+
+.sbs-compact-scene-controls #scene-controls > :is(#scene-controls-layers, #scene-controls-controls, #scene-controls-tools) > li > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+}

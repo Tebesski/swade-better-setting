@@ -109,6 +109,8 @@
       "Gear_d6eaec65e7": "Gear",
       "Weapons_aafc7b0e9b": "Weapons",
       "Armor_a592855d05": "Armor",
+      "CompactSceneControls": "Compact Scene Controls",
+      "CompactSceneControlsHint": "Keep scene controls in two columns and scroll when tools do not fit.",
       "Shields_36786280d5": "Shields",
       "Powers_3286cc91e5": "Powers",
       "Descriptiononly_afe4a1d395": "Description only",

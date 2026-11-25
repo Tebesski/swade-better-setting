@@ -32,7 +32,7 @@
 
 /* Opted-in applications and panels receive this palette. Chat uses its native theme. */
 :is(
-  body.sbs-white-swade :is(.sbs-standard-swade-sheet, .sbs-party-sheet, .sbs-party-dialog, .application.swade.roll-dialog),
+  body.sbs-white-swade :is(.sbs-standard-swade-sheet, .sbs-party-sheet, .sbs-party-dialog, .application.swade.roll-dialog, #context-menu.sgi-menu),
   body.sbs-white-setting :is(
     .sbs-picker:not(.sbs-power-picker, .sbt-catalog-dialog, .sbp-dialog, .sbe-app),
     .sbs-compendium-dialog:not(.sbt-library-dialog),
@@ -41,7 +41,7 @@
   body.sbs-white-templates :is(.sbt-builder, .sbt-library, .sbt-library-dialog, .sbt-catalog-dialog, .sbt-dock, .sbt-cast-options, .sbt-cast-template-controls),
   body.sbs-white-powers :is(.sbp-dialog, .sbp-power-timers, .sbs-power-picker, .sbs-power-roll, .sbs-powers, .sbs-modifiers-tab, .sbs-casting-modifiers, .sbp-library-behaviors),
   body.sbs-white-effects :is(.sbe-app, .sbe-aegis, .sbe-targeted-adapter),
-  body.sbs-white-subsystems-chase .sbs-chase-theme
+  body.sbs-white-subsystems-chase :is(.sbs-chase-theme, .sbs-subsystem-manager)
 ):not(.chat-message, .chat-message *):not(:is(.application, .window-app).sheet:not(.sbs-standard-swade-sheet, .sbs-party-sheet, .sbs-skill-draft, .sbs-npc-item-draft, .sbe-aegis) *) {
   --sbs-paper: #fcfaf6;
   --sbs-surface: #fffdf9;
@@ -150,6 +150,34 @@
     background: var(--sbs-paper);
     box-shadow: none;
     backdrop-filter: none;
+  }
+
+  /* Fixed native menus are appended to body, outside their source sheet.
+     Set their own Foundry palette as well as the shared Porcelain palette. */
+  &#context-menu {
+    --background-color: var(--sbs-surface);
+    --border-color: var(--sbs-line);
+    --text-color: var(--sbs-ink);
+    --hover-text-color: var(--sbs-ink);
+    --hover-entry-border: var(--sbs-line);
+    --hover-entry-background: var(--sbs-accent-soft);
+    --group-separator: var(--sbs-divider);
+    background: var(--sbs-surface);
+    color: var(--sbs-ink);
+    border-color: var(--sbs-line);
+
+    & .context-item {
+      color: var(--sbs-ink);
+      text-shadow: none;
+      transition: none;
+      animation: none;
+    }
+
+    & .context-item:hover {
+      color: var(--sbs-ink);
+      background: var(--sbs-accent-soft);
+      border-color: var(--sbs-line);
+    }
   }
 
   &, & > :is(.window-content, .window-header), & :is(button:disabled, input:disabled, select:disabled, textarea:disabled) {

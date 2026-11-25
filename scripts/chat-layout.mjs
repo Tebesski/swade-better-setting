@@ -13,7 +13,12 @@ function after(anchor, node) {
 
 function powerDescription(root, content, item) {
   let state = descriptions.get(root);
-  if (state) return state;
+  if (state) {
+    for (const duplicate of content.querySelectorAll(".sbs-chat-description")) if (duplicate !== state.accordion) duplicate.remove();
+    return state;
+  }
+  // Reroll providers may copy already-rendered HTML into a fresh chat message.
+  content.querySelectorAll(".sbs-chat-description").forEach(node => node.remove());
   const description = document.createElement("section"); description.className = "sbs-power-description";
   const modifiers = document.createElement("section"); modifiers.className = "sbs-power-description-modifiers";
   const accordion = document.createElement("details"); accordion.className = "sbs-chat-description"; accordion.open = true;
@@ -114,9 +119,16 @@ function layout(message, root) {
     }
     let anchor = after(itemHeader, flags);
     anchor = after(anchor, meta);
-    if (item.type === "power") {
+    if (item.system.description?.trim() || item.type === "power") {
       const description = powerDescription(root, content, item);
       after(anchor, description.accordion);
+      card.querySelectorAll(":scope > .card-content").forEach(node => { node.hidden = true; });
+    }
+    if (item.type === "power" && !content.querySelector(".template-controls")) {
+      const templates = game.modules.get("swade-better-templates")?.api;
+      const cast = game.modules.get("swade-better-powers")?.api?.getCastContext?.(message);
+      const controls = templates?.castTemplateControls?.(item, message, cast, card);
+      if (controls) card.append(controls);
     }
   } else if (flags && content.firstElementChild !== flags) {
     content.prepend(flags);
@@ -134,7 +146,14 @@ function layout(message, root) {
   }
   const castingOptions = content.querySelector(".sbp-cast-options-button");
   const modifierAccordion = content.querySelector(".sbs-roll-modifier-accordion, details.modifiers");
-  if (castingOptions && modifierAccordion && modifierAccordion.previousElementSibling !== castingOptions) modifierAccordion.before(castingOptions);
+  const attackOutcome = content.querySelector(".sbs-attack-outcomes");
+  if (attackOutcome && modifierAccordion && modifierAccordion.previousElementSibling !== attackOutcome) {
+    modifierAccordion.before(attackOutcome);
+  }
+  const modifierAnchor = modifierAccordion && (attackOutcome ?? modifierAccordion);
+  if (castingOptions && modifierAnchor && modifierAnchor.previousElementSibling !== castingOptions) {
+    modifierAnchor.before(castingOptions);
+  }
   const targetFlags = content.querySelector(".sbe-chat-target-flags");
   if (targetFlags) {
     const damage = context.rollType === "damage" || message.flags?.["swade-tools"]?.rolltype === "damage"

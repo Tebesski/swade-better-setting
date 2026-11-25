@@ -246,7 +246,7 @@ export function installAdvancedTargeting() {
   wrapMethod(item, "rollDamage", function(original, options = {}) {
     const action = options.sbsTargetingAction ?? Object.entries(this.system.actions?.additional ?? {})
       .find(([, entry]) => entry.name === options.flavour)?.[0];
-    return withAdvancedTargeting({actor: this.actor, item: this, action, skip: options.suppressChat}, () => original(options));
+    return withAdvancedTargeting({actor: this.actor, item: this, action, skip: options.suppressChat || !!options.sbeInlineTargetUuid}, () => original(options));
   });
   wrapMethod(item, "consume", function(original, ...args) {
     if (this.type !== "consumable") return original(...args);

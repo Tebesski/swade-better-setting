@@ -3,6 +3,7 @@ import {MODULE_ID, normalizeName} from "./skills.mjs";
 import {ChoicePicker} from "./picker.mjs";
 import {depositPartyMoney, partyMoney, preparePartyStash} from "./party-stash.mjs";
 import {installPartyVaultPermissions, isPartyVault, isVaultFor, prepareVaults, renderPartyGrid, vaultActions} from "./party-vaults.mjs";
+import {installPartyFolders, movePartyMember, pinPartyFolders} from "./party-folders.mjs";
 
 const template = part => "modules/" + MODULE_ID + "/templates/party/" + part + ".hbs";
 const byName = (a, b) => a.name.localeCompare(b.name);
@@ -87,6 +88,7 @@ function memberRows(app) {
 }
 
 function pinParties(root) {
+  if (pinPartyFolders(root)) return;
   const list = root.querySelector(".directory-list");
   if (!list) return;
   const rows = [...list.querySelectorAll(".directory-item.entry[data-entry-id]")].filter(row => {
@@ -130,6 +132,7 @@ export function installPartySheet() {
   const Native = CONFIG.Actor.sheetClasses.group?.["swade.GroupSheet"]?.cls;
   if (!Native) return;
   installPartyVaultPermissions();
+  installPartyFolders();
   const openParties = new Set();
   const pendingBennies = new Map();
 
@@ -345,7 +348,7 @@ export function installPartySheet() {
     async addMember(actor) {
       if (!editable(this) || !memberType(actor) || actor.pack || !actor.visible) return false;
       if (this.actor.system.members.has(actor.uuid)) return false;
-      await this.actor.update({"system.members": [...this.actor.system.members.keys(), actor.uuid]});
+      await movePartyMember(this.actor, actor);
       return true;
     }
 
@@ -368,8 +371,8 @@ export function installPartySheet() {
         content: `<p>${sbsI18n("swade-better-setting.UI.Remove_c3812fc4ac")} ` + name + " from the party?</p>", rejectClose: false
       });
       if (!confirmed || !editable(this)) return;
-      await this.actor.update({"system.members": [...this.actor.system.members.keys()].filter(id => id !== uuid),
-        ["flags." + MODULE_ID + ".partyActivities.-=" + activityKey(uuid)]: null});
+      if (member) await movePartyMember(this.actor, member, true);
+      await this.actor.unsetFlag(MODULE_ID, "partyActivities." + activityKey(uuid));
     }
 
     static rollSkill(event, target) {
